@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details - Devangi Sewing Products</title>
+
+  <!--
+    - favicon
+  -->
+  <link rel="shortcut icon" href="./assets/images/logo/favicon.ico" type="image/x-icon">
+
+  <!--
+    - custom css link
+  -->
+  <link rel="stylesheet" href="./assets/css/style-prefix.css">
+
+  <!--
+    - google font link
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- User dropdown styles -->
+  <style>
+    .user-dropdown-wrapper {
+      position: relative;
+    }
+
+    #user-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #f0f0f0;
+      border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+      min-width: 210px;
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    #user-dropdown.show { display: block; }
+    .user-dropdown-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #444;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+      transition: background 0.15s;
+    }
+    .user-dropdown-link:hover { background: #fef6f9; color: #e83e8c; }
+
+    @media (max-width: 500px) {
+      #user-dropdown {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90vw;
+        max-width: 300px;
+      }
+    }
+  </style>
+
+  <!-- New Products Card Styles -->
+  <style>
+    /* Override product-grid to use new card layout */
+    .product-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+
+    .product-main .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+      padding: 10px 0 30px;
+    }
+
+    /* Card wrapper */
+    .np-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+      overflow: hidden;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .np-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+    }
+
+    /* Image area */
+    .np-img-wrap {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+      background: #f9f9f9;
+    }
+
+    .np-img-wrap a {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .np-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.35s ease;
+    }
+
+    .np-img-hover {
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+    }
+
+    .np-img-wrap:hover .np-img-default {
+      opacity: 0;
+    }
+
+    .np-img-wrap:hover .np-img-hover {
+      opacity: 1;
+    }
+
+    /* Badge */
+    .np-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: 'Poppins', sans-serif;
+      z-index: 2;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .np-card:hover .np-badge,
+    .np-img-wrap:hover .np-badge {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+    }
+
+    /* Hover action buttons */
+    .np-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 3;
+    }
+
+    .np-img-wrap:hover .np-actions {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .np-action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #444;
+      font-size: 16px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .np-action-btn:hover {
+      background: #e83e8c;
+      color: #fff;
+    }
+
+    /* Info section */
+    .np-info {
+      padding: 14px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+    }
+
+    .np-cat {
+      font-size: 11px;
+      color: #e83e8c;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      text-decoration: none;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-title:hover {
+      color: #e83e8c;
+    }
+
+    /* Stars */
+    .np-stars {
+      display: flex;
+      gap: 2px;
+      color: #f5a623;
+      font-size: 13px;
+    }
+
+    /* Price row */
+    .np-price-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .np-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e83e8c;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-del {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    /* Add to Cart button */
+    .np-add-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px 0;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Poppins', sans-serif;
+      transition: background 0.2s;
+    }
+
+    .np-add-btn:hover {
+      background: #e83e8c;
+    }
+
+    .np-add-btn ion-icon {
+      font-size: 16px;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 570px) {
+      .product-main {
+        padding: 0 24px 40px;
+      }
+
+      .product-main .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 5px 0 20px;
+      }
+
+      .np-card {
+        border-radius: 10px;
+      }
+
+      .np-info {
+        padding: 10px 10px 14px;
+        gap: 3px;
+      }
+
+      .np-title {
+        font-size: 13px;
+      }
+
+      .np-price {
+        font-size: 14px;
+      }
+
+      .np-badge {
+        top: 8px;
+        left: 8px;
+        font-size: 9px;
+        padding: 2px 6px;
+      }
+
+      .np-add-btn {
+        padding: 8px 0;
+        font-size: 10px;
+        gap: 4px;
+      }
+
+      .np-add-btn ion-icon {
+        font-size: 14px;
+      }
+    }
+    /* Product Image Slider Styles */
+    .pdp-slider-container {
+      position: relative;
+      width: 100%;
+      background-color: #f7f7f7;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .pdp-slider {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; /* Firefox */
+    }
+
+    .pdp-slider::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+
+    .pdp-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      scroll-snap-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pdp-slide img {
+      width: 100%;
+      height: auto;
+      max-height: 600px;
+      object-fit: contain;
+      transition: transform 0.5s ease;
+      cursor: zoom-in;
+    }
+
+    .pdp-slide:hover img {
+      transform: scale(1.5);
+    }
+
+    .pdp-nav-dots {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 5;
+    }
+
+    .pdp-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .pdp-dot.active {
+      background: var(--onyx);
+      width: 20px;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 570px) {
+      .product-gallery {
+        flex-direction: column-reverse !important;
+      }
+      .thumbnails {
+        width: 100% !important;
+        flex-direction: row !important;
+        overflow-x: auto;
+        padding-bottom: 5px;
+      }
+      .thumbnails img {
+        width: 60px !important;
+        flex: 0 0 60px;
+      }
+    }
+
+    /* Search Suggestions */
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      z-index: 1000;
+      display: none;
+    }
+    .search-suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f9f9f9;
+      transition: background 0.2s;
+    }
+    .search-suggestion-item:hover { background: #fdf2f8; }
+    .search-suggestion-item img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
+    .search-suggestion-item .title { font-size: 14px; font-weight: 500; color: #333; }
+    .search-suggestion-item .price { font-size: 12px; color: var(--salmon-pink); font-weight: 700; }
+
+    /* Related Products */
+    .related-products { margin-top: 60px; }
+    .related-title { font-size: 1.8rem; font-weight: 700; color: var(--onyx); margin-bottom: 30px; text-align: center; }
+
+    /* Reviews Section */
+    .reviews-section { margin-top: 60px; padding-top: 60px; border-top: 1px solid #eee; }
+    .reviews-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .reviews-title { font-size: 1.8rem; font-weight: 700; color: var(--onyx); }
+    .add-review-btn { background: var(--onyx); color: white; padding: 10px 25px; border-radius: 30px; font-weight: 600; cursor: pointer; border: none; }
+    .review-item { padding: 25px; border-radius: 12px; background: #f9f9f9; margin-bottom: 20px; }
+    .review-top { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .review-user { font-weight: 700; color: var(--onyx); }
+    .review-date { font-size: 12px; color: #888; }
+    .review-rating { color: #f5a623; }
+    .review-comment { font-size: 14px; color: #555; line-height: 1.6; }
+
+    /* Zoom Modal */
+    .zoom-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    .zoom-img { max-width: 90%; max-height: 90%; object-fit: contain; transform: scale(1); transition: transform 0.3s; }
+  </style>
+
+</head>
+
+<body>
+
+
+  <div class="overlay" data-overlay></div>
+
+  <!--
+    - HEADER
+  -->
+
+  <header>
+
+    <div class="header-top">
+
+      <div class="container">
+
+        <ul class="header-social-container">
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-facebook"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-twitter"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-instagram"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-linkedin"></ion-icon>
+            </a>
+          </li>
+
+        </ul>
+
+        <div class="header-alert-news">
+          <p>
+            <b>Free Shipping</b>
+            This Week Order Over - $55
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="header-main">
+      <div class="container flex-mobile-header">
+
+        <button class="action-btn mobile-menu-btn" data-mobile-menu-open-btn>
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+
+        <a href="/" class="header-logo">
+          <img src="./assets/images/logo/logo.svg" alt="Devangi Sewing Products logo" width="200" height="60" style="min-width: 160px; max-width: 100%;">
+        </a>
+
+        <div class="header-search-container" style="position: relative;">
+
+          <input type="search" name="search" id="main-search" class="search-field" placeholder="Enter your product name..." autocomplete="off">
+
+          <button class="search-btn">
+            <ion-icon name="search-outline"></ion-icon>
+          </button>
+
+          <div id="search-suggestions" class="search-suggestions"></div>
+
+        </div>
+
+        <div class="header-user-actions">
+
+          <!-- User button with dropdown -->
+          <div class="user-dropdown-wrapper">
+            <button class="action-btn" id="user-action-btn" title="Login">
+              <ion-icon name="person-outline"></ion-icon>
+            </button>
+            <div id="user-dropdown"></div>
+          </div>
+
+
+
+          <button class="action-btn">
+            <ion-icon name="bag-handle-outline"></ion-icon>
+            <span class="count">0</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <nav class="desktop-navigation-menu">
+
+      <div class="container">
+
+        <ul class="desktop-menu-category-list" id="dynamic-desktop-nav">
+          <!-- Navigation will be generated dynamically via nav.js -->
+        </ul>
+
+      </div>
+
+    </nav>
+
+    <div class="mobile-bottom-navigation">
+
+      <button class="action-btn" data-mobile-menu-open-btn>
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+
+      <button class="action-btn">
+        <ion-icon name="bag-handle-outline"></ion-icon>
+
+        <span class="count">0</span>
+      </button>
+
+      <button class="action-btn" onclick="location.href='/'">
+        <ion-icon name="home-outline"></ion-icon>
+      </button>
+
+
+
+      <button class="action-btn" data-mobile-menu-open-btn>
+        <ion-icon name="grid-outline"></ion-icon>
+      </button>
+
+    </div>
+
+    <nav class="mobile-navigation-menu  has-scrollbar" data-mobile-menu>
+
+      <div class="menu-top">
+        <h2 class="menu-title">Menu</h2>
+
+        <button class="menu-close-btn" data-mobile-menu-close-btn>
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <ul class="mobile-menu-category-list" id="dynamic-mobile-nav">
+        <!-- Navigation will be generated dynamically via nav.js -->
+      </ul>
+
+      <div class="menu-bottom">
+
+        <ul class="menu-social-container">
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-facebook"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-twitter"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-instagram"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="social-link">
+              <ion-icon name="logo-linkedin"></ion-icon>
+            </a>
+          </li>
+
+        </ul>
+
+      </div>
+
+    </nav>
+
+  </header>
+
+
+
+
+
+  <!--
+    - MAIN
+  -->
+
+  
+  <main>
+    <div class="product-container" style="margin-top: 30px; margin-bottom: 60px;">
+      <div class="container" style="display: flex; flex-direction: row; gap: 50px; flex-wrap: wrap;">
+        
+        <!-- Left Side: Image Gallery -->
+        <div class="product-gallery" style="flex: 1; min-width: 300px; display: flex; gap: 15px;">
+            <div id="pdp-thumbnails" class="thumbnails" style="display: flex; flex-direction: column; gap: 10px; width: 80px;">
+                <!-- Thumbnails will be injected by product.js -->
+            </div>
+            <div class="pdp-slider-container" style="flex: 1;">
+                <div id="pdp-slider" class="pdp-slider">
+                    <!-- Images will be injected by product.js -->
+                </div>
+                
+                <div id="pdp-dots" class="pdp-nav-dots">
+                    <!-- Dots will be injected by product.js -->
+                </div>
+
+                <button id="pdp-magnifier" style="position: absolute; top: 20px; right: 20px; background: white; border-radius: 50%; width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 6;">
+                    <ion-icon name="search-outline"></ion-icon>
+                </button>
+                <div id="pdp-badge" style="position: absolute; top: 20px; left: 20px; background: var(--onyx); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: none; z-index: 6;"></div>
+            </div>
+        </div>
+
+        <!-- Right Side: Details -->
+        <div class="product-details" style="flex: 1; min-width: 300px;">
+            <h1 id="pdp-title" style="font-size: 2.2rem; font-weight: bold; color: var(--onyx); margin-bottom: 10px; line-height: 1.2;">Loading...</h1>
+            
+            <div style="margin-bottom: 30px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <p id="pdp-price" style="font-size: 1.8rem; color: var(--onyx); font-weight: bold;"></p>
+                    <del id="pdp-old-price" style="font-size: 1.2rem; color: var(--sonic-silver); display: none;"></del>
+                    <span id="pdp-discount" style="background: #ff4d4d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; display: none;"></span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--sonic-silver); margin-top: 5px;">Tax excluded.</p>
+            </div>
+
+            <div id="pdp-size-wrap" style="margin-bottom: 25px; display: none;">
+                <p style="font-size: 0.95rem; color: var(--sonic-silver); margin-bottom: 8px;">Select Your Size: <span id="pdp-size-label" style="font-weight: bold; color: var(--onyx);">All Size</span></p>
+                <select id="pdp-sizes" style="width: 100%; padding: 12px 15px; border: 1px solid var(--cultured); border-radius: 8px; font-size: 1rem; color: var(--onyx); background-color: #fafafa; outline: none;">
+                    <!-- Sizes injected by product.js -->
+                </select>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <p style="font-size: 0.95rem; color: var(--sonic-silver); margin-bottom: 8px;">Quantity:</p>
+                <div style="display: flex; align-items: center; border: 1px solid var(--cultured); border-radius: 30px; width: fit-content; background-color: #fafafa; padding: 5px 15px;">
+                    <button id="qty-minus" style="font-size: 1.2rem; padding: 0 10px; color: var(--onyx);">-</button>
+                    <input id="pdp-qty" type="number" value="1" min="1" style="width: 40px; text-align: center; border: none; background: transparent; font-size: 1rem; color: var(--onyx); outline: none;">
+                    <button id="qty-plus" style="font-size: 1.2rem; padding: 0 10px; color: var(--onyx);">+</button>
+                </div>
+            </div>
+
+            <div id="pdp-offer-wrap" style="margin-bottom: 20px; display: none;">
+                <p id="pdp-offer" style="font-size: 0.9rem; color: var(--sonic-silver);"></p>
+            </div>
+
+            <div id="pdp-stock-wrap" style="margin-bottom: 15px; display: none;">
+                <div id="pdp-stock-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;"></div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; width: 100%;">
+                <button id="pdp-add-cart" style="width: 100%; background-color: #2c2c2c; color: white; border-radius: 30px; padding: 14px 0; font-weight: bold; font-size: 1rem; border: none; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#1a1a1a'" onmouseout="this.style.backgroundColor='#2c2c2c'">
+                    Add to cart
+                </button>
+                <button id="pdp-buy-now" style="width: 100%; background-color: #c4801e; color: white; border-radius: 30px; padding: 10px 15px; font-weight: bold; font-size: 1rem; display:flex; justify-content:center; align-items:center; gap: 8px; border: none; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 10px rgba(196, 128, 30, 0.2);" onmouseover="this.style.backgroundColor='#a36916'" onmouseout="this.style.backgroundColor='#c4801e'">
+                    <span>Buy It Now</span>
+                    <div style="display:flex; align-items:center; justify-content:center; background: white; padding: 3px 8px; border-radius: 15px;">
+                        <img src="./assets/images/payment.png" style="height: 16px; width: auto; object-fit: contain;">
+                    </div>
+                    <ion-icon name="chevron-forward-outline" style="font-size: 1.2rem; margin-left: -2px;"></ion-icon>
+                </button>
+            </div>
+
+            <!-- Meta details block -->
+            <div style="border: 1px solid var(--cultured); border-radius: 8px; overflow: hidden;">
+                <div style="padding: 15px; border-bottom: 1px solid var(--cultured); display: flex; align-items: center; gap: 10px;">
+                    <div id="pdp-stars" style="color: #00b67a; font-size: 1.1rem; display:flex;">
+                        <!-- Stars injected by product.js -->
+                    </div>
+                    <span id="pdp-rating-text" style="font-weight: bold; font-size: 0.9rem; color: var(--onyx);"></span>
+                </div>
+                <div style="padding: 15px; background-color: #f7f7f7; border-bottom: 1px solid var(--cultured); display: flex; align-items: center; gap: 10px; color: var(--onyx);">
+                    <ion-icon name="airplane-outline" style="font-size: 1.2rem;"></ion-icon>
+                    <span style="font-size: 0.9rem;"><span style="font-weight: bold;">Free delivery</span> on all prepaid orders</span>
+                </div>
+                <div style="padding: 15px; background-color: #f7f7f7; border-bottom: 1px solid var(--cultured); display: flex; align-items: center; justify-content: space-between; color: var(--onyx); cursor: pointer;">
+                    <div style="display:flex; align-items:center; gap: 10px;">
+                        <ion-icon name="cube-outline" style="font-size: 1.2rem;"></ion-icon>
+                        <span style="font-size: 0.9rem; font-weight: bold;">Delivery information</span>
+                    </div>
+                    <ion-icon name="chevron-down-outline"></ion-icon>
+                </div>
+                <div style="padding: 15px; background-color: #f7f7f7; display: flex; align-items: center; gap: 10px;">
+                    <img src="./assets/images/payment.png" style="height: 20px; mix-blend-mode: multiply;">
+                </div>
+            </div>
+
+            <!-- Description block -->
+            <div id="pdp-desc-wrap" style="margin-top: 30px; border-top: 1px solid var(--cultured); padding-top: 20px; display: none;">
+                <h3 style="font-size: 1.2rem; font-weight: bold; color: var(--onyx); margin-bottom: 10px;">Description</h3>
+                <p id="pdp-description" style="font-size: 0.95rem; color: var(--sonic-silver); line-height: 1.6;"></p>
+            </div>
+
+        </div>
+      </div>
+
+      <!-- Related Products -->
+      <div class="container related-products">
+        <h2 class="related-title">Related Products</h2>
+        <div class="product-grid" id="related-product-grid">
+            <!-- Injected via product.js -->
+        </div>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="container reviews-section">
+        <div class="reviews-header">
+            <h2 class="reviews-title">Customer Reviews</h2>
+        </div>
+        <div id="reviews-container">
+            <!-- Injected via product.js -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Zoom Overlay -->
+    <div id="zoom-overlay" class="zoom-overlay">
+        <img id="zoom-img" class="zoom-img" src="">
+    </div>
+  </main>
+
+
+
+
+
+
+  <!--
+    - FOOTER
+  -->
+
+  <footer>
+
+    <div class="footer-nav">
+
+      <div class="container">
+
+        <ul class="footer-nav-list">
+
+          <li class="footer-nav-item">
+            <h2 class="nav-title">Contact</h2>
+          </li>
+
+          <li class="footer-nav-item flex">
+            <div class="icon-box">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+
+            <address class="content">
+              B-3, Yogiraj Soc., YogiChowk, Surat.
+            </address>
+          </li>
+
+          <li class="footer-nav-item flex">
+            <div class="icon-box">
+              <ion-icon name="call-outline"></ion-icon>
+            </div>
+
+            <a href="tel:+917600550038" class="footer-nav-link">+91 7600550038</a>
+          </li>
+
+          <li class="footer-nav-item flex">
+            <div class="icon-box">
+              <ion-icon name="mail-outline"></ion-icon>
+            </div>
+
+            <a href="mailto:devangisewingclasses@gmail.com" class="footer-nav-link">devangisewingclasses@gmail.com</a>
+          </li>
+
+        </ul>
+
+        <ul class="footer-nav-list">
+
+          <li class="footer-nav-item">
+            <h2 class="nav-title">Follow Us</h2>
+          </li>
+
+          <li>
+            <ul class="social-link">
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-facebook"></ion-icon>
+                </a>
+              </li>
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-twitter"></ion-icon>
+                </a>
+              </li>
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-linkedin"></ion-icon>
+                </a>
+              </li>
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-instagram"></ion-icon>
+                </a>
+              </li>
+
+            </ul>
+          </li>
+
+        </ul>
+
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+
+      <div class="container">
+
+        <img src="./assets/images/payment.png" alt="payment method" class="payment-img">
+
+        <p class="copyright">
+          Copyright &copy; <a href="#">Devangi Sewing Products</a> all rights reserved.
+        </p>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+
+
+
+
+  <!--
+    - custom js link
+  -->
+  <script src="./assets/js/nav.js"></script>
+  <script src="./assets/js/cart.js"></script>
+  <script src="./assets/js/product.js"></script>
+  <script src="./assets/js/home.js"></script>
+  <script src="./assets/js/script.js"></script>
+  <script src="./assets/js/auth.js"></script>
+
+  <!--
+    - ionicon link
+  -->
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+</body>
+
+</html>

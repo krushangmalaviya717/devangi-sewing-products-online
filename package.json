@@ -1,0 +1,30 @@
+{
+  "name": "anon-ecommerce-website",
+  "version": "1.0.0",
+  "description": "![GitHub repo size](https://img.shields.io/github/repo-size/codewithsadee/anon-ecommerce-website)\r ![GitHub stars](https://img.shields.io/github/stars/codewithsadee/anon-ecommerce-website?style=social)\r ![GitHub forks](https://img.shields.io/github/forks/codewithsadee/anon-ecommerce-website?style=social)\r [![Twitter Follow](https://img.shields.io/twitter/follow/codewithsadee_?style=social)](https://twitter.com/intent/follow?screen_name=codewithsadee_)\r [![YouTube Video Views](https://img.shields.io/youtube/views/3l8Lob4ysI0?style=social)](https://youtu.be/3l8Lob4ysI0)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codewithsadee/anon-ecommerce-website.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/codewithsadee/anon-ecommerce-website/issues"
+  },
+  "homepage": "https://github.com/codewithsadee/anon-ecommerce-website#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.5",
+    "razorpay": "^2.9.6",
+    "sqlite3": "^5.1.7"
+  }
+}

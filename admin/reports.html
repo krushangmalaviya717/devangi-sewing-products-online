@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Devangi Sewing Store</title>
+    <script src="/assets/js/tailwindcss.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>body { font-family: 'Inter', sans-serif; } ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }</style>
+</head>
+<body class="text-gray-800 antialiased overflow-hidden flex h-screen">
+    <div id="sidebar-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 hidden md:hidden"></div>
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform -translate-x-full md:translate-x-0 md:static md:inset-auto transition-transform duration-300 ease-in-out flex flex-col shadow-sm md:shadow-none">
+        <div class="h-16 flex items-center px-6 border-b border-gray-100 justify-between shrink-0"><div class="flex items-center gap-2"><img src="/assets/images/logo/logo.svg" alt="Logo" class="h-7"></div><button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-400 hover:text-gray-600 rounded-md"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
+        <div class="flex-1 overflow-y-auto py-5 px-4 space-y-1">
+            <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Main Menu</p>
+            <a href="index.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>Dashboard</a>
+            <a href="orders.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>Orders</a>
+            <a href="products.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>Products</a>
+            <a href="categories.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>Categories</a>
+            <a href="coupons.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>Coupons</a>
+            <a href="users.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>Users</a>
+            <div class="pt-4 mt-4 border-t border-gray-100">
+                <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Storefront</p>
+                <a href="banners.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path></svg>Banners</a>
+
+                <a href="reviews.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>Reviews Moderation</a>
+                <a href="navigation.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>Navigation</a>
+                <a href="contact.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8"></path></svg>Contact</a>
+            </div>
+            <div class="pt-4 mt-4 border-t border-gray-100">
+                <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Analytics</p>
+                <a href="reports.html" class="flex items-center px-3 py-2.5 bg-pink-50 text-pink-600 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>Reports</a>
+                <a href="settings.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg font-medium"><svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>Settings</a>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
+        <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-10 sticky top-0">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                <h1 class="text-xl font-bold text-gray-800 hidden sm:block">Reports & Analytics</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <input type="date" id="report-start" class="text-sm px-3 py-1.5 border border-gray-200 rounded-lg">
+                <span class="text-gray-400 text-sm">to</span>
+                <input type="date" id="report-end" class="text-sm px-3 py-1.5 border border-gray-200 rounded-lg">
+                <button onclick="loadReports()" class="bg-pink-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-pink-600">Apply</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
+                <!-- Revenue Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"><p class="text-sm font-semibold text-gray-500 mb-1">Total Revenue</p><h3 class="text-2xl font-bold text-gray-900" id="r-revenue">Rs. 0</h3></div>
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"><p class="text-sm font-semibold text-gray-500 mb-1">Total Orders</p><h3 class="text-2xl font-bold text-gray-900" id="r-orders">0</h3></div>
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"><p class="text-sm font-semibold text-gray-500 mb-1">Avg Order Value</p><h3 class="text-2xl font-bold text-gray-900" id="r-aov">Rs. 0</h3></div>
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"><p class="text-sm font-semibold text-gray-500 mb-1">Cancelled Orders</p><h3 class="text-2xl font-bold text-red-500" id="r-cancelled">0</h3></div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-4">📈 Monthly Revenue</h3>
+                        <div class="min-h-[280px]"><canvas id="revenueChart"></canvas></div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-4">💳 Payment Methods</h3>
+                        <div class="min-h-[280px]"><canvas id="paymentChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Tables -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Top Products -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-4">🔥 Top Selling Products</h3>
+                        <div class="space-y-3" id="top-products-list">
+                            <p class="text-gray-400 text-sm text-center py-4">Loading...</p>
+                        </div>
+                    </div>
+                    <!-- City Orders -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-4">📍 Orders by City</h3>
+                        <div id="city-orders-list" class="space-y-2">
+                            <p class="text-gray-400 text-sm text-center py-4">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Sales -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="font-bold text-gray-800 mb-4">🏷️ Sales by Category</h3>
+                    <div id="category-sales-list" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <p class="text-gray-400 text-sm text-center py-4 col-span-full">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+        let revChart, payChart;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Default: this year
+            const now = new Date();
+            document.getElementById('report-start').value = `${now.getFullYear()}-01-01`;
+            document.getElementById('report-end').value = now.toLocaleDateString('en-CA');
+            loadReports();
+        });
+
+        async function loadReports() {
+            const startDate = document.getElementById('report-start').value;
+            const endDate = document.getElementById('report-end').value;
+            try {
+                const res = await fetch(`/api/admin/reports?startDate=${startDate}&endDate=${endDate}`);
+                const data = await res.json();
+                renderReports(data);
+            } catch (err) { console.error(err); }
+        }
+
+        function renderReports(data) {
+            // Stats
+            const rev = data.revenue || {};
+            document.getElementById('r-revenue').textContent = `Rs. ${parseFloat(rev.total_revenue || 0).toLocaleString('en-IN')}`;
+            document.getElementById('r-orders').textContent = rev.total_orders || 0;
+            document.getElementById('r-aov').textContent = `Rs. ${parseFloat(rev.avg_order_value || 0).toFixed(0)}`;
+            document.getElementById('r-cancelled').textContent = rev.cancelled_orders || 0;
+
+            // Revenue Chart
+            if (revChart) revChart.destroy();
+            const monthly = (data.monthly || []).reverse();
+            const ctx1 = document.getElementById('revenueChart').getContext('2d');
+            const gradient = ctx1.createLinearGradient(0, 0, 0, 280);
+            gradient.addColorStop(0, 'rgba(236,72,153,0.2)');
+            gradient.addColorStop(1, 'rgba(236,72,153,0)');
+            revChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: monthly.map(m => m.month),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: monthly.map(m => m.revenue),
+                        borderColor: '#ec4899', backgroundColor: gradient,
+                        borderWidth: 3, pointRadius: 4, fill: true, tension: 0.4,
+                        pointBackgroundColor: '#fff', pointBorderColor: '#ec4899', pointBorderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { borderDash: [4,4], color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+            });
+
+            // Payment Chart
+            if (payChart) payChart.destroy();
+            const payments = data.paymentMethods || [];
+            const payColors = ['#ec4899', '#3b82f6', '#22c55e', '#eab308', '#8b5cf6'];
+            payChart = new Chart(document.getElementById('paymentChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: payments.length ? payments.map(p => p.payment_method) : ['No Data'],
+                    datasets: [{ data: payments.length ? payments.map(p => p.count) : [1], backgroundColor: payments.length ? payColors.slice(0, payments.length) : ['#e2e8f0'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 15 } } } }
+            });
+
+            // Top Products
+            const topList = document.getElementById('top-products-list');
+            const tops = data.topProducts || [];
+            topList.innerHTML = tops.length ? tops.map((p, i) => `
+                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                    <span class="w-6 h-6 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center text-xs font-bold shrink-0">${i + 1}</span>
+                    <div class="flex-1 min-w-0"><p class="text-sm font-medium text-gray-800 truncate">${p.name}</p></div>
+                    <div class="text-right shrink-0"><p class="text-sm font-bold text-gray-900">${p.total_sold} sold</p><p class="text-[10px] text-gray-400">Rs.${parseFloat(p.total_revenue).toLocaleString()}</p></div>
+                </div>
+            `).join('') : '<p class="text-gray-400 text-sm text-center py-4">No data</p>';
+
+            // City Orders
+            const cityList = document.getElementById('city-orders-list');
+            const cities = data.cityOrders || [];
+            cityList.innerHTML = cities.length ? cities.map(c => `
+                <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <span class="text-sm text-gray-700 font-medium">${c.city}</span>
+                    <div class="text-right"><span class="text-sm font-bold text-gray-900">${c.orders} orders</span> <span class="text-xs text-gray-400 ml-1">Rs.${parseFloat(c.revenue).toLocaleString()}</span></div>
+                </div>
+            `).join('') : '<p class="text-gray-400 text-sm text-center py-4">No data</p>';
+
+            // Category Sales
+            const catList = document.getElementById('category-sales-list');
+            const cats = data.categorySales || [];
+            catList.innerHTML = cats.length ? cats.map(c => `
+                <div class="bg-gray-50 rounded-xl p-4 text-center">
+                    <p class="text-xs text-gray-500 font-medium mb-1">${c.category}</p>
+                    <p class="text-lg font-bold text-gray-900">${c.sold}</p>
+                    <p class="text-[10px] text-pink-500 font-medium">Rs.${parseFloat(c.revenue).toLocaleString()}</p>
+                </div>
+            `).join('') : '<p class="text-gray-400 text-sm text-center py-4 col-span-full">No data</p>';
+        }
+    </script>
+</body>
+</html>
