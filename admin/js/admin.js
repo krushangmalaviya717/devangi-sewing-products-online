@@ -6,7 +6,7 @@ function formatDateDDMMYYYY(dateInput, includeTime = false) {
     // If the input is a SQLite UTC string (has space or T but no Z/offset), treat it as UTC
     if (typeof dateInput === 'string') {
         let normalized = dateInput.trim();
-        if (!normalized.includes('Z') && !normalized.includes('+') && !normalized.includes('-') && (normalized.includes(' ') || normalized.includes('T'))) {
+        if (!/Z|[+-]\d{2}:?\d{2}$/.test(normalized) && (normalized.includes(' ') || normalized.includes('T'))) {
             normalized = normalized.replace(' ', 'T') + 'Z';
         }
         date = new Date(normalized);
