@@ -26,95 +26,8 @@
 <!-- Mobile Overlay -->
     <div id="sidebar-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
 
-    <!-- Sidebar -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform -translate-x-full md:translate-x-0 md:static md:inset-auto transition-transform duration-300 ease-in-out flex flex-col shadow-sm md:shadow-none">
-        <div class="h-16 flex items-center px-6 border-b border-gray-100 justify-between shrink-0">
-            <div class="flex items-center gap-2">
-                <img src="/assets/images/logo/logo.svg" alt="Devangi Sewing Store" class="h-7">
-                
-            </div>
-            <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-400 hover:text-gray-600 rounded-md">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-        
-        <div class="flex-1 overflow-y-auto py-5 px-4 space-y-1 custom-scrollbar">
-            <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Main Menu</p>
-            
-            <a href="index.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                Dashboard
-            </a>
-            
-            <a href="orders.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                Orders
-                <span class="ml-auto bg-pink-100 text-pink-600 py-0.5 px-2 rounded-full text-[10px] font-bold" id="sidebar-order-badge">0</span>
-            </a>
-
-            <a href="products.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                Products
-            </a>
-            
-            <a href="categories.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                Categories
-            </a>
-
-            <a href="users.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                Users
-            </a>
-
-            <a href="coupons.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
-                    Coupons
-                </a>
-
-            <div class="pt-4 mt-4 border-t border-gray-100">
-                <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Storefront</p>
-                
-                <a href="banners.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
-                    Banners
-                </a>
-
-                <a href="reviews.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    Reviews Moderation
-                </a>
-                
-                <a href="navigation.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    Navigation
-                </a>
-                
-                <a href="contact.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    Contact Settings
-                </a>
-            </div>
-            <div class="pt-4 mt-4 border-t border-gray-100">
-                <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Analytics</p>
-                <a href="reports.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Reports
-                </a>
-                <a href="settings.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium group">
-                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Settings
-                </a>
-            </div>
-        </div>
-        
-        <div class="p-4 border-t border-gray-100 bg-gray-50/50">
-            <a href="/" target="_blank" class="flex items-center justify-center w-full px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all font-medium text-sm shadow-sm group">
-                <svg class="w-4 h-4 mr-2 text-gray-400 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                View Live Store
-            </a>
-        </div>
-    </aside>
+    <!-- Sidebar (rendered by sidebar.js) -->
+    <aside id="admin-sidebar"></aside>
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
@@ -216,21 +129,90 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
+                        <button onclick="initAddOrderModal(); toggleModal('addOrderModal');" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Add New Order (Call)
+                        </button>
                         <button onclick="exportOrdersCSV()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors shadow-sm">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             Export CSV
                         </button>
                     </div>
                 </div>
+                
+                <!-- Bulk Actions Bar -->
+                <div id="bulk-actions-bar" class="hidden bg-pink-50 border border-pink-100 rounded-xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></span>
+                        <p class="text-sm font-semibold text-pink-700">
+                            <span id="selected-count" class="font-bold">0</span> orders selected
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Update Status -->
+                        <div class="flex items-center gap-1.5">
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Status:</label>
+                            <select id="bulk-order-status" onchange="bulkUpdateStatus(this.value)" class="px-3 py-1.5 border border-pink-200 rounded-lg text-xs bg-white text-gray-700 focus:ring-2 focus:ring-pink-500 outline-none">
+                                <option value="">-- Change Status --</option>
+                                <option value="Order Placed">Order Placed</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+
+                        <!-- Update Payment -->
+                        <div class="flex items-center gap-1.5">
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Payment:</label>
+                            <select id="bulk-payment-status" onchange="bulkUpdatePayment(this.value)" class="px-3 py-1.5 border border-pink-200 rounded-lg text-xs bg-white text-gray-700 focus:ring-2 focus:ring-pink-500 outline-none">
+                                <option value="">-- Change Payment --</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
+
+                        <!-- Print Bulk Labels -->
+                        <button onclick="bulkPrintLabels()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            Print Labels
+                        </button>
+
+                        <!-- Print Bulk Invoices -->
+                        <button onclick="bulkPrintInvoices()" class="bg-pink-600 hover:bg-pink-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Print Invoices
+                        </button>
+
+                        <!-- Bulk Delete -->
+                        <button onclick="bulkDeleteOrders()" class="bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Delete Selected
+                        </button>
+
+                        <!-- Cancel -->
+                        <button onclick="clearOrderSelection()" class="text-gray-500 hover:text-gray-700 px-3 py-1.5 text-xs font-medium border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse min-w-[700px]">
                             <thead>
                                 <tr class="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
+                                    <th class="p-4 text-center w-12">
+                                        <input type="checkbox" id="select-all-orders" onchange="toggleSelectAllOrders(this)" class="rounded text-pink-600 focus:ring-pink-500 w-4 h-4 cursor-pointer">
+                                    </th>
                                     <th class="p-4 font-medium">Order ID</th>
                                     <th class="p-4 font-medium">Customer</th>
                                     <th class="p-4 font-medium">Amount</th>
-                                    <th class="p-4 font-medium text-center">Status</th>
+                                    <th class="p-4 font-medium text-center">Payment Status</th>
+                                    <th class="p-4 font-medium text-center">Order Status</th>
                                     <th class="p-4 font-medium">Date</th>
                                     <th class="p-4 text-right">Action</th>
                                 </tr>
@@ -265,6 +247,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                         Label
                     </button>
+                    <button onclick="openEditOrderModal()" class="px-4 py-1.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Edit Order</button>
                     <button onclick="toggleModal('orderDetailModal')" class="ml-4 text-gray-400 hover:text-gray-600">✕</button>
                 </div>
             </div>
@@ -289,6 +272,9 @@
                             <div class="relative z-10 flex flex-col items-center"><div id="step-delivery" class="w-8 h-8 rounded-full bg-gray-200 text-white flex items-center justify-center border-4 border-white shadow-sm transition-colors">🛵</div><span class="text-[10px] mt-2 font-bold text-gray-400">Out for Delivery</span></div>
                             <div class="relative z-10 flex flex-col items-center"><div id="step-delivered" class="w-8 h-8 rounded-full bg-gray-200 text-white flex items-center justify-center border-4 border-white shadow-sm transition-colors">🏁</div><span class="text-[10px] mt-2 font-bold text-gray-400">Delivered</span></div>
                         </div>
+
+
+
                     </div>
                     <!-- Items -->
                     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
@@ -388,16 +374,364 @@
         </div>
     </div>
 
+    <!-- Add Manual Order Modal -->
+    <div id="addOrderModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 modal-scroll overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 z-20">
+                <h3 class="text-xl font-bold text-gray-800">Add New Order (Call)</h3>
+                <button onclick="toggleModal('addOrderModal')" class="text-gray-400 hover:text-gray-600 transition-colors">✕</button>
+            </div>
+            
+            <form id="addOrderForm" onsubmit="submitManualOrder(event)" class="flex-1 p-6 overflow-y-auto space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left: Customer & Address Details -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-gray-700 text-sm border-b pb-2">Customer & Address Information</h4>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">First Name *</label>
+                                <input type="text" id="mo_first_name" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Last Name *</label>
+                                <input type="text" id="mo_last_name" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Phone Number *</label>
+                                <input type="tel" id="mo_phone" required pattern="[0-9]{10}" maxlength="10" placeholder="10 digits" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                                <p id="mo_phone_error" class="text-red-500 text-[10px] mt-0.5 hidden">Please enter exactly 10 digits</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
+                                <input type="email" id="mo_email" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Flat / House No *</label>
+                                <input type="text" id="mo_house_no" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Society / Building *</label>
+                                <input type="text" id="mo_society" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Street / Area *</label>
+                            <input type="text" id="mo_street" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Landmark</label>
+                            <input type="text" id="mo_landmark" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">City *</label>
+                                <input type="text" id="mo_city" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">State *</label>
+                                <input type="text" id="mo_state" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Pincode *</label>
+                                <input type="text" id="mo_pincode" required pattern="[1-9][0-9]{5}" maxlength="6" placeholder="6 digits" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                                <p id="mo_pincode_error" class="text-red-500 text-[10px] mt-0.5 hidden">Must be a valid 6-digit Indian Pincode (e.g. 380001)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Items Selection & Order Summary -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-gray-700 text-sm border-b pb-2">Order Items</h4>
+                        
+                        <!-- Add Product Section -->
+                        <div class="flex gap-2 items-end bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex-grow">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Select Product</label>
+                                <select id="mo_product_select" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none bg-white">
+                                    <option value="">-- Select Product --</option>
+                                </select>
+                            </div>
+                            <div class="w-20">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Qty</label>
+                                <input type="number" id="mo_product_qty" min="1" value="1" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                            </div>
+                            <button type="button" onclick="addManualOrderItem()" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors shadow-sm self-end">
+                                Add
+                            </button>
+                        </div>
+
+                        <!-- Product List Table -->
+                        <div class="border border-gray-200 rounded-lg overflow-hidden max-h-48 overflow-y-auto bg-white">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-gray-100 border-b border-gray-200 text-gray-500 uppercase font-semibold">
+                                        <th class="p-2">Product Name</th>
+                                        <th class="p-2 text-center">Qty</th>
+                                        <th class="p-2 text-right">Price</th>
+                                        <th class="p-2 text-right">Total</th>
+                                        <th class="p-2 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mo_items_tbody">
+                                    <tr>
+                                        <td colspan="5" class="p-4 text-center text-gray-400 italic">No products added yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Charges and Summary -->
+                        <div class="space-y-3 pt-2 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Payment Method</label>
+                                    <select id="mo_payment_method" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-pink-500 outline-none bg-white">
+                                        <option value="COD">Cash On Delivery (COD)</option>
+                                        <option value="UPI">UPI / Bank Transfer</option>
+                                        <option value="Online">Online / Razorpay</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Payment Status</label>
+                                    <select id="mo_payment_status" class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-pink-500 outline-none bg-white">
+                                        <option value="Pending">Pending</option>
+                                        <option value="Paid">Paid</option>
+                                        <option value="Failed">Failed</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-semibold text-gray-500 uppercase">Delivery Charge (Rs.)</label>
+                                <input type="number" id="mo_delivery_charge" min="0" value="0" oninput="updateManualOrderSummary()" class="w-24 px-3 py-1 border border-gray-200 rounded-lg text-sm text-right focus:ring-2 focus:ring-pink-500 outline-none">
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-2 flex justify-between text-xs text-gray-600">
+                                <span>Subtotal</span>
+                                <span>Rs. <span id="mo_subtotal">0.00</span></span>
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-2 flex justify-between font-bold text-sm text-gray-800">
+                                <span>Total Amount</span>
+                                <span class="text-pink-600">Rs. <span id="mo_grand_total">0.00</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="border-t border-gray-200 pt-4 flex justify-end gap-3 sticky bottom-0 bg-white">
+                    <button type="button" onclick="toggleModal('addOrderModal')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                        Create Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Order Modal -->
+    <div id="editOrderModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl mx-4 modal-scroll overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 z-20">
+                <h3 class="text-xl font-bold text-gray-800">Edit Order <span id="eo_order_id_title">#0</span></h3>
+                <button onclick="toggleModal('editOrderModal')" class="text-gray-400 hover:text-gray-600 transition-colors">✕</button>
+            </div>
+            
+            <form id="editOrderForm" onsubmit="submitEditOrder(event)" class="flex-1 p-6 overflow-y-auto space-y-6">
+                <input type="hidden" id="edit_order_id">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left: Customer & Address Details -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-gray-700 text-sm border-b pb-2">Customer & Address Information</h4>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">First Name *</label>
+                                <input type="text" id="eo_first_name" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Last Name *</label>
+                                <input type="text" id="eo_last_name" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Phone Number *</label>
+                                <input type="tel" id="eo_phone" required pattern="[0-9]{10}" maxlength="10" placeholder="10 digits" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                                <p id="eo_phone_error" class="text-red-500 text-[10px] mt-0.5 hidden">Please enter exactly 10 digits</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
+                                <input type="email" id="eo_email" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Flat / House No *</label>
+                                <input type="text" id="eo_house_no" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Society / Building *</label>
+                                <input type="text" id="eo_society" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Street / Area *</label>
+                            <input type="text" id="eo_street" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Landmark</label>
+                            <input type="text" id="eo_landmark" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">City *</label>
+                                <input type="text" id="eo_city" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">State *</label>
+                                <input type="text" id="eo_state" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Pincode *</label>
+                                <input type="text" id="eo_pincode" required pattern="[1-9][0-9]{5}" maxlength="6" placeholder="6 digits" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none">
+                                <p id="eo_pincode_error" class="text-red-500 text-[10px] mt-0.5 hidden">Must be a valid 6-digit Indian Pincode (e.g. 380001)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Items Selection & Order Summary -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-gray-700 text-sm border-b pb-2">Order Items</h4>
+                        
+                        <!-- Add Product Section -->
+                        <div class="flex gap-2 items-end bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex-grow">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Select Product</label>
+                                <select id="eo_product_select" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none bg-white">
+                                    <option value="">-- Select Product --</option>
+                                </select>
+                            </div>
+                            <div class="w-20">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Qty</label>
+                                <input type="number" id="eo_product_qty" min="1" value="1" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                            </div>
+                            <button type="button" onclick="addEditOrderItem()" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors shadow-sm self-end">
+                                Add
+                            </button>
+                        </div>
+
+                        <!-- Product List Table -->
+                        <div class="border border-gray-200 rounded-lg overflow-hidden max-h-48 overflow-y-auto bg-white">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-gray-100 border-b border-gray-200 text-gray-500 uppercase font-semibold">
+                                        <th class="p-2">Product Name</th>
+                                        <th class="p-2 text-center">Qty</th>
+                                        <th class="p-2 text-right">Price</th>
+                                        <th class="p-2 text-right">Total</th>
+                                        <th class="p-2 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eo_items_tbody">
+                                    <tr>
+                                        <td colspan="5" class="p-4 text-center text-gray-400 italic">No products added yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Charges, Status and Summary -->
+                        <div class="space-y-3 pt-2 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Payment Method</label>
+                                    <select id="eo_payment_method" class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-pink-500 outline-none bg-white">
+                                        <option value="COD">Cash On Delivery (COD)</option>
+                                        <option value="UPI">UPI / Bank Transfer</option>
+                                        <option value="Online">Online / Razorpay</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Payment Status</label>
+                                    <select id="eo_payment_status" class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-pink-500 outline-none bg-white">
+                                        <option value="Pending">Pending</option>
+                                        <option value="Paid">Paid</option>
+                                        <option value="Failed">Failed</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Order Status</label>
+                                    <select id="eo_status" class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-pink-500 outline-none bg-white">
+                                        <option value="Order Placed">Placed</option>
+                                        <option value="Processing">Processing</option>
+                                        <option value="Shipped">Shipped</option>
+                                        <option value="Out for Delivery">Out for Delivery</option>
+                                        <option value="Delivered">Delivered</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-semibold text-gray-500 uppercase">Delivery Charge (Rs.)</label>
+                                <input type="number" id="eo_delivery_charge" min="0" value="0" oninput="updateEditOrderSummary()" class="w-24 px-3 py-1 border border-gray-200 rounded-lg text-sm text-right focus:ring-2 focus:ring-pink-500 outline-none">
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-2 flex justify-between text-xs text-gray-600">
+                                <span>Subtotal</span>
+                                <span>Rs. <span id="eo_subtotal">0.00</span></span>
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-2 flex justify-between font-bold text-sm text-gray-800">
+                                <span>Total Amount</span>
+                                <span class="text-pink-600">Rs. <span id="eo_grand_total">0.00</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="border-t border-gray-200 pt-4 flex justify-end gap-3 sticky bottom-0 bg-white">
+                    <button type="button" onclick="toggleModal('editOrderModal')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Hidden Invoice Template for PDF -->
     <div id="invoice-print-area" class="hidden">
         <div style="font-family: 'Poppins', sans-serif; padding: 40px; color: #333;">
-            <div style="display: flex; justify-between; align-items: start; margin-bottom: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
                 <div>
                     <h1 style="color: #db2777; margin: 0; font-size: 28px;">INVOICE</h1>
                     <p style="margin: 5px 0; color: #666;">#<span id="print-order-id"></span></p>
                 </div>
                 <div style="text-align: right;">
-                    <p style="margin: 0; font-weight: bold;">Devangi Sewing Store</p>
+                    <p style="margin: 0; font-weight: bold;">Devangi Products</p>
                     <p style="margin: 5px 0; color: #666; font-size: 12px;">Surat, Gujarat, India</p>
                 </div>
             </div>
@@ -448,7 +782,7 @@
             </div>
             
             <div style="margin-top: 60px; border-top: 1px solid #eee; padding-top: 20px; text-align: center; color: #999; font-size: 11px;">
-                <p>Thank you for shopping with Devangi Sewing Store!</p>
+                <p>Thank you for shopping with Devangi Products!</p>
             </div>
         </div>
     </div>
@@ -467,11 +801,11 @@
             flex-direction: column;
         ">
             <!-- ══ HEADER: Brand | AWB | Order ID ══ -->
-            <div style="padding:8px 12px; border-bottom:2px solid #000; display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                    <div style="font-size:20px; font-weight:900; letter-spacing:2px; line-height:1;">DEVANGI</div>
-                    <div style="font-size:7px; font-weight:700; letter-spacing:3px; text-transform:uppercase; margin-top:1px;">SEWING PRODUCTS</div>
-                    <div style="font-size:6.5px; margin-top:2px; color:#444;">www.devangi-sewing.com</div>
+            <div style="padding:0; border-bottom:2px solid #000; display:flex; justify-content:space-between; align-items:stretch;">
+                <div style="background:#c2185b; padding:8px 14px; display:flex; flex-direction:column; justify-content:center;">
+                    <div style="font-size:18px; font-weight:900; letter-spacing:3px; line-height:1; color:#fff; text-transform:uppercase; font-family:'Arial Black', Arial, sans-serif;">DEVANGI</div>
+                    <div style="font-size:8px; font-weight:900; letter-spacing:6px; color:#ffd6e8; text-transform:uppercase; margin-top:1px;">PRODUCTS</div>
+                    <div style="font-size:5.5px; color:#ffd6e8; letter-spacing:1.5px; margin-top:3px; text-transform:uppercase;">✦ Quality Sewing Essentials ✦</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:6.5px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555;">AWB No.</div>
@@ -550,7 +884,7 @@
                 <div style="font-size:6.5px; font-weight:900; letter-spacing:2px; text-transform:uppercase; border-bottom:1px solid #bbb; padding-bottom:2px; margin-bottom:4px;">RETURN / SHIP FROM</div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
-                        <div style="font-size:10px; font-weight:900;">Devangi Sewing Products</div>
+                        <div style="font-size:10px; font-weight:900; color:#c2185b; letter-spacing:1px; text-transform:uppercase;">Devangi Products</div>
                         <div id="lbl-from-address" style="font-size:7.5px; margin-top:2px; line-height:1.5;">Surat, Gujarat — 395010<br>Ph: +91-XXXXXXXXXX</div>
                     </div>
                     <div style="text-align:right;">
@@ -650,6 +984,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="/admin/js/sidebar.js"></script>
     <script src="/admin/js/admin.js"></script>
 </body>
 </html>

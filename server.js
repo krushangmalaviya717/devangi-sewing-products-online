@@ -43,6 +43,30 @@ dns.lookup("smtp.gmail.com", (err, address) => {
 const app = express();
 const port = 3000;
 
+// Security middleware to prevent public access to sensitive backend/source files
+app.use((req, res, next) => {
+    const blockedExtensions = ['.env', '.sqlite', '.git', '.json', '.md'];
+    const lowerPath = req.path.toLowerCase();
+    
+    const isSensitive = blockedExtensions.some(ext => lowerPath.endsWith(ext)) ||
+                        lowerPath === '/server.js' ||
+                        lowerPath.includes('/.env') ||
+                        lowerPath.includes('/database.sqlite');
+                        
+    const isNodeModules = lowerPath.startsWith('/node_modules');
+
+    const isRootJs = lowerPath.endsWith('.js') && 
+                     !lowerPath.startsWith('/assets/') && 
+                     !lowerPath.startsWith('/admin/js/') && 
+                     lowerPath !== '/reset_nav.js' && 
+                     lowerPath !== '/update_headers.js';
+                     
+    if (isSensitive || isNodeModules || isRootJs) {
+        return res.status(403).send('Access Denied');
+    }
+    next();
+});
+
 // Set up storage for image uploads (up to 10 images)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -74,6 +98,41 @@ const bannerStorage = multer.diskStorage({
     }
 });
 const uploadBanner = multer({ storage: bannerStorage });
+
+// Logo & Favicon Storage
+const logoStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'assets', 'images', 'logo');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'brand-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const uploadLogo = multer({ storage: logoStorage });
+
+// Secure hashing helper using PBKDF2 (No external dependency needed, fully backward compatible)
+function hashPassword(password) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+    return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, storedHash) {
+    if (!storedHash) return false;
+    if (!storedHash.includes(':')) {
+        // Fallback to legacy plain sha256 hash
+        const legacyHash = crypto.createHash('sha256').update(password).digest('hex');
+        return legacyHash === storedHash;
+    }
+    const [salt, hash] = storedHash.split(':');
+    const verifyHash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+    return hash === verifyHash;
+}
 
 // Database setup
 const db = new sqlite3.Database('./database.sqlite', (err) => {
@@ -170,6 +229,8 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
             db.run(`ALTER TABLE orders ADD COLUMN state TEXT`, (err) => {});
             db.run(`ALTER TABLE orders ADD COLUMN pincode TEXT`, (err) => {});
             db.run(`ALTER TABLE orders ADD COLUMN label TEXT`, (err) => {});
+            db.run(`ALTER TABLE orders ADD COLUMN courier_name TEXT`, (err) => {});
+            db.run(`ALTER TABLE orders ADD COLUMN tracking_number TEXT`, (err) => {});
         });
 
         // Addresses Table
@@ -322,15 +383,22 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             display_name TEXT DEFAULT 'Admin',
+            permissions TEXT DEFAULT '["dashboard","orders","products","categories","coupons","users","banners","reviews","navigation","contact","reports","settings","staff"]',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`, () => {
+            // Migration: add permissions column if it doesn't exist (for existing DBs)
+            db.run(`ALTER TABLE admin_users ADD COLUMN permissions TEXT DEFAULT '["dashboard","orders","products","categories","coupons","users","banners","reviews","navigation","contact","reports","settings","staff"]'`, (err) => {});
+
             // Seed default admin if none exists
             db.get('SELECT COUNT(*) AS count FROM admin_users', [], (err, row) => {
                 if (!err && row && row.count === 0) {
-                    const defaultHash = crypto.createHash('sha256').update('admin123').digest('hex');
-                    db.run('INSERT INTO admin_users (username, password_hash, display_name) VALUES (?, ?, ?)',
-                        ['admin', defaultHash, 'Store Owner']);
+                    const defaultHash = hashPassword('admin123');
+                    db.run('INSERT INTO admin_users (username, password_hash, display_name, permissions) VALUES (?, ?, ?, ?)',
+                        ['admin', defaultHash, 'Store Owner', '["dashboard","orders","products","categories","coupons","users","banners","reviews","navigation","contact","reports","settings","staff"]']);
                     console.log('Default admin created: admin / admin123');
+                } else {
+                    // Update existing default admin to have all permissions if null/empty
+                    db.run("UPDATE admin_users SET permissions = '[\"dashboard\",\"orders\",\"products\",\"categories\",\"coupons\",\"users\",\"banners\",\"reviews\",\"navigation\",\"contact\",\"reports\",\"settings\",\"staff\"]' WHERE username = 'admin' AND (permissions IS NULL OR permissions = '')");
                 }
             });
         });
@@ -375,7 +443,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
         )`, () => {
             // Seed default settings
             const defaults = {
-                'store_name': 'Devangi Sewing Products',
+                'store_name': 'Devangi Products',
                 'store_phone': '+91 7600550038',
                 'store_email': 'devangisewingclasses@gmail.com',
                 'store_address': 'B-3, Yogiraj Soc., YogiChowk, Surat.',
@@ -387,12 +455,28 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
                 'whatsapp_notify': '0',
                 'social_instagram': '',
                 'social_facebook': '',
-                'footer_text': 'Thank you for shopping with Devangi Sewing Products!',
+                'social_youtube': '',
+                'footer_text': 'Thank you for shopping with Devangi Products!',
                 'payment_enable_cod': '1',
                 'payment_enable_online': '1',
+                'payment_enable_whatsapp': '0',
+                'payment_whatsapp_number': '',
                 'homepage_show_trust_badges': '1',
                 'homepage_show_testimonials': '1',
-                'homepage_show_faqs': '1'
+                'homepage_show_faqs': '1',
+                'razorpay_key_id': process.env.RAZORPAY_KEY_ID || 'rzp_test_YourKeyHere',
+                'razorpay_key_secret': process.env.RAZORPAY_KEY_SECRET || 'YourSecretHere',
+                'whatsapp_template_placed': 'Hello {name},\n\nThank you for shopping at {store_name}! 🌸\n\nYour Order #{order_id} has been placed successfully.\nTotal Amount: Rs. {total_amount}\nPayment Method: {payment_method}\n\nTrack your order here: {tracking_url}',
+                'whatsapp_template_shipped': 'Hello {name},\n\nYour order #{order_id} from {store_name} has been shipped! 🚀\nCourier: {courier}\nAWB/Docket No: {tracking_number}\n\nTrack your parcel live here: {tracking_url}\n\nThank you for shopping with us! 🌸',
+                'cod_charge': '0',
+                'shipping_charge_gujarat': '50',
+                'shipping_charge_maharashtra': '60',
+                'shipping_charge_others': '100',
+                'seo_title': 'Devangi Products',
+                'seo_description': 'Devangi Products Online Store - High quality sewing products and tools.',
+                'seo_keywords': 'sewing, sewing products, devangi, sewing classes, sewing tools',
+                'store_logo': '/assets/images/logo/logo.svg',
+                'store_favicon': '/favicon.ico'
             };
             Object.entries(defaults).forEach(([key, val]) => {
                 db.run('INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES (?, ?)', [key, val]);
@@ -417,6 +501,17 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
         // Add stock column to products
         db.run(`ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT -1`, (err) => {}); // -1 = unlimited
 
+        // Auto-fix duplicate/zero/improper banner sort orders to be sequential (1, 2, 3...)
+        db.all("SELECT id, sort_order FROM banners ORDER BY sort_order ASC, id ASC", [], (err, rows) => {
+            if (!err && rows && rows.length > 0) {
+                rows.forEach((row, index) => {
+                    const newOrder = index + 1;
+                    if (row.sort_order !== newOrder) {
+                        db.run("UPDATE banners SET sort_order = ? WHERE id = ?", [newOrder, row.id]);
+                    }
+                });
+            }
+        });
     }
 });
 
@@ -424,15 +519,20 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Session secret fallback with cryptographically secure random bytes to prevent session forgery
+const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'devangi-sewing-secret-key-2026',
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+    cookie: { 
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production'
+    }
 }));
-
-// Static file serving
-app.use(express.static(path.join(__dirname, '.')));
 
 // Admin Auth Middleware
 function requireAdmin(req, res, next) {
@@ -446,17 +546,213 @@ function requireAdmin(req, res, next) {
     return res.redirect('/admin/login.html');
 }
 
+// Helper function to check granular permissions with backward compatibility
+function checkPermission(perms, module, action = 'view') {
+    if (!perms || !Array.isArray(perms)) return false;
+    
+    // Parent module allows everything for that module
+    if (perms.includes(module)) return true;
+    
+    // Special mapping for settings and staff
+    if (module === 'staff' && perms.includes('settings')) return true;
+    if (module === 'settings' && perms.includes('staff')) return true;
+    
+    // Check specific action (e.g. products_create)
+    const specificPerm = `${module}_${action}`;
+    if (perms.includes(specificPerm)) return true;
+    
+    // If the check is for 'view', any granular action within the module implies 'view' authority
+    if (action === 'view') {
+        return perms.some(p => p.startsWith(module + '_'));
+    }
+    
+    return false;
+}
+
+// Custom Permission Middleware (legacy wrapper)
+function requirePermission(module, action = 'view') {
+    return (req, res, next) => {
+        if (!req.session || !req.session.adminUser) {
+            if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized' });
+            return res.redirect('/admin/login.html');
+        }
+        const perms = req.session.adminUser.permissions || [];
+        const isSuper = req.session.adminUser.id === 1 || req.session.adminUser.username === 'admin';
+        
+        if (isSuper || checkPermission(perms, module, action)) {
+            return next();
+        }
+        
+        if (req.path.startsWith('/api/')) {
+            return res.status(403).json({ error: `Forbidden: Insufficient permissions (${module}_${action})` });
+        }
+        return res.send(`
+            <html>
+                <head>
+                    <title>Access Denied</title>
+                    <script src="/assets/js/tailwindcss.js"></script>
+                    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+                </head>
+                <body class="bg-gray-50 flex items-center justify-center h-screen font-sans" style="font-family: 'Poppins', sans-serif;">
+                    <div class="bg-white p-8 rounded-xl shadow-md border max-w-md text-center">
+                        <div class="text-red-500 text-5xl mb-4">⚠️</div>
+                        <h1 class="text-xl font-bold text-gray-800 mb-2">Access Denied</h1>
+                        <p class="text-gray-500 text-sm mb-6">You do not have permission to access this resource (${module}_${action}).</p>
+                        <a href="/admin/index.html" class="bg-pink-500 hover:bg-pink-600 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">Go to Dashboard</a>
+                    </div>
+                </body>
+            </html>
+        `);
+    };
+}
+
 // Protect all admin pages except login
 app.use('/admin', (req, res, next) => {
     // Allow login page and static assets
     if (req.path === '/login.html' || req.path.startsWith('/js/') || req.path.startsWith('/css/')) {
         return next();
     }
-    if (req.session && req.session.adminUser) {
+    if (!req.session || !req.session.adminUser) {
+        return res.redirect('/admin/login.html');
+    }
+
+    // Path-based permission checks for HTML pages
+    const pagePerms = {
+        '/index.html': 'dashboard',
+        '/orders.html': 'orders',
+        '/products.html': 'products',
+        '/categories.html': 'categories',
+        '/coupons.html': 'coupons',
+        '/users.html': 'users',
+        '/user_details.html': 'users',
+        '/banners.html': 'banners',
+        '/reviews.html': 'reviews',
+        '/navigation.html': 'navigation',
+        '/contact.html': 'contact',
+        '/reports.html': 'reports',
+        '/settings.html': 'settings',
+        '/staff.html': 'staff'
+    };
+
+    let checkPath = req.path;
+    if (checkPath === '/' || checkPath === '') {
+        checkPath = '/index.html';
+    }
+    const moduleName = pagePerms[checkPath];
+    if (moduleName) {
+        const userPerms = req.session.adminUser.permissions || [];
+        const isSuper = req.session.adminUser.id === 1 || req.session.adminUser.username === 'admin';
+        
+        if (!isSuper && !checkPermission(userPerms, moduleName, 'view')) {
+            return res.send(`
+                <html>
+                    <head>
+                        <title>Access Denied</title>
+                        <script src="/assets/js/tailwindcss.js"></script>
+                        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+                    </head>
+                    <body class="bg-gray-50 flex items-center justify-center h-screen font-sans" style="font-family: 'Poppins', sans-serif;">
+                        <div class="bg-white p-8 rounded-xl shadow-md border max-w-md text-center">
+                            <div class="text-red-500 text-5xl mb-4">⚠️</div>
+                            <h1 class="text-xl font-bold text-gray-800 mb-2">Access Denied</h1>
+                            <p class="text-gray-500 text-sm mb-6">You do not have authority to access this page.</p>
+                            <a href="/admin/index.html" class="bg-pink-500 hover:bg-pink-600 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">Go to Dashboard</a>
+                        </div>
+                    </body>
+                </html>
+            `);
+        }
+    }
+    return next();
+});
+
+// Protect all admin API calls based on permissions
+app.use('/api/admin', (req, res, next) => {
+    // Exclude login, logout, and session check
+    if (req.path === '/login' || req.path === '/logout' || req.path === '/session') {
         return next();
     }
-    return res.redirect('/admin/login.html');
+    
+    if (!req.session || !req.session.adminUser) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const perms = req.session.adminUser.permissions || [];
+    const isSuper = req.session.adminUser.id === 1 || req.session.adminUser.username === 'admin';
+    if (isSuper) {
+        return next();
+    }
+    
+    const reqPath = req.path;
+    const method = req.method;
+    
+    let module = null;
+    let action = 'view';
+    
+    if (reqPath.startsWith('/settings')) {
+        module = 'settings';
+        action = (method === 'GET') ? 'view' : 'edit';
+    } else if (reqPath.startsWith('/reviews')) {
+        module = 'reviews';
+        action = (method === 'GET') ? 'view' : 'delete';
+    } else if (reqPath.startsWith('/nav')) {
+        module = 'navigation';
+        if (method === 'GET') {
+            action = 'view';
+        } else {
+            action = (method === 'DELETE') ? 'delete' : 'edit';
+        }
+    } else if (reqPath.startsWith('/orders')) {
+        module = 'orders';
+        if (reqPath.includes('/export')) {
+            action = 'export';
+        } else if (method === 'GET') {
+            action = 'view';
+        } else {
+            action = 'edit';
+        }
+    } else if (reqPath.startsWith('/coupons')) {
+        module = 'coupons';
+        if (method === 'GET') {
+            action = 'view';
+        } else if (method === 'POST') {
+            action = 'create';
+        } else if (method === 'DELETE') {
+            action = 'delete';
+        } else {
+            action = 'edit';
+        }
+    } else if (reqPath.startsWith('/contact')) {
+        module = 'contact';
+        action = (method === 'GET') ? 'view' : 'edit';
+    } else if (reqPath.startsWith('/reports')) {
+        module = 'reports';
+        action = 'view';
+    } else if (reqPath.startsWith('/staff')) {
+        module = 'staff';
+        if (method === 'GET') {
+            action = 'view';
+        } else if (method === 'POST') {
+            action = 'create';
+        } else if (method === 'DELETE') {
+            action = 'delete';
+        } else {
+            action = 'edit';
+        }
+    } else if (reqPath.startsWith('/customers') || reqPath.startsWith('/user-details')) {
+        module = 'users';
+        action = 'view';
+    }
+    
+    if (module && !checkPermission(perms, module, action)) {
+        return res.status(403).json({ error: `Forbidden: Insufficient permissions (${module}_${action})` });
+    }
+    
+    return next();
 });
+
+// Static file serving
+app.use(express.static(path.join(__dirname, '.')));
 
 app.get("/test", (req, res) => {
   res.send("Server working");
@@ -498,6 +794,23 @@ app.put('/api/admin/settings', (req, res) => {
             }
         });
     });
+});
+
+// GET: Public Razorpay Key
+app.get('/api/razorpay/key', (req, res) => {
+    db.get("SELECT setting_value FROM store_settings WHERE setting_key = 'razorpay_key_id'", [], (err, row) => {
+        const key = row?.setting_value || process.env.RAZORPAY_KEY_ID || 'rzp_test_YourKeyHere';
+        res.json({ key });
+    });
+});
+
+// POST: Admin Upload Settings Assets (Logo / Favicon)
+app.post('/api/admin/settings/upload', uploadLogo.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const filePath = `/assets/images/logo/${req.file.filename}`;
+    res.json({ success: true, filePath });
 });
 // --- API Endpoints ---
 
@@ -547,6 +860,45 @@ app.get('/api/categories', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
+});
+
+// Protect write endpoints for products and categories (Non-GET requests require admin session & granular permissions)
+app.use('/api/products', (req, res, next) => {
+    if (req.method === 'GET') return next();
+    if (!req.session || !req.session.adminUser) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const perms = req.session.adminUser.permissions || [];
+    const isSuper = req.session.adminUser.id === 1 || req.session.adminUser.username === 'admin';
+    if (isSuper) return next();
+
+    let action = 'edit';
+    if (req.method === 'POST') action = 'create';
+    if (req.method === 'DELETE') action = 'delete';
+
+    if (!checkPermission(perms, 'products', action)) {
+        return res.status(403).json({ error: `Forbidden: Insufficient permissions (products_${action})` });
+    }
+    next();
+});
+
+app.use('/api/categories', (req, res, next) => {
+    if (req.method === 'GET') return next();
+    if (!req.session || !req.session.adminUser) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const perms = req.session.adminUser.permissions || [];
+    const isSuper = req.session.adminUser.id === 1 || req.session.adminUser.username === 'admin';
+    if (isSuper) return next();
+
+    let action = 'edit';
+    if (req.method === 'POST') action = 'create';
+    if (req.method === 'DELETE') action = 'delete';
+
+    if (!checkPermission(perms, 'categories', action)) {
+        return res.status(403).json({ error: `Forbidden: Insufficient permissions (categories_${action})` });
+    }
+    next();
 });
 
 // Add new category
@@ -811,6 +1163,30 @@ app.get('/api/reviews/user/:product_id/:user_id', (req, res) => {
     });
 });
 
+// ===== ADMIN REVIEWS API (Protected) =====
+
+// Get all reviews (Admin)
+app.get('/api/admin/reviews', requireAdmin, (req, res) => {
+    const query = `
+        SELECT r.*, p.title as product_title 
+        FROM reviews r 
+        LEFT JOIN products p ON r.product_id = p.id 
+        ORDER BY r.created_at DESC
+    `;
+    db.all(query, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// Delete a review (Admin)
+app.delete('/api/admin/reviews/:id', requireAdmin, (req, res) => {
+    db.run('DELETE FROM reviews WHERE id = ?', [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, message: 'Review deleted successfully' });
+    });
+});
+
 // --- Auth Endpoints ---
 
 // Get all users (Admin)
@@ -918,11 +1294,22 @@ app.delete('/api/admin/nav/:id', (req, res) => {
 // Check if email is already registered
 app.post('/api/check-email', (req, res) => {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required' });
+    if (!email) return res.status(400).json({ error: 'Email/Username is required' });
 
-    db.get('SELECT id, email, fullname FROM users WHERE email = ?', [email], (err, user) => {
+    // Check if it's an admin/staff user first
+    db.get('SELECT username FROM admin_users WHERE username = ?', [email.trim()], (err, admin) => {
         if (err) return res.status(500).json({ error: 'Database error' });
-        res.json({ exists: !!user, user: user || null });
+        
+        if (admin) {
+            // It's a staff/admin member
+            return res.json({ exists: true, isAdmin: true, username: admin.username });
+        }
+
+        // Not an admin, check regular users
+        db.get('SELECT id, email, fullname FROM users WHERE email = ?', [email], (err, user) => {
+            if (err) return res.status(500).json({ error: 'Database error' });
+            res.json({ exists: !!user, isAdmin: false, user: user || null });
+        });
     });
 });
 
@@ -939,7 +1326,7 @@ app.post('/api/send-otp', (req, res) => {
         const mailOptions = {
             from: process.env.GMAIL_USER,
             to: email,
-            subject: 'Your Devangi Sewing Products OTP Code',
+            subject: 'Your Devangi Products OTP Code',
             text: `Your OTP code is: ${otp}. It will expire in 10 minutes. Please do not share this code.`
         };
 
@@ -1271,6 +1658,66 @@ app.post('/api/admin/orders/:id/payment', (req, res) => {
     });
 });
 
+// Edit Order Details (Admin)
+app.put('/api/admin/orders/:id', requireAdmin, (req, res) => {
+    const orderId = req.params.id;
+    const { 
+        first_name, last_name, fullname, email, phone, total_amount, delivery_charge, 
+        address, house_no, society, street, landmark, city, state, pincode, label,
+        items, payment_method, payment_status, status,
+        courier_name, tracking_number
+    } = req.body;
+
+    if (!first_name || !last_name || !phone) {
+        return res.status(400).json({ error: 'Missing required order details' });
+    }
+
+    const finalFullname = fullname || `${first_name} ${last_name}`;
+
+    const sql = `UPDATE orders SET 
+        first_name=?, last_name=?, fullname=?, email=?, phone=?, total_amount=?, delivery_charge=?, address=?, 
+        house_no=?, society=?, street=?, landmark=?, city=?, state=?, pincode=?, label=?,
+        payment_method=?, payment_status=?, status=?, courier_name=?, tracking_number=?
+        WHERE id=?`;
+
+    db.run(sql, [
+        first_name, last_name, finalFullname, email || '', phone, total_amount, delivery_charge || 0, address || '',
+        house_no, society, street, landmark, city, state, pincode, label,
+        payment_method || 'COD', payment_status || 'Pending', status || 'Order Placed',
+        courier_name || '', tracking_number || '',
+        orderId
+    ], function(err) {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to update order' });
+        }
+
+        // If items are provided, update them
+        if (items && Array.isArray(items)) {
+            // Delete old items and insert new ones
+            db.run('DELETE FROM order_items WHERE order_id = ?', [orderId], (err) => {
+                if (err) {
+                    console.error('Error deleting old items:', err);
+                }
+                const stmt = db.prepare('INSERT INTO order_items (order_id, product_id, name, price, quantity, image) VALUES (?, ?, ?, ?, ?, ?)');
+                items.forEach(item => {
+                    stmt.run([orderId, item.product_id || item.id || null, item.name, item.price, item.quantity || 1, item.image || '']);
+                });
+                stmt.finalize();
+            });
+        }
+
+        // Add tracking timeline log for editing
+        db.run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)', [
+            orderId, 
+            status || 'Order Updated', 
+            'Order details were updated by admin.'
+        ], (err) => {
+            res.json({ success: true, message: 'Order updated successfully' });
+        });
+    });
+});
+
 // Send Invoice Email (Admin)
 app.post('/api/admin/orders/:id/send-invoice', async (req, res) => {
     const orderId = req.params.id;
@@ -1294,7 +1741,7 @@ app.post('/api/admin/orders/:id/send-invoice', async (req, res) => {
             
             const emailHtml = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px;">
-                    <h2 style="color: #db2777;">Devangi Sewing Products</h2>
+                    <h2 style="color: #db2777;">Devangi Products</h2>
                     <p>Dear ${order.fullname},</p>
                     <p>Thank you for your order! Here is your invoice for order <strong>#${order.id}</strong>.</p>
                     
@@ -1341,7 +1788,7 @@ app.post('/api/admin/orders/:id/send-invoice', async (req, res) => {
             const mailOptions = {
                 from: process.env.GMAIL_USER,
                 to: order.email,
-                subject: `Invoice for Order #${order.id} - Devangi Sewing Products`,
+                subject: `Invoice for Order #${order.id} - Devangi Products`,
                 html: emailHtml
             };
             
@@ -1405,6 +1852,20 @@ app.delete('/api/addresses/:id', (req, res) => {
 });
 
 // ===== Razorpay Integration =====
+function getRazorpayConfig(callback) {
+    db.all("SELECT setting_key, setting_value FROM store_settings WHERE setting_key IN ('razorpay_key_id', 'razorpay_key_secret')", [], (err, rows) => {
+        let keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_YourKeyHere';
+        let keySecret = process.env.RAZORPAY_KEY_SECRET || 'YourSecretHere';
+        if (!err && rows) {
+            rows.forEach(r => {
+                if (r.setting_key === 'razorpay_key_id' && r.setting_value) keyId = r.setting_value;
+                if (r.setting_key === 'razorpay_key_secret' && r.setting_value) keySecret = r.setting_value;
+            });
+        }
+        callback(null, { keyId, keySecret });
+    });
+}
+
 app.post('/api/razorpay/create-order', async (req, res) => {
     const { amount } = req.body; // Amount in INR
     const options = {
@@ -1412,27 +1873,32 @@ app.post('/api/razorpay/create-order', async (req, res) => {
         currency: "INR",
         receipt: `receipt_${Date.now()}`
     };
-    try {
-        const order = await razorpay.orders.create(options);
-        res.json(order);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    getRazorpayConfig(async (err, config) => {
+        try {
+            const rzp = new Razorpay({ key_id: config.keyId, key_secret: config.keySecret });
+            const order = await rzp.orders.create(options);
+            res.json(order);
+        } catch (err2) {
+            res.status(500).json({ error: err2.message });
+        }
+    });
 });
 
 app.post('/api/razorpay/verify', (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSign = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || 'YourSecretHere')
-        .update(sign.toString())
-        .digest("hex");
+    getRazorpayConfig((err, config) => {
+        const expectedSign = crypto
+            .createHmac("sha256", config.keySecret)
+            .update(sign.toString())
+            .digest("hex");
 
-    if (razorpay_signature === expectedSign) {
-        return res.json({ success: true, message: "Payment verified successfully" });
-    } else {
-        return res.status(400).json({ error: "Invalid signature" });
-    }
+        if (razorpay_signature === expectedSign) {
+            return res.json({ success: true, message: "Payment verified successfully" });
+        } else {
+            return res.status(400).json({ error: "Invalid signature" });
+        }
+    });
 });
 
 // Place Order (User Side - Updated for Automation & Structured Address)
@@ -1448,43 +1914,71 @@ app.post('/api/orders', (req, res) => {
         return res.status(400).json({ error: 'Missing required order details' });
     }
 
-    const sql = `INSERT INTO orders (
-        user_id, first_name, last_name, fullname, email, phone, total_amount, delivery_charge, address, 
-        house_no, society, street, landmark, city, state, pincode, label,
-        payment_method, payment_status, transaction_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-    const status = payment_status || (payment_method === 'COD' ? 'Pending' : 'Paid');
-    const finalFullname = fullname || `${first_name} ${last_name}`;
-
-    db.run(sql, [
-        user_id || null, first_name, last_name, finalFullname, email || '', phone, total_amount, delivery_charge || 0, address || '',
-        house_no, society, street, landmark, city, state, pincode, label,
-        payment_method || 'COD', status, transaction_id || null
-    ], function(err) {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Failed to create order' });
-        }
-        
-        const orderId = this.lastID;
-        
-        // Insert items and decrement stock
-        const stmt = db.prepare('INSERT INTO order_items (order_id, product_id, name, price, quantity, image) VALUES (?, ?, ?, ?, ?, ?)');
-        items.forEach(item => {
-            stmt.run([orderId, item.id || null, item.name, item.price, item.quantity || 1, item.image || '']);
-            // Decrement stock (only if stock is tracked, i.e., > -1)
-            if (item.id) {
-                db.run('UPDATE products SET stock = stock - ? WHERE id = ? AND stock > 0', [item.quantity || 1, item.id]);
+    // Verify stock availability first
+    const productIds = items.filter(item => item.id).map(item => item.id);
+    if (productIds.length > 0) {
+        const placeholders = productIds.map(() => '?').join(',');
+        db.all(`SELECT id, title, stock FROM products WHERE id IN (${placeholders})`, productIds, (err, rows) => {
+            if (err) return res.status(500).json({ error: 'Database error while verifying stock' });
+            
+            for (const item of items) {
+                if (!item.id) continue;
+                const dbProduct = rows.find(r => String(r.id) === String(item.id));
+                if (dbProduct) {
+                    if (dbProduct.stock !== -1 && dbProduct.stock < (item.quantity || 1)) {
+                        return res.status(400).json({ 
+                            error: `Product "${item.name || dbProduct.title}" has only ${dbProduct.stock} units remaining. Please adjust your quantity.` 
+                        });
+                    }
+                }
             }
+            
+            // If all items pass stock check, proceed
+            createOrder();
         });
-        stmt.finalize();
-        
-        // Initial tracking
-        db.run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)', [orderId, 'Order Placed', 'Order received successfully.']);
-        
-        res.json({ orderId, message: 'Order placed successfully' });
-    });
+    } else {
+        createOrder();
+    }
+
+    function createOrder() {
+        const sql = `INSERT INTO orders (
+            user_id, first_name, last_name, fullname, email, phone, total_amount, delivery_charge, address, 
+            house_no, society, street, landmark, city, state, pincode, label,
+            payment_method, payment_status, transaction_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        const status = payment_status || (payment_method === 'COD' ? 'Pending' : 'Paid');
+        const finalFullname = fullname || `${first_name} ${last_name}`;
+
+        db.run(sql, [
+            user_id || null, first_name, last_name, finalFullname, email || '', phone, total_amount, delivery_charge || 0, address || '',
+            house_no, society, street, landmark, city, state, pincode, label,
+            payment_method || 'COD', status, transaction_id || null
+        ], function(err) {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Failed to create order' });
+            }
+            
+            const orderId = this.lastID;
+            
+            // Insert items and decrement stock
+            const stmt = db.prepare('INSERT INTO order_items (order_id, product_id, name, price, quantity, image) VALUES (?, ?, ?, ?, ?, ?)');
+            items.forEach(item => {
+                stmt.run([orderId, item.id || null, item.name, item.price, item.quantity || 1, item.image || '']);
+                // Decrement stock (only if stock is tracked, i.e., > -1)
+                if (item.id) {
+                    db.run('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?', [item.quantity || 1, item.id, item.quantity || 1]);
+                }
+            });
+            stmt.finalize();
+            
+            // Initial tracking
+            db.run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)', [orderId, 'Order Placed', 'Order received successfully.']);
+            
+            res.json({ orderId, message: 'Order placed successfully' });
+        });
+    }
 });
 
 
@@ -1514,6 +2008,8 @@ app.post('/api/banners', uploadBanner.fields([{ name: 'image', maxCount: 1 }, { 
 
     const parsedStatus = (status === '1' || status === 'true') ? 1 : 0;
     const parsedOpenNewTab = (open_new_tab === '1' || open_new_tab === 'true') ? 1 : 0;
+    const parsedSortOrder = parseInt(sort_order, 10);
+    const finalSortOrder = isNaN(parsedSortOrder) ? 0 : parsedSortOrder;
 
     const sql = `INSERT INTO banners (subtitle, title, offer_text, button_text, link_url, image_url, mobile_image_url, status, open_new_tab, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     db.run(sql, [
@@ -1526,7 +2022,7 @@ app.post('/api/banners', uploadBanner.fields([{ name: 'image', maxCount: 1 }, { 
         mobileImageUrl,
         parsedStatus,
         parsedOpenNewTab,
-        sort_order || 0
+        finalSortOrder
     ], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, id: this.lastID });
@@ -1544,6 +2040,8 @@ app.put('/api/banners/:id', uploadBanner.fields([{ name: 'image', maxCount: 1 },
     const parsedStatus = (status === '1' || status === 'true') ? 1 : 0;
     const parsedOpenNewTab = (open_new_tab === '1' || open_new_tab === 'true') ? 1 : 0;
     const removeMobile = (remove_mobile_image === '1' || remove_mobile_image === 'true');
+    const parsedSortOrder = parseInt(sort_order, 10);
+    const finalSortOrder = isNaN(parsedSortOrder) ? 0 : parsedSortOrder;
 
     let sql = `UPDATE banners SET subtitle=?, title=?, offer_text=?, button_text=?, link_url=?, status=?, open_new_tab=?, sort_order=?`;
     let params = [
@@ -1554,7 +2052,7 @@ app.put('/api/banners/:id', uploadBanner.fields([{ name: 'image', maxCount: 1 },
         link_url || '',
         parsedStatus,
         parsedOpenNewTab,
-        sort_order || 0
+        finalSortOrder
     ];
 
     if (imageFile) {
@@ -1677,23 +2175,81 @@ app.put('/api/admin/contact/:id', (req, res) => {
 
 // ===== ADMIN AUTH =====
 
-app.post('/api/admin/login', (req, res) => {
-    const { username, password } = req.body;
+// In-memory rate limiting store for admin logins
+const loginAttempts = {};
+const rateLimitMiddleware = (req, res, next) => {
+    const ip = req.ip;
+    const now = Date.now();
+    if (loginAttempts[ip]) {
+        const attempts = loginAttempts[ip].filter(t => now - t < 15 * 60 * 1000);
+        loginAttempts[ip] = attempts;
+        if (attempts.length >= 10) {
+            return res.status(429).json({ error: 'Too many login attempts. Please try again after 15 minutes.' });
+        }
+    } else {
+        loginAttempts[ip] = [];
+    }
+    next();
+};
+
+app.post('/api/admin/login', rateLimitMiddleware, (req, res) => {
+    const { username, password, rememberMe } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
-    const hash = crypto.createHash('sha256').update(password).digest('hex');
-    db.get('SELECT * FROM admin_users WHERE username = ? AND password_hash = ?', [username, hash], (err, admin) => {
+    db.get('SELECT * FROM admin_users WHERE username = ?', [username.trim()], (err, admin) => {
         if (err) return res.status(500).json({ error: err.message });
-        if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!admin || !verifyPassword(password, admin.password_hash)) {
+            if (loginAttempts[req.ip]) {
+                loginAttempts[req.ip].push(Date.now());
+            }
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
 
-        req.session.adminUser = { id: admin.id, username: admin.username, display_name: admin.display_name };
-        res.json({ success: true, admin: { username: admin.username, display_name: admin.display_name } });
+        let permissionsList = [];
+        try {
+            permissionsList = JSON.parse(admin.permissions || '[]');
+        } catch (e) {
+            permissionsList = [];
+        }
+
+        req.session.adminUser = { 
+            id: admin.id, 
+            username: admin.username, 
+            display_name: admin.display_name,
+            permissions: permissionsList
+        };
+        
+        // Set session lifetime to 2 days if rememberMe is checked, otherwise session-only
+        if (rememberMe) {
+            req.session.cookie.maxAge = 2 * 24 * 60 * 60 * 1000; // 2 days in milliseconds
+        } else {
+            req.session.cookie.expires = false; // expires on browser close
+        }
+        
+        if (loginAttempts[req.ip]) {
+            loginAttempts[req.ip] = [];
+        }
+
+        res.json({ 
+            success: true, 
+            admin: { 
+                username: admin.username, 
+                display_name: admin.display_name,
+                permissions: permissionsList
+            } 
+        });
     });
 });
 
 app.post('/api/admin/logout', (req, res) => {
     req.session.destroy();
     res.json({ success: true });
+});
+
+app.get('/api/admin/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.redirect('/admin/login.html');
+    });
 });
 
 app.get('/api/admin/session', (req, res) => {
@@ -1708,14 +2264,99 @@ app.post('/api/admin/change-password', (req, res) => {
     const { current_password, new_password } = req.body;
     if (!current_password || !new_password) return res.status(400).json({ error: 'Both passwords required' });
 
-    const currentHash = crypto.createHash('sha256').update(current_password).digest('hex');
-    db.get('SELECT * FROM admin_users WHERE id = ? AND password_hash = ?', [req.session.adminUser.id, currentHash], (err, admin) => {
-        if (!admin) return res.status(401).json({ error: 'Current password is incorrect' });
-        const newHash = crypto.createHash('sha256').update(new_password).digest('hex');
+    db.get('SELECT * FROM admin_users WHERE id = ?', [req.session.adminUser.id], (err, admin) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!admin || !verifyPassword(current_password, admin.password_hash)) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        const newHash = hashPassword(new_password);
         db.run('UPDATE admin_users SET password_hash = ? WHERE id = ?', [newHash, req.session.adminUser.id], (err) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true });
         });
+    });
+});
+
+// ===== ADMIN STAFF CRUD API =====
+
+// Get all staff members
+app.get('/api/admin/staff', (req, res) => {
+    db.all('SELECT id, username, display_name, permissions, created_at FROM admin_users ORDER BY id ASC', [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        // Parse permissions strings
+        const staffList = rows.map(row => ({
+            ...row,
+            permissions: JSON.parse(row.permissions || '[]')
+        }));
+        res.json(staffList);
+    });
+});
+
+// Create new staff member
+app.post('/api/admin/staff', (req, res) => {
+    const { username, password, display_name, permissions } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+
+    const hash = hashPassword(password);
+    const permsString = JSON.stringify(permissions || []);
+
+    db.run('INSERT INTO admin_users (username, password_hash, display_name, permissions) VALUES (?, ?, ?, ?)',
+        [username.trim(), hash, display_name || 'Staff', permsString],
+        function(err) {
+            if (err) {
+                if (err.message.includes('UNIQUE')) {
+                    return res.status(400).json({ error: 'Username already exists' });
+                }
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ success: true, message: 'Staff member created successfully', id: this.lastID });
+        }
+    );
+});
+
+// Edit staff member
+app.put('/api/admin/staff/:id', (req, res) => {
+    const { username, display_name, permissions, password } = req.body;
+    const staffId = req.params.id;
+
+    // Don't allow changing username of default 'admin'
+    if (staffId == 1 && username !== 'admin') {
+        return res.status(400).json({ error: 'Cannot change username of main admin' });
+    }
+
+    const permsString = JSON.stringify(permissions || []);
+
+    if (password && password.trim() !== '') {
+        const hash = hashPassword(password);
+        db.run('UPDATE admin_users SET username = ?, password_hash = ?, display_name = ?, permissions = ? WHERE id = ?',
+            [username.trim(), hash, display_name || 'Staff', permsString, staffId],
+            function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, message: 'Staff member updated successfully' });
+            }
+        );
+    } else {
+        db.run('UPDATE admin_users SET username = ?, display_name = ?, permissions = ? WHERE id = ?',
+            [username.trim(), display_name || 'Staff', permsString, staffId],
+            function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, message: 'Staff member updated successfully' });
+            }
+        );
+    }
+});
+
+// Delete staff member
+app.delete('/api/admin/staff/:id', (req, res) => {
+    const staffId = req.params.id;
+    if (staffId == 1) {
+        return res.status(400).json({ error: 'Cannot delete primary admin' });
+    }
+
+    db.run('DELETE FROM admin_users WHERE id = ?', [staffId], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, message: 'Staff member deleted successfully' });
     });
 });
 
@@ -2089,6 +2730,67 @@ app.get('/api/admin/whatsapp-notify/:orderId', (req, res) => {
             const phone = row?.setting_value || '919725340354';
             const message = `🛒 New Order #${order.id}\n👤 ${order.fullname}\n📱 ${order.phone}\n💰 Rs.${order.total_amount}\n📍 ${order.city || 'N/A'}\n📦 ${order.status}`;
             const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            res.json({ url: whatsappUrl });
+        });
+    });
+});
+
+// Helper to replace variables in templates
+function replaceTemplateVars(template, vars) {
+    if (!template) return '';
+    let result = template;
+    Object.entries(vars).forEach(([key, val]) => {
+        const regex = new RegExp(`{${key}}`, 'g');
+        result = result.replace(regex, val != null ? val : '');
+    });
+    return result;
+}
+
+// Get WhatsApp alert URL for customer
+app.get('/api/admin/orders/:id/customer-whatsapp', (req, res) => {
+    db.get('SELECT * FROM orders WHERE id = ?', [req.params.id], (err, order) => {
+        if (err || !order) return res.status(404).json({ error: 'Order not found' });
+        
+        // Fetch templates and store name
+        db.all("SELECT setting_key, setting_value FROM store_settings WHERE setting_key IN ('store_name', 'whatsapp_template_placed', 'whatsapp_template_shipped')", [], (errSettings, rows) => {
+            let storeName = 'Devangi Products';
+            let templatePlaced = 'Hello {name},\n\nThank you for shopping at {store_name}! 🌸\n\nYour Order #{order_id} has been placed successfully.\nTotal Amount: Rs. {total_amount}\nPayment Method: {payment_method}\n\nTrack your order here: {tracking_url}';
+            let templateShipped = 'Hello {name},\n\nYour order #{order_id} from {store_name} has been shipped! 🚀\nCourier: {courier}\nAWB/Docket No: {tracking_number}\n\nTrack your parcel live here: {tracking_url}\n\nThank you for shopping with us! 🌸';
+            
+            if (!errSettings && rows) {
+                rows.forEach(r => {
+                    if (r.setting_key === 'store_name' && r.setting_value) storeName = r.setting_value;
+                    if (r.setting_key === 'whatsapp_template_placed' && r.setting_value) templatePlaced = r.setting_value;
+                    if (r.setting_key === 'whatsapp_template_shipped' && r.setting_value) templateShipped = r.setting_value;
+                });
+            }
+            
+            const trackingUrl = `${req.protocol}://${req.get('host')}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
+            const actualTrackingUrl = order.tracking_number ? `https://t.17track.net/en#nums=${order.tracking_number}` : trackingUrl;
+            
+            const vars = {
+                name: order.fullname,
+                order_id: order.id,
+                total_amount: order.total_amount,
+                payment_method: order.payment_method,
+                courier: order.courier_name || 'Courier',
+                tracking_number: order.tracking_number || '',
+                tracking_url: actualTrackingUrl,
+                store_name: storeName
+            };
+            
+            let message = '';
+            if (order.status === 'Shipped') {
+                message = replaceTemplateVars(templateShipped, vars);
+            } else {
+                message = replaceTemplateVars(templatePlaced, vars);
+            }
+            
+            // Clean phone number (Indian numbers might start with 91 or not)
+            let cleanPhone = order.phone.replace(/[^0-9]/g, '');
+            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+            
+            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
             res.json({ url: whatsappUrl });
         });
     });

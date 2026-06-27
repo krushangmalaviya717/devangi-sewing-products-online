@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import { useRouter } from 'next/navigation';
@@ -142,7 +142,7 @@ export default function CheckoutPage() {
       <div className="max-w-7xl mx-auto px-4 py-10 page-fade">
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight">Checkout</h1>
-          <p className="text-slate-500 mt-2">Complete your purchase from Devangi Sewing Products</p>
+          <p className="text-slate-500 mt-2">Complete your purchase from Devangi Products</p>
         </header>
 
         <form onSubmit={placeOrder}>

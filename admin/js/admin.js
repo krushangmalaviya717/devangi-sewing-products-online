@@ -303,6 +303,9 @@ async function openEditModal(id) {
 
 // ===== DOMContentLoaded =====
 document.addEventListener('DOMContentLoaded', () => {
+    // Check permission-based sidebar filtering
+    checkAdminPermissions();
+
     // Determine which page we are on and only fetch necessary data
     if (document.getElementById('products-table-body')) fetchProducts();
     if (document.getElementById('users-table-body')) fetchUsers();
@@ -323,6 +326,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         loadOrders();
+        loadAdminShippingSettings();
+        
+        // Bind pincode / phone events for manual order
+        const moPincode = document.getElementById('mo_pincode');
+        if (moPincode) {
+            moPincode.addEventListener('input', () => {
+                const pin = moPincode.value.trim();
+                if (pin.length >= 2) {
+                    const detectedState = getStateFromPincode(pin);
+                    if (detectedState) {
+                        const stateInput = document.getElementById('mo_state');
+                        if (stateInput) stateInput.value = detectedState;
+                    }
+                }
+                recalculateManualOrderShipping();
+                updateManualOrderSummary();
+            });
+        }
+        const moPhone = document.getElementById('mo_phone');
+        if (moPhone) {
+            moPhone.addEventListener('input', () => {
+                validateAdminPhone('mo_phone', 'mo_phone_error');
+            });
+        }
+        
+        // Bind pincode / phone events for edit order
+        const eoPincode = document.getElementById('eo_pincode');
+        if (eoPincode) {
+            eoPincode.addEventListener('input', () => {
+                const pin = eoPincode.value.trim();
+                if (pin.length >= 2) {
+                    const detectedState = getStateFromPincode(pin);
+                    if (detectedState) {
+                        const stateInput = document.getElementById('eo_state');
+                        if (stateInput) stateInput.value = detectedState;
+                    }
+                }
+                recalculateEditOrderShipping();
+                updateEditOrderSummary();
+            });
+        }
+        const eoPhone = document.getElementById('eo_phone');
+        if (eoPhone) {
+            eoPhone.addEventListener('input', () => {
+                validateAdminPhone('eo_phone', 'eo_phone_error');
+            });
+        }
         
         const openOrderId = params.get('open_order');
         if (openOrderId) {
@@ -697,6 +747,16 @@ function toggleModal(modalID) {
             const form = document.getElementById('addBannerForm');
             if (form) form.reset();
             if (typeof resetBannerForm === 'function') resetBannerForm('addBannerForm');
+            
+            // Calculate and set next sort order
+            const sortOrderInput = document.querySelector('#addBannerForm input[name="sort_order"]');
+            if (sortOrderInput) {
+                let maxOrder = 0;
+                if (currentBanners && currentBanners.length > 0) {
+                    maxOrder = Math.max(...currentBanners.map(b => b.sort_order || 0));
+                }
+                sortOrderInput.value = maxOrder + 1;
+            }
         }
     } else {
         modal.classList.add('hidden');
@@ -848,7 +908,7 @@ async function fetchCategories() {
                     const tr = document.createElement('tr');
                     tr.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
                     tr.innerHTML = `
-                        <td class="p-4 text-2xl">${c.icon || '🏷️'}</td>
+                        <td class="p-4 text-2xl">${c.icon && c.icon.startsWith('/') ? `<img src="${c.icon}" class="w-10 h-10 object-cover rounded border border-gray-200">` : (c.icon || '🏷️')}</td>
                         <td class="p-4 font-medium text-gray-800">${c.name}</td>
                         <td class="p-4 text-center">
                             <span class="px-3 py-1 bg-pink-50 text-pink-600 rounded-full text-xs font-semibold">${c.product_count} product${c.product_count !== 1 ? 's' : ''}</span>
@@ -895,8 +955,60 @@ function populateCategoryDropdown(selectId, cats, selectedValue) {
 function openEditCategoryModal(id, name, icon) {
     document.getElementById('edit_cat_id').value = id;
     document.getElementById('edit_cat_name').value = name.trim();
-    document.getElementById('edit_cat_icon').value = icon.trim();
+    const iconVal = icon.trim();
+    document.getElementById('edit_cat_icon').value = iconVal;
+    
+    // Update preview if it's an image
+    const preview = document.getElementById('edit_cat_icon_preview');
+    const placeholder = document.getElementById('edit_cat_icon_placeholder');
+    if (preview && placeholder) {
+        if (iconVal.startsWith('/')) {
+            preview.src = iconVal;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        } else {
+            preview.style.display = 'none';
+            placeholder.style.display = 'block';
+            placeholder.textContent = iconVal || '🏷️';
+        }
+    }
+    
     toggleModal('editCategoryModal');
+}
+
+async function uploadCategoryIcon(type) {
+    const fileInput = document.getElementById(`${type}_cat_file`);
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return;
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const res = await fetch('/api/admin/settings/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+            const preview = document.getElementById(`${type}_cat_icon_preview`);
+            const placeholder = document.getElementById(`${type}_cat_icon_placeholder`);
+            const hiddenInput = document.getElementById(type === 'add' ? 'cat_icon' : 'edit_cat_icon');
+            
+            if (preview) {
+                preview.src = data.filePath;
+                preview.style.display = 'block';
+            }
+            if (placeholder) placeholder.style.display = 'none';
+            if (hiddenInput) hiddenInput.value = data.filePath;
+            
+            showToast('Category icon uploaded!');
+        } else {
+            alert('Upload failed: ' + data.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error uploading file');
+    }
 }
 
 async function deleteCategory(id, name) {
@@ -925,6 +1037,7 @@ async function refreshEditModalCategories(selectedCategory) {
     }
 }
 // ===== BANNERS =====
+let currentBanners = [];
 
 async function fetchBanners() {
     try {
@@ -933,6 +1046,7 @@ async function fetchBanners() {
 
         const res = await fetch('/api/banners');
         const banners = await res.json();
+        currentBanners = banners || [];
 
         tbody.innerHTML = '';
 
@@ -1269,8 +1383,10 @@ async function loadOrders(page = 1) {
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getOrderStatusColor(o.status)}">${o.status}</span>
                 </td>
                 <td class="p-4 text-xs text-gray-400">${new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                <td class="p-4 text-right">
-                    <button class="text-pink-600 group-hover:text-pink-700 font-semibold text-xs transition-colors">View Details →</button>
+                <td class="p-4 text-right flex items-center justify-end gap-2" onclick="event.stopPropagation()">
+                    <button onclick="openOrderDetail(${o.id})" class="text-pink-600 hover:text-pink-700 font-semibold text-xs transition-colors">View Details</button>
+                    <span class="text-gray-350">|</span>
+                    <button onclick="deleteSingleOrder(${o.id})" class="text-red-500 hover:text-red-700 font-semibold text-xs transition-colors">Delete</button>
                 </td>`;
             tbody.appendChild(tr);
         });
@@ -1384,6 +1500,8 @@ async function openOrderDetail(id) {
 
         // Amazon-style Tracking Update
         updateTrackingUI(order.status);
+
+
 
         // Smart Action Buttons
         renderSmartActionButtons(order);
@@ -1636,28 +1754,56 @@ function printInvoice() {
     const printArea = document.getElementById('invoice-print-area');
     const originalContent = document.body.innerHTML;
     
+    const order = currentOrderData.order;
+    const name = (order.fullname || `${order.first_name || ''} ${order.last_name || ''}`).trim() || 'Customer';
+    const phoneSuffix = order.phone ? ` ${order.phone}` : '';
+    const docTitle = `${name} Order #${order.id}${phoneSuffix}`.trim();
+
     // Create a new window for printing to avoid messing up the main UI
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <html>
             <head>
-                <title>Invoice #${currentOrderData.order.id}</title>
+                <title>${docTitle}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
                 <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
                     body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: #fff; }
                     @media print {
                         @page {
+                            size: A4 portrait;
                             margin: 0;
                         }
                         body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .invoice-page {
+                            width: 210mm;
+                            height: 297mm;
                             padding: 20mm;
+                            box-sizing: border-box;
+                            background: #fff;
+                            display: flex;
+                            flex-direction: column;
+                        }
+                        .invoice-page > div {
+                            display: flex;
+                            flex-direction: column;
+                            flex: 1;
+                            height: 100%;
+                        }
+                        .invoice-page > div > div:last-child {
+                            margin-top: auto !important;
                         }
                         .no-print { display: none; }
                     }
                 </style>
             </head>
             <body>
-                ${printArea.innerHTML}
+                <div class="invoice-page">
+                    ${printArea.innerHTML}
+                </div>
             </body>
         </html>
     `);
@@ -1684,8 +1830,13 @@ async function downloadInvoice() {
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         
+        const order = currentOrderData.order;
+        const name = (order.fullname || `${order.first_name || ''} ${order.last_name || ''}`).trim() || 'Customer';
+        const phoneSuffix = order.phone ? ` ${order.phone}` : '';
+        const docTitle = `${name} Order #${order.id}${phoneSuffix}`.trim();
+        
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`Invoice_${currentOrderData.order.id}.pdf`);
+        pdf.save(`${docTitle}.pdf`);
         showToast('Invoice PDF downloaded! 📥');
     } catch (err) {
         console.error(err);
@@ -1709,6 +1860,10 @@ async function printCourierLabel4up() {
     const labelHTML = generateSingleLabelHTML(order, items);
     const thankYouHTML = generateThankYouCardHTML(order);
 
+    const customerName = (order.fullname || `${order.first_name || ''} ${order.last_name || ''}`).trim() || 'Customer';
+    const phoneSuffix = order.phone ? ` ${order.phone}` : '';
+    const docTitle = `${customerName} Order #${order.id}${phoneSuffix}`.trim();
+
     // ── Open print window — 1 label top-left, 1 thank you bottom-left, 2 empty cells
     const printWindow = window.open('', '_blank', 'width=900,height=750');
     if (!printWindow) {
@@ -1720,7 +1875,7 @@ async function printCourierLabel4up() {
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Courier Label & Thank You Card — Order #${order.id}</title>
+    <title>${docTitle}</title>
     <!-- Load Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -2005,7 +2160,7 @@ function sendWhatsAppTrackingLink() {
     }
     const order = currentOrderData.order;
     const trackingUrl = `${window.location.origin}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
-    const message = `Hello ${order.fullname},\n\nThank you for shopping at Devangi Sewing Products! 🌸\n\nYou can track the status of your Order #${order.id} here: ${trackingUrl}\n\nHave a great day!`;
+    const message = `Hello ${order.fullname},\n\nThank you for shopping at Devangi Products! 🌸\n\nYou can track the status of your Order #${order.id} here: ${trackingUrl}\n\nHave a great day!`;
     const whatsappUrl = `https://wa.me/91${order.phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
     showToast('WhatsApp tracking message composed! 📱');
@@ -2016,6 +2171,141 @@ function adminLogout() {
     fetch('/api/admin/logout', { method: 'POST' }).then(() => {
         window.location.href = '/admin/login.html';
     });
+}
+
+let adminShippingSettings = {
+    chargeGujarat: 50,
+    chargeMaharashtra: 60,
+    chargeOthers: 100,
+    shippingFreeAbove: 250
+};
+
+async function loadAdminShippingSettings() {
+    try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+            const settings = await res.json();
+            adminShippingSettings.chargeGujarat = parseFloat(settings.shipping_charge_gujarat) || 50;
+            adminShippingSettings.chargeMaharashtra = parseFloat(settings.shipping_charge_maharashtra) || 60;
+            adminShippingSettings.chargeOthers = parseFloat(settings.shipping_charge_others) || 100;
+            adminShippingSettings.shippingFreeAbove = parseFloat(settings.shipping_free_above) || 250;
+        }
+    } catch (err) {
+        console.error('Error loading shipping settings for admin:', err);
+    }
+}
+
+function calculateAdminShipping(pincode, subtotal) {
+    if (!pincode || pincode.length < 2) {
+        return adminShippingSettings.chargeOthers; // fallback
+    }
+    const prefix2 = pincode.substring(0, 2);
+    const prefix3 = pincode.substring(0, 3);
+    
+    let currentShipping = adminShippingSettings.chargeOthers;
+    if (prefix2 === '36' || prefix2 === '37' || prefix2 === '38' || prefix2 === '39') {
+        currentShipping = adminShippingSettings.chargeGujarat;
+    } else if ((prefix2 === '40' || prefix2 === '41' || prefix2 === '42' || prefix2 === '43' || prefix2 === '44') && prefix3 !== '403') {
+        currentShipping = adminShippingSettings.chargeMaharashtra;
+    }
+    
+    return subtotal >= adminShippingSettings.shippingFreeAbove ? 0 : currentShipping;
+}
+
+function recalculateManualOrderShipping() {
+    const pincode = document.getElementById('mo_pincode').value.trim();
+    const subtotal = manualOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const isPincodeValid = /^[1-9][0-9]{5}$/.test(pincode);
+    
+    // Toggle error visibility only if they entered 6 or more characters
+    const errEl = document.getElementById('mo_pincode_error');
+    if (errEl) {
+        errEl.style.display = (pincode && pincode.length >= 6 && !isPincodeValid) ? 'block' : 'none';
+    }
+    
+    if (pincode && pincode.length >= 2) {
+        const charge = calculateAdminShipping(pincode, subtotal);
+        document.getElementById('mo_delivery_charge').value = charge;
+    }
+}
+
+function recalculateEditOrderShipping() {
+    const pincode = document.getElementById('eo_pincode').value.trim();
+    const subtotal = editOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const isPincodeValid = /^[1-9][0-9]{5}$/.test(pincode);
+    
+    // Toggle error visibility only if they entered 6 or more characters
+    const errEl = document.getElementById('eo_pincode_error');
+    if (errEl) {
+        errEl.style.display = (pincode && pincode.length >= 6 && !isPincodeValid) ? 'block' : 'none';
+    }
+    
+    if (pincode && pincode.length >= 2) {
+        const charge = calculateAdminShipping(pincode, subtotal);
+        document.getElementById('eo_delivery_charge').value = charge;
+    }
+}
+
+function validateAdminPhone(id, errorId) {
+    const val = document.getElementById(id).value.trim();
+    const isValid = /^[0-9]{10}$/.test(val);
+    const errEl = document.getElementById(errorId);
+    if (errEl) {
+        errEl.style.display = (val && !isValid) ? 'block' : 'none';
+    }
+}
+
+function getStateFromPincode(pincode) {
+    if (!pincode || pincode.length < 2) return '';
+    const prefix2 = pincode.substring(0, 2);
+    const prefix3 = pincode.substring(0, 3);
+    
+    if (prefix3 === '403') return 'Goa';
+    if (prefix3 === '160') return 'Chandigarh';
+    if (prefix3 === '605') return 'Puducherry';
+    if (prefix3 === '737') return 'Sikkim';
+    if (prefix3 === '744') return 'Andaman & Nicobar Islands';
+    
+    if (prefix3 === '248' || prefix3 === '249' || prefix3 === '263') return 'Uttarakhand';
+    
+    if (['814', '815', '816', '822', '825', '826', '827', '828', '829', '831', '832', '833', '834', '835'].includes(prefix3)) {
+        return 'Jharkhand';
+    }
+    
+    if (prefix2 === '79') {
+        if (prefix3 === '790' || prefix3 === '791' || prefix3 === '792') return 'Arunachal Pradesh';
+        if (prefix3 === '793' || prefix3 === '794') return 'Meghalaya';
+        if (prefix3 === '795') return 'Manipur';
+        if (prefix3 === '796') return 'Mizoram';
+        if (prefix3 === '797' || prefix3 === '798') return 'Nagaland';
+        if (prefix3 === '799') return 'Tripura';
+        return 'Northeast State';
+    }
+
+    const stateMap = {
+        '11': 'Delhi',
+        '12': 'Haryana', '13': 'Haryana',
+        '14': 'Punjab', '15': 'Punjab',
+        '17': 'Himachal Pradesh',
+        '18': 'Jammu and Kashmir', '19': 'Jammu and Kashmir',
+        '20': 'Uttar Pradesh', '21': 'Uttar Pradesh', '22': 'Uttar Pradesh', '23': 'Uttar Pradesh', '24': 'Uttar Pradesh', '25': 'Uttar Pradesh', '26': 'Uttar Pradesh', '27': 'Uttar Pradesh', '28': 'Uttar Pradesh',
+        '30': 'Rajasthan', '31': 'Rajasthan', '32': 'Rajasthan', '33': 'Rajasthan', '34': 'Rajasthan',
+        '36': 'Gujarat', '37': 'Gujarat', '38': 'Gujarat', '39': 'Gujarat',
+        '40': 'Maharashtra', '41': 'Maharashtra', '42': 'Maharashtra', '43': 'Maharashtra', '44': 'Maharashtra',
+        '45': 'Madhya Pradesh', '46': 'Madhya Pradesh', '47': 'Madhya Pradesh', '48': 'Madhya Pradesh',
+        '49': 'Chhattisgarh',
+        '50': 'Telangana',
+        '51': 'Andhra Pradesh', '52': 'Andhra Pradesh', '53': 'Andhra Pradesh',
+        '56': 'Karnataka', '57': 'Karnataka', '58': 'Karnataka', '59': 'Karnataka',
+        '60': 'Tamil Nadu', '61': 'Tamil Nadu', '62': 'Tamil Nadu', '63': 'Tamil Nadu', '64': 'Tamil Nadu',
+        '67': 'Kerala', '68': 'Kerala', '69': 'Kerala',
+        '70': 'West Bengal', '71': 'West Bengal', '72': 'West Bengal', '73': 'West Bengal', '74': 'West Bengal',
+        '75': 'Odisha', '76': 'Odisha', '77': 'Odisha',
+        '78': 'Assam',
+        '80': 'Bihar', '81': 'Bihar', '82': 'Bihar', '83': 'Bihar', '84': 'Bihar', '85': 'Bihar'
+    };
+
+    return stateMap[prefix2] || '';
 }
 
 // ===== Add Manual Order Flow =====
@@ -2039,6 +2329,8 @@ async function initAddOrderModal() {
         
         document.getElementById('mo_product_qty').value = 1;
         document.getElementById('mo_delivery_charge').value = 0;
+        if (document.getElementById('mo_pincode_error')) document.getElementById('mo_pincode_error').style.display = 'none';
+        if (document.getElementById('mo_phone_error')) document.getElementById('mo_phone_error').style.display = 'none';
         
         document.getElementById('mo_payment_method').value = 'COD';
         document.getElementById('mo_payment_status').value = 'Pending';
@@ -2104,6 +2396,7 @@ function addManualOrderItem() {
     qtyInput.value = 1;
     
     renderManualOrderItems();
+    recalculateManualOrderShipping();
     updateManualOrderSummary();
     showToast('Product added to order! 🛍️');
 }
@@ -2111,6 +2404,7 @@ function addManualOrderItem() {
 function removeManualOrderItem(index) {
     manualOrderItems.splice(index, 1);
     renderManualOrderItems();
+    recalculateManualOrderShipping();
     updateManualOrderSummary();
 }
 
@@ -2166,6 +2460,14 @@ async function submitManualOrder(event) {
     const last_name = document.getElementById('mo_last_name').value.trim();
     const phone = document.getElementById('mo_phone').value.trim();
     const email = document.getElementById('mo_email').value.trim() || '';
+    
+    validateAdminPhone('mo_phone', 'mo_phone_error');
+    recalculateManualOrderShipping();
+    
+    if (!/^[0-9]{10}$/.test(phone)) {
+        alert('Please enter a valid 10-digit Phone Number.');
+        return;
+    }
     
     const house_no = document.getElementById('mo_house_no').value.trim();
     const society = document.getElementById('mo_society').value.trim();
@@ -2379,6 +2681,52 @@ async function bulkUpdatePayment(newPayment) {
     }
 }
 
+async function deleteSingleOrder(id) {
+    if (!confirm(`Are you sure you want to permanently delete Order #${id}?`)) return;
+    
+    try {
+        const res = await fetch(`/api/admin/orders/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!res.ok) throw new Error('Failed to delete order');
+        const data = await res.json();
+        
+        showToast('Order deleted successfully! 🗑️');
+        loadOrders(currentOrdersPage);
+        updateNotificationBadge();
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        alert('Failed to delete order. Please try again.');
+    }
+}
+
+async function bulkDeleteOrders() {
+    if (selectedOrderIds.length === 0) return;
+    
+    if (!confirm(`Are you sure you want to permanently delete ${selectedOrderIds.length} selected orders?`)) return;
+    
+    try {
+        showToast(`Deleting ${selectedOrderIds.length} orders... 🗑️`);
+        
+        const promises = selectedOrderIds.map(id => 
+            fetch(`/api/admin/orders/${id}`, {
+                method: 'DELETE'
+            })
+        );
+        
+        await Promise.all(promises);
+        
+        showToast('Selected orders deleted successfully! 🗑️✅');
+        clearOrderSelection();
+        loadOrders(currentOrdersPage);
+        updateNotificationBadge();
+    } catch (err) {
+        console.error('Error bulk deleting orders:', err);
+        alert('Failed to delete some orders. Please try again.');
+    }
+}
+
 function generateSingleLabelHTML(order, items) {
     const awbNum = 'DSP' + String(order.id).padStart(9, '0');
     const isPaid = order.payment_status === 'Paid';
@@ -2401,11 +2749,11 @@ function generateSingleLabelHTML(order, items) {
         const lineTotal = unitPrice * qty;
         return `
         <tr style="border-bottom:1px solid #fce7f3;">
-            <td style="padding:4px 6px 4px 0; font-size:10px; color:#555;">${i + 1}</td>
-            <td style="padding:4px 6px; font-size:10px; font-weight:700; color:#1f2937;">${item.name || item.product_name || 'Item'}</td>
-            <td style="padding:4px 6px; font-size:10px; text-align:center; color:#555;">× ${qty}</td>
-            <td style="padding:4px 6px; font-size:10px; text-align:right; color:#555;">₹${unitPrice.toFixed(0)}</td>
-            <td style="padding:4px 0 4px 6px; font-size:10px; font-weight:800; text-align:right; color:#be185d;">₹${lineTotal.toFixed(0)}</td>
+            <td style="padding:6px 6px 6px 0; font-size:12px; color:#555;">${i + 1}</td>
+            <td style="padding:6px 6px; font-size:12px; font-weight:700; color:#1f2937;">${item.name || item.product_name || 'Item'}</td>
+            <td style="padding:6px 6px; font-size:12px; text-align:center; color:#555;">× ${qty}</td>
+            <td style="padding:6px 6px; font-size:12px; text-align:right; color:#555;">₹${unitPrice.toFixed(0)}</td>
+            <td style="padding:6px 0 6px 6px; font-size:12px; font-weight:800; text-align:right; color:#be185d;">₹${lineTotal.toFixed(0)}</td>
         </tr>`;
     }).join('');
 
@@ -2428,10 +2776,15 @@ function generateSingleLabelHTML(order, items) {
     ">
         <!-- ══ HEADER ══ -->
         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background: linear-gradient(135deg,#be185d,#9d174d); color:#fff;">
-            <div>
-                <div style="font-size:22px; font-weight:900; letter-spacing:1.5px; line-height:1;">DEVANGI SEWING</div>
-                <div style="font-size:9px; font-weight:600; letter-spacing:3px; margin-top:3px; opacity:0.85;">PRODUCTS</div>
-            </div>
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <div style="display:flex; flex-direction:column; align-items:stretch;">
+                        <div style="font-size:30px; font-weight:900; letter-spacing:0px; line-height:1; font-family:'Arial Black',Arial,sans-serif; white-space:nowrap; color:#fff; text-align:center;">DEVANGI</div>
+                        <div style="font-size:15px; font-weight:900; font-family:'Arial Black',Arial,sans-serif; color:#ffd6e8; margin-top:2px; display:flex; justify-content:space-between; width:100%; padding:0 3px; box-sizing:border-box;">
+                            <span>P</span><span>R</span><span>O</span><span>D</span><span>U</span><span>C</span><span>T</span><span>S</span>
+                        </div>
+                    </div>
+                    <div style="font-size:10px; color:#fce7f3; margin-top:6px; text-align:center; white-space:nowrap;">✦ Quality Sewing Essentials ✦</div>
+                </div>
             <div style="text-align:right; font-size:9px; opacity:0.9;">
                 <div style="font-weight:800; font-size:11px;">AWB: ${awbNum}</div>
                 <div style="margin-top:3px; opacity:0.8;">Order #${order.id}</div>
@@ -2442,20 +2795,20 @@ function generateSingleLabelHTML(order, items) {
         <div style="padding:10px 14px; border-bottom:2px dashed #fbcfe8;">
             <div style="
                 background:#be185d; color:#fff;
-                font-size:8px; font-weight:900; letter-spacing:1.5px;
-                padding:3px 10px; display:inline-block;
+                font-size:10px; font-weight:900; letter-spacing:1px;
+                padding:4px 10px; display:inline-block;
                 border-radius:3px; margin-bottom:8px;
             ">TO:</div>
 
             <!-- Name + Mobile row -->
             <div style="display:flex; gap:16px; margin-bottom:8px;">
                 <div style="flex:1;">
-                    <div style="font-size:9px; color:#9d174d; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:2px;">Name</div>
-                    <div style="font-size:14px; font-weight:900; color:#111827; line-height:1.2;">${order.fullname || ''}</div>
+                    <div style="font-size:10px; color:#9d174d; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Name</div>
+                    <div style="font-size:16px; font-weight:900; color:#111827; line-height:1.2;">${order.fullname || ''}</div>
                 </div>
                 <div style="flex:1;">
-                    <div style="font-size:9px; color:#9d174d; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:2px;">Mobile</div>
-                    <div style="font-size:14px; font-weight:900; color:#111827; line-height:1.2;">${order.phone || ''}</div>
+                    <div style="font-size:10px; color:#9d174d; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Mobile</div>
+                    <div style="font-size:16px; font-weight:900; color:#111827; line-height:1.2;">${order.phone || ''}</div>
                 </div>
             </div>
 
@@ -2463,8 +2816,8 @@ function generateSingleLabelHTML(order, items) {
             <div style="display:flex; gap:10px; align-items:flex-start;">
                 <!-- Full address block -->
                 <div style="flex:1;">
-                    <div style="font-size:9px; color:#9d174d; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Delivery Address</div>
-                    <div style="font-size:11px; font-weight:600; color:#1f2937; line-height:1.7;">${addrDisplay}</div>
+                    <div style="font-size:10px; color:#9d174d; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px;">Delivery Address</div>
+                    <div style="font-size:13px; font-weight:600; color:#1f2937; line-height:1.7;">${addrDisplay}</div>
                 </div>
                 <!-- Pincode box -->
                 <div style="
@@ -2472,8 +2825,8 @@ function generateSingleLabelHTML(order, items) {
                     border:2px solid #be185d; border-radius:6px;
                     padding:6px 10px; min-width:72px;
                 ">
-                    <div style="font-size:8px; font-weight:800; color:#9d174d; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid #fbcfe8; padding-bottom:3px; margin-bottom:4px;">PIN</div>
-                    <div style="font-size:18px; font-weight:900; color:#be185d; letter-spacing:2px; line-height:1;">${pincode}</div>
+                    <div style="font-size:9px; font-weight:800; color:#9d174d; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid #fbcfe8; padding-bottom:3px; margin-bottom:4px;">PIN</div>
+                    <div style="font-size:20px; font-weight:900; color:#be185d; letter-spacing:2px; line-height:1;">${pincode}</div>
                 </div>
             </div>
         </div>
@@ -2487,11 +2840,11 @@ function generateSingleLabelHTML(order, items) {
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
                     <tr style="background:#fdf2f8;">
-                        <th style="padding:3px 6px 3px 0; font-size:8px; font-weight:800; color:#9d174d; text-align:left; width:18px;">#</th>
-                        <th style="padding:3px 6px; font-size:8px; font-weight:800; color:#9d174d; text-align:left;">PRODUCT</th>
-                        <th style="padding:3px 6px; font-size:8px; font-weight:800; color:#9d174d; text-align:center;">QTY</th>
-                        <th style="padding:3px 6px; font-size:8px; font-weight:800; color:#9d174d; text-align:right;">RATE</th>
-                        <th style="padding:3px 0 3px 6px; font-size:8px; font-weight:800; color:#9d174d; text-align:right;">AMT</th>
+                        <th style="padding:5px 6px 5px 0; font-size:10px; font-weight:800; color:#9d174d; text-align:left; width:20px;">#</th>
+                        <th style="padding:5px 6px; font-size:10px; font-weight:800; color:#9d174d; text-align:left;">PRODUCT</th>
+                        <th style="padding:5px 6px; font-size:10px; font-weight:800; color:#9d174d; text-align:center;">QTY</th>
+                        <th style="padding:5px 6px; font-size:10px; font-weight:800; color:#9d174d; text-align:right;">RATE</th>
+                        <th style="padding:5px 0 5px 6px; font-size:10px; font-weight:800; color:#9d174d; text-align:right;">AMT</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2501,26 +2854,26 @@ function generateSingleLabelHTML(order, items) {
 
             <!-- Totals -->
             <div style="margin-top:6px; border-top:1.5px solid #fbcfe8; padding-top:6px; display:flex; justify-content:flex-end;">
-                <table style="font-size:10px; border-collapse:collapse;">
+                <table style="font-size:12px; border-collapse:collapse;">
                     ${shipping > 0 ? `<tr>
-                        <td style="padding:1.5px 12px 1.5px 0; color:#6b7280;">Subtotal</td>
-                        <td style="padding:1.5px 0; text-align:right; font-weight:700;">₹${subtotal.toFixed(0)}</td>
+                        <td style="padding:2px 12px 2px 0; color:#6b7280;">Subtotal</td>
+                        <td style="padding:2px 0; text-align:right; font-weight:700;">₹${subtotal.toFixed(0)}</td>
                     </tr>
                     <tr>
-                        <td style="padding:1.5px 12px 1.5px 0; color:#6b7280;">Shipping</td>
-                        <td style="padding:1.5px 0; text-align:right; font-weight:700;">₹${shipping.toFixed(0)}</td>
+                        <td style="padding:2px 12px 2px 0; color:#6b7280;">Shipping</td>
+                        <td style="padding:2px 0; text-align:right; font-weight:700;">₹${shipping.toFixed(0)}</td>
                     </tr>` : ''}
                     ${discount > 0 ? `<tr>
-                        <td style="padding:1.5px 12px 1.5px 0; color:#10b981;">Discount</td>
-                        <td style="padding:1.5px 0; text-align:right; font-weight:700; color:#10b981;">- ₹${discount.toFixed(0)}</td>
+                        <td style="padding:2px 12px 2px 0; color:#10b981;">Discount</td>
+                        <td style="padding:2px 0; text-align:right; font-weight:700; color:#10b981;">- ₹${discount.toFixed(0)}</td>
                     </tr>` : ''}
                     <tr style="border-top:2px solid #be185d;">
-                        <td style="padding:4px 12px 4px 0; font-size:12px; font-weight:900; color:#be185d;">TOTAL</td>
-                        <td style="padding:4px 0; text-align:right; font-size:14px; font-weight:900; color:#be185d;">₹${total.toFixed(0)}</td>
+                        <td style="padding:6px 12px 6px 0; font-size:14px; font-weight:900; color:#be185d;">TOTAL</td>
+                        <td style="padding:6px 0; text-align:right; font-size:16px; font-weight:900; color:#be185d;">₹${total.toFixed(0)}</td>
                     </tr>
                     <tr>
-                        <td style="padding:1.5px 12px 1.5px 0; font-size:9px; color:#6b7280;">To Collect</td>
-                        <td style="padding:1.5px 0; text-align:right; font-size:11px; font-weight:900; color:${isPaid ? '#10b981' : '#dc2626'};">
+                        <td style="padding:2px 12px 2px 0; font-size:11px; color:#6b7280;">To Collect</td>
+                        <td style="padding:2px 0; text-align:right; font-size:13px; font-weight:900; color:${isPaid ? '#10b981' : '#dc2626'};">
                             ${isPaid ? 'PAID ✓' : '₹' + total.toFixed(0)}
                         </td>
                     </tr>
@@ -2536,7 +2889,7 @@ function generateSingleLabelHTML(order, items) {
                     font-size:7px; font-weight:900;
                     padding:2px 6px; border-radius:3px; margin-right:5px;
                 ">FROM:</span>
-                <strong style="font-size:10px;">Devangi Sewing Products</strong><br>
+                <strong style="font-size:10px;">Devangi Products</strong><br>
                 <span style="margin-left:52px;">Yogichowk, Surat, Gujarat - 395010</span><br>
                 <span style="margin-left:52px;">Mo. 7600550038</span>
             </div>
@@ -2550,12 +2903,179 @@ function generateSingleLabelHTML(order, items) {
                     <circle cx="29" cy="19" r="2.8" stroke="#be185d" stroke-width="1.8" fill="none"/>
                     <line x1="0" y1="18" x2="4.7" y2="18" stroke="#be185d" stroke-width="1.2"/>
                     <line x1="10.3" y1="18" x2="26.2" y2="18" stroke="#be185d" stroke-width="1.2"/>
-                    <line x1="31.8" y1="18" x2="36" y2="18" stroke="#be185d" stroke-width="1.2"/>
+                    <line x1="31.8" y1="18" x2="36" y2="18" stroke="#be185d" stroke-width="1.8"/>
                 </svg>
                 <div style="font-size:7px; font-weight:900; margin-top:2px; color:#be185d;">THANK YOU! ♥</div>
             </div>
         </div>
     </div>`;
+}
+
+function generateSingleInvoiceHTML(order, items) {
+    const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const itemsHTML = items.map(item => `
+        <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.name}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">Rs. ${item.price.toFixed(2)}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">Rs. ${(item.price * item.quantity).toFixed(2)}</td>
+        </tr>
+    `).join('');
+
+    return `
+    <div class="invoice-page">
+        <div style="font-family: 'Poppins', sans-serif; padding: 40px; color: #333; height: 100%; display: flex; flex-direction: column; flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+                <div>
+                    <h1 style="color: #db2777; margin: 0; font-size: 28px;">INVOICE</h1>
+                    <p style="margin: 5px 0; color: #666;">#${order.id}</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="margin: 0; font-weight: bold;">Devangi Products</p>
+                    <p style="margin: 5px 0; color: #666; font-size: 12px;">Surat, Gujarat, India</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+                <div>
+                    <h4 style="text-transform: uppercase; font-size: 10px; color: #999; margin-bottom: 10px;">Bill To</h4>
+                    <p style="margin: 0; font-weight: bold;">${order.fullname}</p>
+                    <p style="margin: 5px 0; font-size: 13px; line-height: 1.5;">${order.address}</p>
+                    <p style="margin: 5px 0; font-size: 13px;">${order.email || '-'}</p>
+                    <p style="margin: 5px 0; font-size: 13px;">${order.phone}</p>
+                </div>
+                <div style="text-align: right;">
+                    <h4 style="text-transform: uppercase; font-size: 10px; color: #999; margin-bottom: 10px;">Invoice Details</h4>
+                    <p style="margin: 5px 0; font-size: 13px;">Date: <span>${new Date(order.created_at).toLocaleDateString()}</span></p>
+                    <p style="margin: 5px 0; font-size: 13px;">Payment: <span>${order.payment_method}</span></p>
+                    <p style="margin: 5px 0; font-size: 13px;">Status: <span>${order.payment_status}</span></p>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                <thead>
+                    <tr style="background: #f9f9f9; text-align: left;">
+                        <th style="padding: 12px; border-bottom: 2px solid #eee; font-size: 12px;">Item Description</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee; font-size: 12px; text-align: center;">Qty</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee; font-size: 12px; text-align: right;">Price</th>
+                        <th style="padding: 12px; border-bottom: 2px solid #eee; font-size: 12px; text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+            </table>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <div style="width: 250px; space-y: 10px;">
+                    <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                        <span style="color: #666; font-size: 13px;">Subtotal</span>
+                        <span style="font-weight: 500;">Rs. ${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                        <span style="color: #666; font-size: 13px;">Shipping</span>
+                        <span style="font-weight: 500;">Rs. ${parseFloat(order.delivery_charge || 0).toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid #eee; margin-top: 10px;">
+                        <span style="font-weight: bold;">Grand Total</span>
+                        <span style="font-weight: bold; color: #db2777; font-size: 18px;">Rs. ${parseFloat(order.total_amount).toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: auto; border-top: 1px solid #eee; padding-top: 20px; text-align: center; color: #999; font-size: 11px;">
+                <p>Thank you for shopping with Devangi Products!</p>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+async function bulkPrintInvoices() {
+    if (selectedOrderIds.length === 0) return;
+    
+    try {
+        showToast(`Loading data for ${selectedOrderIds.length} orders... ⚙️`);
+        
+        const ordersData = await Promise.all(
+            selectedOrderIds.map(id => 
+                fetch(`/api/admin/orders/${id}`).then(r => {
+                    if (!r.ok) throw new Error(`Failed to load order #${id}`);
+                    return r.json();
+                })
+            )
+        );
+        
+        const printWindow = window.open('', '_blank', 'width=900,height=750');
+        if (!printWindow) {
+            alert('Popup blocked! Please allow popups for this site and try again.');
+            return;
+        }
+        
+        const invoicesHTML = ordersData.map(data => generateSingleInvoiceHTML(data.order, data.items)).join('');
+        
+        printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bulk Invoices (${ordersData.length} Orders)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#fff; font-family:'Poppins', sans-serif; margin: 0; padding: 0; }
+
+        @page { size: A4 portrait; margin: 0; }
+
+        .invoice-page {
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+            box-sizing: border-box;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+            break-after: page;
+        }
+        .invoice-page > div {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            height: 100%;
+        }
+        .invoice-page > div > div:last-child {
+            margin-top: auto !important;
+        }
+
+        @media print {
+            body { 
+                margin: 0; 
+                padding: 0; 
+            }
+            .no-print { display:none !important; }
+            .invoice-page { 
+                page-break-after: always; 
+                break-after: page;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="position:fixed;top:10px;right:10px;z-index:100;display:flex;gap:8px;">
+        <button onclick="window.print()" style="background:#be185d;color:#fff;border:none;padding:10px 22px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;">🖨️ Print Invoices</button>
+        <button onclick="window.close()" style="background:#e5e7eb;color:#333;border:none;padding:10px 16px;border-radius:6px;font-size:14px;cursor:pointer;">✕ Close</button>
+    </div>
+
+    ${invoicesHTML}
+</body>
+</html>`);
+        
+        printWindow.document.close();
+        showToast('Bulk invoices ready! 📥');
+    } catch (err) {
+        console.error('Error preparing bulk invoices:', err);
+        alert('Failed to generate invoices. Please try again.');
+    }
 }
 
 async function bulkPrintLabels() {
@@ -2773,7 +3293,7 @@ function generateThankYouCardHTML(order) {
             align-items: center;
         ">
             <div style="font-size: 8px; color: #6b7280; line-height: 1.4; text-align: left;">
-                <strong>Devangi Sewing Products</strong><br>
+                <strong>Devangi Products</strong><br>
                 Yogichowk, Surat, Gujarat<br>
                 Mo. 7600550038
             </div>
@@ -2790,4 +3310,320 @@ function generateThankYouCardHTML(order) {
             </div>
         </div>
     </div>`;
+}
+
+// ===== EDIT ORDER FLOW =====
+let editOrderItems = [];
+
+async function openEditOrderModal() {
+    if (!currentOrderData || !currentOrderData.order) {
+        alert('No order data found.');
+        return;
+    }
+    
+    // Close order details modal
+    toggleModal('orderDetailModal');
+    
+    const order = currentOrderData.order;
+    const items = currentOrderData.items;
+    
+    // Open edit order modal
+    toggleModal('editOrderModal');
+    
+    if (document.getElementById('eo_pincode_error')) document.getElementById('eo_pincode_error').style.display = 'none';
+    if (document.getElementById('eo_phone_error')) document.getElementById('eo_phone_error').style.display = 'none';
+    
+    // Populate form fields
+    document.getElementById('edit_order_id').value = order.id;
+    document.getElementById('eo_order_id_title').innerText = '#' + order.id;
+    document.getElementById('eo_first_name').value = order.first_name || '';
+    document.getElementById('eo_last_name').value = order.last_name || '';
+    document.getElementById('eo_phone').value = order.phone || '';
+    document.getElementById('eo_email').value = order.email || '';
+    
+    document.getElementById('eo_house_no').value = order.house_no || '';
+    document.getElementById('eo_society').value = order.society || '';
+    document.getElementById('eo_street').value = order.street || '';
+    document.getElementById('eo_landmark').value = order.landmark || '';
+    document.getElementById('eo_city').value = order.city || '';
+    document.getElementById('eo_state').value = order.state || '';
+    document.getElementById('eo_pincode').value = order.pincode || '';
+    
+    document.getElementById('eo_payment_method').value = order.payment_method || 'COD';
+    document.getElementById('eo_payment_status').value = order.payment_status || 'Pending';
+    document.getElementById('eo_status').value = order.status || 'Order Placed';
+    document.getElementById('eo_delivery_charge').value = order.delivery_charge || 0;
+    
+    // Populate items array
+    editOrderItems = items.map(item => ({
+        id: item.product_id || item.id,
+        name: item.name,
+        price: parseFloat(item.price),
+        quantity: parseInt(item.quantity) || 1,
+        image: item.image || ''
+    }));
+    
+    renderEditOrderItems();
+    updateEditOrderSummary();
+    
+    // Populate products dropdown
+    const select = document.getElementById('eo_product_select');
+    if (select) {
+        if (allProducts.length === 0) {
+            select.innerHTML = '<option value="">-- Loading products... --</option>';
+            try {
+                const res = await fetch('/api/products');
+                if (res.ok) {
+                    allProducts = await res.json();
+                }
+            } catch (err) {
+                console.error("Error loading products in edit order:", err);
+            }
+        }
+        select.innerHTML = '<option value="">-- Select Product --</option>';
+        allProducts.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.title} - Rs. ${p.price}`;
+            select.appendChild(opt);
+        });
+    }
+}
+
+function addEditOrderItem() {
+    const select = document.getElementById('eo_product_select');
+    const qtyInput = document.getElementById('eo_product_qty');
+    
+    const productId = select.value;
+    const qty = parseInt(qtyInput.value) || 1;
+    
+    if (!productId) {
+        alert('Please select a product first.');
+        return;
+    }
+    
+    const product = allProducts.find(p => p.id == productId);
+    if (!product) return;
+    
+    const existingIndex = editOrderItems.findIndex(item => item.id == productId);
+    if (existingIndex > -1) {
+        editOrderItems[existingIndex].quantity += qty;
+    } else {
+        const image = (product.images && product.images[0]) || product.image || '';
+        editOrderItems.push({
+            id: product.id,
+            name: product.title,
+            price: product.price,
+            quantity: qty,
+            image: image
+        });
+    }
+    
+    select.value = '';
+    qtyInput.value = 1;
+    
+    renderEditOrderItems();
+    recalculateEditOrderShipping();
+    updateEditOrderSummary();
+    showToast('Product added to order! 🛍️');
+}
+
+function removeEditOrderItem(index) {
+    editOrderItems.splice(index, 1);
+    renderEditOrderItems();
+    recalculateEditOrderShipping();
+    updateEditOrderSummary();
+}
+
+function renderEditOrderItems() {
+    const tbody = document.getElementById('eo_items_tbody');
+    tbody.innerHTML = '';
+    
+    if (editOrderItems.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="p-4 text-center text-gray-400 italic">No products added yet.</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    editOrderItems.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+        tr.innerHTML = `
+            <td class="p-2 text-gray-700">${item.name}</td>
+            <td class="p-2 text-center text-gray-800 font-medium">${item.quantity}</td>
+            <td class="p-2 text-right text-gray-600">Rs. ${item.price.toFixed(2)}</td>
+            <td class="p-2 text-right text-gray-900 font-medium">Rs. ${(item.price * item.quantity).toFixed(2)}</td>
+            <td class="p-2 text-center">
+                <button type="button" onclick="removeEditOrderItem(${index})" class="text-red-500 hover:text-red-700 font-bold">
+                    ✕
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateEditOrderSummary() {
+    const subtotal = editOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const deliveryCharge = parseFloat(document.getElementById('eo_delivery_charge').value) || 0;
+    const grandTotal = subtotal + deliveryCharge;
+    
+    document.getElementById('eo_subtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('eo_grand_total').textContent = grandTotal.toFixed(2);
+}
+
+async function submitEditOrder(event) {
+    event.preventDefault();
+    
+    if (editOrderItems.length === 0) {
+        alert('Please add at least one product to the order.');
+        return;
+    }
+    
+    const orderId = document.getElementById('edit_order_id').value;
+    const first_name = document.getElementById('eo_first_name').value.trim();
+    const last_name = document.getElementById('eo_last_name').value.trim();
+    const phone = document.getElementById('eo_phone').value.trim();
+    const email = document.getElementById('eo_email').value.trim() || '';
+    
+    validateAdminPhone('eo_phone', 'eo_phone_error');
+    recalculateEditOrderShipping();
+    
+    if (!/^[0-9]{10}$/.test(phone)) {
+        alert('Please enter a valid 10-digit Phone Number.');
+        return;
+    }
+    
+    const house_no = document.getElementById('eo_house_no').value.trim();
+    const society = document.getElementById('eo_society').value.trim();
+    const street = document.getElementById('eo_street').value.trim();
+    const landmark = document.getElementById('eo_landmark').value.trim() || '';
+    const city = document.getElementById('eo_city').value.trim();
+    const state = document.getElementById('eo_state').value.trim();
+    const pincode = document.getElementById('eo_pincode').value.trim();
+    
+    if (!/^[1-9][0-9]{5}$/.test(pincode)) {
+        alert('Please enter a valid 6-digit Indian Pincode.');
+        return;
+    }
+    
+    const fullAddress = `${house_no}, ${society}, ${street}, ${landmark ? landmark + ', ' : ''}${city}, ${state} - ${pincode}`;
+    const delivery_charge = parseFloat(document.getElementById('eo_delivery_charge').value) || 0;
+    const subtotal = parseFloat(document.getElementById('eo_subtotal').textContent);
+    const total_amount = subtotal + delivery_charge;
+    
+    const payment_method = document.getElementById('eo_payment_method').value;
+    const payment_status = document.getElementById('eo_payment_status').value;
+    const status = document.getElementById('eo_status').value;
+    
+    const payload = {
+        first_name,
+        last_name,
+        fullname: `${first_name} ${last_name}`,
+        email,
+        phone,
+        house_no,
+        society,
+        street,
+        landmark,
+        city,
+        state,
+        pincode,
+        address: fullAddress,
+        items: editOrderItems,
+        delivery_charge,
+        total_amount,
+        payment_method,
+        payment_status,
+        status,
+        label: 'Home'
+    };
+    
+    try {
+        const btn = event.submitter || document.querySelector('#editOrderForm button[type="submit"]');
+        if (btn) btn.disabled = true;
+        
+        const res = await fetch(`/api/admin/orders/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (btn) btn.disabled = false;
+        
+        if (res.ok) {
+            toggleModal('editOrderModal');
+            loadOrders(); // Refresh order listing
+            
+            // Re-open updated order detail modal
+            setTimeout(() => {
+                openEditOrderDetail(orderId);
+            }, 300);
+            
+            showToast('Order details updated! 📝');
+        } else {
+            const data = await res.json();
+            alert('Error updating order: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error submitting edit order:', error);
+        alert('Failed to update order. Please try again.');
+        const btn = document.querySelector('#editOrderForm button[type="submit"]');
+        if (btn) btn.disabled = false;
+    }
+}
+
+// Re-open order details after edit completes
+async function openEditOrderDetail(id) {
+    try {
+        await openOrderDetail(id);
+    } catch (err) {
+        console.error('Error re-opening order details:', err);
+    }
+}
+
+// Sidebar permission mapping & check
+const permissionMap = {
+    'index.html': 'dashboard',
+    'orders.html': 'orders',
+    'products.html': 'products',
+    'categories.html': 'categories',
+    'users.html': 'users',
+    'coupons.html': 'coupons',
+    'banners.html': 'banners',
+    'reviews.html': 'reviews',
+    'navigation.html': 'navigation',
+    'contact.html': 'contact',
+    'reports.html': 'reports',
+    'settings.html': 'settings',
+    'staff.html': 'settings'
+};
+
+async function checkAdminPermissions() {
+    try {
+        const res = await fetch('/api/admin/session');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.loggedIn && data.admin) {
+            const permissions = data.admin.permissions || [];
+            const sidebarLinks = document.querySelectorAll("#admin-sidebar a");
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute("href");
+                if (href) {
+                    const page = href.split('/').pop().split('?')[0];
+                    const requiredPermission = permissionMap[page];
+                    if (requiredPermission && !permissions.includes(requiredPermission)) {
+                        link.style.display = 'none';
+                    }
+                }
+            });
+        }
+    } catch (err) {
+        console.error("Error checking admin permissions:", err);
+    }
 }

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions - Devangi Products</title>
+  <meta name="description" content="Read the Terms and Conditions for using Devangi Products website and making purchases. Understand your rights and responsibilities as a customer.">
+
+  <link rel="shortcut icon" href="./assets/images/logo/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./assets/css/style-prefix.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    .user-dropdown-wrapper { position: relative; }
+    #user-dropdown {
+      display: none; position: absolute; top: calc(100% + 10px); right: 0;
+      background: #fff; border: 1px solid #f0f0f0; border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12); min-width: 210px; z-index: 9999; overflow: hidden;
+    }
+    #user-dropdown.show { display: block; }
+    .user-dropdown-link {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      font-size: 13px; color: #444; text-decoration: none;
+      font-family: 'Poppins', sans-serif; transition: background 0.15s;
+    }
+    .user-dropdown-link:hover { background: #fef6f9; color: #e83e8c; }
+    @media (max-width: 500px) {
+      #user-dropdown { right: auto; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 300px; }
+    }
+
+    /* Page Styles */
+    .page-hero {
+      background: linear-gradient(135deg, #2c1810 0%, #1a1a2e 50%, #0d1b2a 100%);
+      color: white;
+      padding: 70px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero .hero-icon { font-size: 56px; margin-bottom: 15px; display: block; }
+    .page-hero h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; margin-bottom: 12px; }
+    .page-hero p { font-size: 16px; color: rgba(255,255,255,0.75); max-width: 600px; margin: 0 auto; }
+
+    .page-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 20px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* TOC */
+    .toc {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border-left: 5px solid #e83e8c;
+    }
+    .toc h3 { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin-bottom: 8px; }
+    .toc a { color: #e83e8c; text-decoration: none; font-size: 14px; font-weight: 500; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Terms Section */
+    .terms-section {
+      background: #fff;
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .terms-section-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 2px solid #f5f5f5;
+    }
+    .section-num {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #e83e8c, #f06292);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .terms-section h2 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+    .terms-section p, .terms-section li { font-size: 15px; color: #555; line-height: 1.8; }
+    .terms-section ul, .terms-section ol { padding-left: 20px; margin-top: 10px; }
+    .terms-section li { margin-bottom: 8px; }
+
+    /* Payment terms */
+    .payment-terms {
+      background: linear-gradient(135deg, #0e3b80, #1a5ccf);
+      color: white;
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 25px;
+    }
+    .payment-terms h2 { font-size: 20px; font-weight: 700; margin-bottom: 15px; }
+    .payment-terms p, .payment-terms li { font-size: 15px; color: rgba(255,255,255,0.88); line-height: 1.8; }
+    .payment-terms ul { padding-left: 20px; margin-top: 10px; }
+    .payment-terms li { margin-bottom: 8px; }
+    .payment-terms a { color: #90caf9; }
+
+    .important-notice {
+      background: #fff3e0;
+      border: 1px solid #ffcc80;
+      border-radius: 14px;
+      padding: 20px 25px;
+      font-size: 14px;
+      color: #5d3b00;
+      margin: 20px 0;
+    }
+    .important-notice strong { display: block; margin-bottom: 8px; font-size: 15px; color: #e65100; }
+
+    .update-notice {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 16px;
+      padding: 20px 25px;
+      font-size: 14px;
+      color: #6d4c00;
+      margin-top: 30px;
+    }
+    .update-notice strong { display: block; margin-bottom: 5px; font-size: 15px; }
+    .agree-btn {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 30px auto 0;
+      background: linear-gradient(135deg, #e83e8c, #f06292);
+      color: white;
+      border: none;
+      padding: 16px 30px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-align: center;
+      text-decoration: none;
+    }
+    .agree-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,62,140,0.35); }
+  </style>
+</head>
+
+<body>
+
+  <div class="overlay" data-overlay></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="container">
+        <ul class="header-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+        <div class="header-alert-news">
+          <p><b>Free Shipping</b> This Week Order Over - ₹550</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-main">
+      <div class="container flex-mobile-header">
+        <button class="action-btn mobile-menu-btn" data-mobile-menu-open-btn>
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <a href="/" class="header-logo">
+          <img src="./assets/images/logo/logo.svg" alt="Devangi Products logo" width="200" height="60" style="min-width: 160px; max-width: 100%;">
+        </a>
+        <div class="header-search-container">
+          <input type="search" name="search" class="search-field" placeholder="Enter your product name...">
+          <button class="search-btn"><ion-icon name="search-outline"></ion-icon></button>
+        </div>
+        <div class="header-user-actions">
+          <div class="user-dropdown-wrapper">
+            <button class="action-btn" id="user-action-btn" title="Login">
+              <ion-icon name="person-outline"></ion-icon>
+            </button>
+            <div id="user-dropdown"></div>
+          </div>
+          <button class="action-btn">
+            <ion-icon name="bag-handle-outline"></ion-icon>
+            <span class="count">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="desktop-navigation-menu">
+      <div class="container">
+        <ul class="desktop-menu-category-list" id="dynamic-desktop-nav"></ul>
+      </div>
+    </nav>
+
+    <div class="mobile-bottom-navigation">
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="menu-outline"></ion-icon></button>
+      <button class="action-btn"><ion-icon name="bag-handle-outline"></ion-icon><span class="count">0</span></button>
+      <button class="action-btn" onclick="location.href='/'"><ion-icon name="home-outline"></ion-icon></button>
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="grid-outline"></ion-icon></button>
+    </div>
+
+    <nav class="mobile-navigation-menu has-scrollbar" data-mobile-menu>
+      <div class="menu-top">
+        <h2 class="menu-title">Menu</h2>
+        <button class="menu-close-btn" data-mobile-menu-close-btn><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <ul class="mobile-menu-category-list" id="dynamic-mobile-nav"></ul>
+      <div class="menu-bottom">
+        <ul class="menu-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <div class="page-hero">
+      <span class="hero-icon">📜</span>
+      <h1>Terms & Conditions</h1>
+      <p>Please read these terms carefully before using our website or placing an order</p>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Table of Contents -->
+      <div class="toc">
+        <h3>📋 Table of Contents</h3>
+        <ol>
+          <li><a href="#acceptance">Acceptance of Terms</a></li>
+          <li><a href="#account">Account Registration</a></li>
+          <li><a href="#products">Products & Pricing</a></li>
+          <li><a href="#orders">Orders & Payment</a></li>
+          <li><a href="#payment-terms">Payment Terms</a></li>
+          <li><a href="#shipping">Shipping & Delivery</a></li>
+          <li><a href="#returns">Returns & Refunds</a></li>
+          <li><a href="#ip">Intellectual Property</a></li>
+          <li><a href="#liability">Limitation of Liability</a></li>
+          <li><a href="#contact-us">Contact Us</a></li>
+        </ol>
+      </div>
+
+      <!-- 1. Acceptance -->
+      <div class="terms-section" id="acceptance">
+        <div class="terms-section-header">
+          <div class="section-num">1</div>
+          <h2>Acceptance of Terms</h2>
+        </div>
+        <p>By accessing and using the Devangi Products website (<strong>devangisewingproducts.com</strong>), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our website.</p>
+        <p style="margin-top: 12px;">These terms apply to all visitors, users, and customers of our website. We reserve the right to update these terms at any time. Continued use of the site after changes constitutes acceptance of the new terms.</p>
+      </div>
+
+      <!-- 2. Account -->
+      <div class="terms-section" id="account">
+        <div class="terms-section-header">
+          <div class="section-num">2</div>
+          <h2>Account Registration</h2>
+        </div>
+        <ul>
+          <li>You must be at least <strong>18 years of age</strong> to create an account and make purchases</li>
+          <li>You are responsible for maintaining the <strong>confidentiality of your account credentials</strong></li>
+          <li>Provide <strong>accurate and complete information</strong> during registration</li>
+          <li>Notify us immediately at <a href="mailto:devangisewingclasses@gmail.com" style="color:#e83e8c;">devangisewingclasses@gmail.com</a> if you suspect unauthorized access</li>
+          <li>We reserve the right to <strong>suspend or terminate</strong> accounts that violate these terms</li>
+        </ul>
+      </div>
+
+      <!-- 3. Products & Pricing -->
+      <div class="terms-section" id="products">
+        <div class="terms-section-header">
+          <div class="section-num">3</div>
+          <h2>Products & Pricing</h2>
+        </div>
+        <ul>
+          <li>All prices are listed in <strong>Indian Rupees (INR)</strong> and are inclusive of applicable taxes</li>
+          <li>We strive to display accurate product descriptions and images, but minor variations may exist</li>
+          <li>Prices are subject to change without notice. The price at the time of order placement is final</li>
+          <li>We reserve the right to <strong>limit quantities</strong> on any product</li>
+          <li>Product availability is subject to stock and may change at any time</li>
+        </ul>
+      </div>
+
+      <!-- 4. Orders & Payment -->
+      <div class="terms-section" id="orders">
+        <div class="terms-section-header">
+          <div class="section-num">4</div>
+          <h2>Orders & Payment</h2>
+        </div>
+        <ul>
+          <li>An order placed on our website is an <strong>offer to purchase</strong>. We reserve the right to decline any order</li>
+          <li>You will receive an <strong>order confirmation email</strong> after successful payment</li>
+          <li>We accept payments via <strong>Credit Card, Debit Card, UPI, Net Banking, and Wallets</strong> through our secure payment gateway</li>
+          <li>Orders cannot be cancelled after they have been <strong>processed and shipped</strong></li>
+          <li>In case of payment failure, please do not reattempt immediately — contact us first to verify</li>
+        </ul>
+        <div class="important-notice">
+          <strong>⚠️ Important: Duplicate Payment</strong>
+          If you are charged multiple times for the same order, please contact us within 24 hours. We will verify and initiate a refund for any duplicate charges.
+        </div>
+      </div>
+
+      <!-- 5. Payment Terms -->
+      <div class="payment-terms" id="payment-terms">
+        <h2>💳 5. Payment Terms</h2>
+        <p>All payments are processed securely through our <strong>certified, RBI-licensed payment gateway</strong>, a licensed payment aggregator regulated by the Reserve Bank of India (RBI).</p>
+        <ul>
+          <li>Our payment partner handles all card and payment data — Devangi Products <strong>never stores your payment card details</strong></li>
+          <li>All transactions are secured with <strong>256-bit SSL encryption</strong> and are PCI DSS compliant</li>
+          <li><strong>Refunds</strong> for eligible orders will be processed back to the original payment method within 5-7 business days</li>
+          <li>In case of any payment disputes, our payment gateway's dispute resolution process will apply</li>
+          <li>Failed transactions where money is deducted but order not confirmed will be <strong>auto-refunded within 7 business days</strong></li>
+        </ul>
+      </div>
+
+      <!-- 6. Shipping -->
+      <div class="terms-section" id="shipping">
+        <div class="terms-section-header">
+          <div class="section-num">6</div>
+          <h2>Shipping & Delivery</h2>
+        </div>
+        <ul>
+          <li>We ship across India. Delivery times may vary based on location and courier availability</li>
+          <li>We are not responsible for delays caused by courier partners, natural disasters, or events beyond our control</li>
+          <li>Risk of loss passes to you upon <strong>delivery to the shipping address</strong> provided</li>
+          <li>Ensure your shipping address is accurate. We are not liable for failed deliveries due to incorrect addresses</li>
+        </ul>
+        <p style="margin-top: 12px;">For full details, see our <a href="./shipping-policy.html" style="color: #e83e8c; font-weight: 600;">Shipping Policy</a>.</p>
+      </div>
+
+      <!-- 7. Returns -->
+      <div class="terms-section" id="returns">
+        <div class="terms-section-header">
+          <div class="section-num">7</div>
+          <h2>Returns & Refunds</h2>
+        </div>
+        <ul>
+          <li>Returns accepted within <strong>7 days of delivery</strong> for unused, undamaged products in original packaging</li>
+          <li>Products purchased during <strong>sale or special promotions</strong> may not be eligible for return</li>
+          <li>Refunds are processed within <strong>5-7 business days</strong> after we receive and inspect the returned item</li>
+          <li>Shipping charges are <strong>non-refundable</strong> unless the return is due to our error</li>
+          <li>To initiate a return, email us with your order ID and reason: <a href="mailto:devangisewingclasses@gmail.com" style="color:#e83e8c;">devangisewingclasses@gmail.com</a></li>
+        </ul>
+      </div>
+
+      <!-- 8. Intellectual Property -->
+      <div class="terms-section" id="ip">
+        <div class="terms-section-header">
+          <div class="section-num">8</div>
+          <h2>Intellectual Property</h2>
+        </div>
+        <p>All content on this website — including text, images, logos, graphics, and product descriptions — is the <strong>property of Devangi Products</strong> and is protected by Indian copyright law.</p>
+        <ul>
+          <li>You may not copy, reproduce, or distribute any content without our written permission</li>
+          <li>The Devangi Products logo and brand name are our trademarks</li>
+          <li>Unauthorized use of our intellectual property will be subject to legal action</li>
+        </ul>
+      </div>
+
+      <!-- 9. Limitation of Liability -->
+      <div class="terms-section" id="liability">
+        <div class="terms-section-header">
+          <div class="section-num">9</div>
+          <h2>Limitation of Liability</h2>
+        </div>
+        <p>To the maximum extent permitted by law:</p>
+        <ul>
+          <li>Devangi Products shall not be liable for any <strong>indirect, incidental, or consequential damages</strong></li>
+          <li>Our total liability to you for any claim shall not exceed the <strong>amount you paid for the specific order</strong> in question</li>
+          <li>We are not responsible for any damages resulting from <strong>unauthorized access to your account</strong></li>
+          <li>These terms are governed by the laws of <strong>Gujarat, India</strong>. Any disputes will be subject to the jurisdiction of courts in Surat, Gujarat</li>
+        </ul>
+      </div>
+
+      <!-- 10. Contact Us -->
+      <div class="terms-section" id="contact-us">
+        <div class="terms-section-header">
+          <div class="section-num">10</div>
+          <h2>Contact Us</h2>
+        </div>
+        <p>For any questions about these Terms & Conditions:</p>
+        <ul>
+          <li>📧 Email: <a href="mailto:devangisewingclasses@gmail.com" style="color: #e83e8c;">devangisewingclasses@gmail.com</a></li>
+          <li>📞 Phone: <a href="tel:+917600550038" style="color: #e83e8c;">+91 7600550038</a></li>
+          <li>📍 Address: B-3, Yogiraj Soc., YogiChowk, Surat, Gujarat - 395010</li>
+          <li>🕐 Business Hours: Monday to Saturday, 10:00 AM – 6:00 PM IST</li>
+        </ul>
+      </div>
+
+      <div class="update-notice">
+        <strong>📅 Effective Date: June 2025</strong>
+        These Terms & Conditions were last updated in June 2025 and are effective immediately. By continuing to use our services, you agree to these terms.
+      </div>
+
+      <a href="/" class="agree-btn">✓ I Agree — Start Shopping</a>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-nav">
+      <div class="container">
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Contact</h2></li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="location-outline"></ion-icon></div>
+            <address class="content">B-3, Yogiraj Soc., YogiChowk, Surat.</address>
+          </li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="call-outline"></ion-icon></div>
+            <a href="tel:+917600550038" class="footer-nav-link">+91 7600550038</a>
+          </li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="mail-outline"></ion-icon></div>
+            <a href="mailto:devangisewingclasses@gmail.com" class="footer-nav-link">devangisewingclasses@gmail.com</a>
+          </li>
+        </ul>
+
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Quick Links</h2></li>
+          <li class="footer-nav-item"><a href="./about.html" class="footer-nav-link">About Us</a></li>
+          <li class="footer-nav-item"><a href="./shipping-policy.html" class="footer-nav-link">Shipping Policy</a></li>
+          <li class="footer-nav-item"><a href="./security.html" class="footer-nav-link">Security</a></li>
+          <li class="footer-nav-item"><a href="./terms-conditions.html" class="footer-nav-link">Terms & Conditions</a></li>
+          <li class="footer-nav-item"><a href="./contact.html" class="footer-nav-link">Contact Us</a></li>
+        </ul>
+
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Follow Us</h2></li>
+          <li>
+            <ul class="social-link">
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">
+        <img src="./assets/images/payment.png" alt="payment method" class="payment-img">
+        <p class="copyright">Copyright &copy; <a href="#">Devangi Products</a> all rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/js/nav.js"></script>
+  <script src="./assets/js/cart.js"></script>
+  <script src="./assets/js/home.js"></script>
+  <script src="./assets/js/script.js"></script>
+  <script src="./assets/js/auth.js"></script>
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>

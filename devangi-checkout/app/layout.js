@@ -1,8 +1,8 @@
-import './globals.css';
+﻿import './globals.css';
 import Providers from '@/components/Providers';
 
 export const metadata = {
-  title: 'Devangi Sewing Products – Checkout & Orders',
+  title: 'Devangi Products – Checkout & Orders',
   description: 'Manage your sewing supplies orders with ease.',
 };
 

@@ -1,275 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout | Devangi Products</title>
-    <script src="/assets/js/tailwindcss.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Razorpay SDK -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <style>
-        body { font-family: 'Poppins', sans-serif; }
-        .address-card.selected { border-color: #ec4899; background-color: #fdf2f8; }
-        .payment-card.selected { border-color: #ec4899; background-color: #fdf2f8; }
-        input:invalid:focus { border-color: #ef4444; ring-color: #ef4444; }
-        .error-text { color: #ef4444; font-size: 10px; margin-top: 2px; display: none; }
-    </style>
-</head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
 
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="/index.html"><img src="/assets/images/logo/logo.svg" alt="Devangi Products Logo" class="h-8"></a>
-            <div class="flex items-center gap-2 text-gray-500 text-sm">
-                <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-                Secure Checkout
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-grow container mx-auto px-4 py-6 max-w-5xl">
-        <div class="flex flex-col lg:flex-row gap-6">
-            
-            <!-- Left Side: Address & Payment -->
-            <div class="flex-grow space-y-5">
-                
-                <!-- 1. Saved Addresses Section -->
-                <section id="saved-addresses-section" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-bold">Select Delivery Address</h3>
-                        <button onclick="showNewAddressForm()" class="text-pink-500 text-sm font-semibold hover:underline">+ Add New</button>
-                    </div>
-                    <div id="addresses-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Addresses injected here -->
-                    </div>
-                </section>
-
-                <!-- 2. New Address Form -->
-                <section id="address-form-section" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-bold text-gray-800">Delivery Address</h3>
-                        <div id="location-status" class="text-[10px] text-gray-400 italic">Auto-detecting location...</div>
-                    </div>
-                    
-                    <form id="address-form" class="space-y-4" oninput="validateForm()">
-                        <!-- Row 1: Names -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">First Name <span class="text-red-500">*</span></label>
-                                <input type="text" id="addr-firstname" required placeholder="John" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Last Name <span class="text-red-500">*</span></label>
-                                <input type="text" id="addr-lastname" required placeholder="Doe" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Phone -->
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Phone Number <span class="text-red-500">*</span></label>
-                            <input type="tel" id="addr-phone" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile number" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                            <p id="phone-error" class="error-text">Please enter exactly 10 digits</p>
-                        </div>
-                        
-                        <!-- Row 3: House & Society -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">House / Flat / Floor <span class="text-red-500">*</span></label>
-                                <input type="text" id="addr-house" required placeholder="Flat 402, 4th Floor" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Society / Building <span class="text-red-500">*</span></label>
-                                <input type="text" id="addr-society" required placeholder="Green Valley Residency" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Area -->
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Street / Area <span class="text-red-500">*</span></label>
-                            <input type="text" id="addr-street" required placeholder="Near Main Market, MG Road" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                        </div>
-
-                        <!-- Row 5: Landmark -->
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider text-gray-400">Landmark <span class="font-normal">(Optional)</span></label>
-                            <input type="text" id="addr-landmark" placeholder="Opposite HDFC Bank" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                        </div>
-
-                        <!-- Row 6: City, State, Pincode -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">City <span class="text-red-500">*</span></label>
-                                <input type="text" id="addr-city" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">State <span class="text-red-500">*</span></label>
-                                <input type="text" id="addr-state" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Pincode <span class="text-red-500">*</span></label>
-                                <input type="text" id="addr-pincode" required pattern="[1-9][0-9]{5}" maxlength="6" placeholder="6 digits" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
-                                <p id="pincode-error" class="error-text">Must be a valid 6-digit Indian Pincode (e.g. 380001)</p>
-                            </div>
-                        </div>
-
-                        <!-- Row 7: Save Toggle + Label -->
-                        <div class="flex flex-col md:flex-row md:items-end gap-6 pt-2">
-                            <div class="flex items-center gap-2">
-                                <input type="checkbox" id="save-address-check" checked class="w-4 h-4 text-pink-500 rounded border-gray-300 focus:ring-pink-500 cursor-pointer">
-                                <label for="save-address-check" class="text-sm text-gray-600 cursor-pointer">Save this address for future orders</label>
-                            </div>
-                            <div id="label-container" class="flex-grow transition-all">
-                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Address Label <span class="text-red-500">*</span></label>
-                                <select id="addr-label" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm bg-white">
-                                    <option value="Home">Home</option>
-                                    <option value="Office">Office</option>
-                                    <option value="Shop">Shop</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- 3. Payment Method Section -->
-                <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                    <h3 class="text-lg font-bold mb-6">Payment Method</h3>
-                    <div class="space-y-4">
-                        <div onclick="selectPaymentMethod('COD')" id="pay-cod" class="payment-card border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:border-pink-200 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-lg">💵</div>
-                                <div>
-                                    <p class="font-bold text-sm">Cash on Delivery (COD)</p>
-                                    <p class="text-xs text-gray-400">Pay when your order arrives</p>
-                                </div>
-                            </div>
-                            <div id="check-cod" class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center">
-                                <div class="w-3 h-3 rounded-full bg-pink-500 opacity-0 transition-all"></div>
-                            </div>
-                        </div>
-
-                        <div onclick="selectPaymentMethod('ONLINE')" id="pay-online" class="payment-card border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:border-pink-200 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-500 text-lg">💳</div>
-                                <div>
-                                    <p class="font-bold text-sm">Online Payment</p>
-                                    <p class="text-xs text-gray-400">Cards, UPI, NetBanking (via Razorpay)</p>
-                                </div>
-                            </div>
-                            <div id="check-online" class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center">
-                                <div class="w-3 h-3 rounded-full bg-pink-500 opacity-0 transition-all"></div>
-                            </div>
-                        </div>
-
-                        <div onclick="selectPaymentMethod('WHATSAPP')" id="pay-whatsapp" class="payment-card border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:border-green-200 flex items-center justify-between hidden">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center text-green-500 text-lg">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                                </div>
-                                <div>
-                                    <p class="font-bold text-sm">Order via WhatsApp</p>
-                                    <p class="text-xs text-gray-400">Send order details directly on WhatsApp</p>
-                                </div>
-                            </div>
-                            <div id="check-whatsapp" class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center">
-                                <div class="w-3 h-3 rounded-full bg-green-500 opacity-0 transition-all"></div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Right Side: Order Summary -->
-            <div class="w-full lg:w-[380px]">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sticky top-24">
-                    <h3 class="text-lg font-bold mb-4">Order Summary</h3>
-                    
-                    <!-- Free Shipping Progress / Notice -->
-                    <div id="free-shipping-notice" class="mb-4 p-3 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-xl transition-all hidden">
-                        <p class="text-xs text-pink-700 font-semibold text-center mb-2">
-                            🚚 Add <span class="font-bold text-pink-600" id="free-shipping-diff">Rs. 244.00</span> more for <span class="font-bold text-pink-600">FREE Shipping!</span>
-                        </p>
-                        <div class="w-full bg-pink-100 rounded-full h-1.5">
-                            <div id="free-shipping-bar" class="bg-gradient-to-r from-pink-400 to-rose-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                        <p class="text-[10px] text-pink-400 text-center mt-1"><a href="/shop.html" class="underline font-semibold hover:text-pink-600">Browse more products →</a></p>
-                    </div>
-                    
-                    <div id="cart-summary-items" class="space-y-4 mb-3 max-h-60 overflow-y-auto pr-2">
-                        <!-- Items injected here -->
-                    </div>
-                    <!-- Add More Items link -->
-                    <div id="add-more-row" class="mb-4 text-center">
-                        <a id="add-more-link" href="/shop.html" class="inline-flex items-center gap-1 text-xs text-pink-500 font-semibold hover:text-pink-700 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Add More Items
-                        </a>
-                    </div>
-
-                    <div class="border-t border-gray-100 pt-4 space-y-3">
-                        <div class="flex justify-between text-gray-500 text-sm">
-                            <span>Subtotal</span>
-                            <span id="summary-subtotal">Rs. 0.00</span>
-                        </div>
-                        <div class="flex justify-between text-gray-500 text-sm">
-                            <span>Shipping</span>
-                            <span id="summary-shipping" class="text-green-500 font-bold">FREE</span>
-                        </div>
-                        <div id="coupon-discount-row" class="hidden flex justify-between text-green-600 text-sm font-medium">
-                            <span>Coupon Discount</span>
-                            <span id="summary-coupon-discount">- Rs. 0</span>
-                        </div>
-                        
-                        <!-- Coupon Code Input -->
-                        <div class="border-t border-gray-100 pt-3">
-                            <div class="flex gap-2" id="coupon-input-row">
-                                <input type="text" id="coupon-code-input" placeholder="Enter coupon code" 
-                                    class="flex-grow px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 uppercase">
-                                <button onclick="applyCoupon()" id="apply-coupon-btn" 
-                                    class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap">Apply</button>
-                            </div>
-                            <div id="coupon-success-row" class="hidden mt-2 bg-green-50 border border-green-200 rounded-lg p-2 flex justify-between items-center">
-                                <span class="text-green-700 text-xs font-medium" id="coupon-success-msg">Coupon applied!</span>
-                                <button onclick="removeCoupon()" class="text-red-500 text-xs font-bold hover:underline">Remove</button>
-                            </div>
-                            <p id="coupon-error-msg" class="hidden text-red-500 text-xs mt-1"></p>
-                        </div>
-
-                        <div class="flex justify-between text-xl font-bold pt-2 border-t border-gray-100">
-                            <span>Total</span>
-                            <span id="summary-total" class="text-pink-500">Rs. 0.00</span>
-                        </div>
-                    </div>
-
-                    <button onclick="processOrderPlacement()" id="main-place-btn" class="w-full mt-5 bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-xl shadow-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Place Order
-                    </button>
-                    
-                    <p class="text-[10px] text-gray-400 text-center mt-4 px-2">
-                        By clicking "Place Order", you agree to our <a href="#" class="underline">Terms of Service</a>.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Success Modal -->
-    <div id="successModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-10 text-center max-w-sm w-full">
-            <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <h2 class="text-2xl font-bold mb-2">Order Confirmed!</h2>
-            <p class="text-gray-500 mb-8" id="success-msg">Your order has been placed successfully.</p>
-            <div class="space-y-3" id="success-modal-actions">
-                <a href="/account.html" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">View My Orders</a>
-                <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
-            </div>
-        </div>
-    </div>
-
-    <script>
         let currentUser = JSON.parse(localStorage.getItem('anon_user'));
         const isGuest = sessionStorage.getItem('guest_checkout') === 'true';
         
@@ -422,8 +151,7 @@
                 shippingEl.className = 'text-gray-400 font-medium text-xs italic';
 
                 const couponDiscountVal = (appliedCoupon && !appliedCoupon.is_free_shipping) ? appliedCoupon.discount : 0;
-                const tempTotal = Math.floor(subtotal - couponDiscountVal);
-                document.getElementById('summary-total').innerText = `Rs. ${tempTotal} + Shipping`;
+                document.getElementById('summary-total').innerText = `Rs. ${(subtotal - couponDiscountVal).toFixed(2)} + Shipping`;
 
                 showFsNudge();
                 updateCouponRow();
@@ -486,8 +214,8 @@
                 document.getElementById('coupon-discount-row').classList.add('hidden');
             }
 
-            const total = Math.floor(subtotal + shippingCharge - couponDiscount);
-            document.getElementById('summary-total').innerText = `Rs. ${total}`;
+            const total = subtotal + shippingCharge - couponDiscount;
+            document.getElementById('summary-total').innerText = `Rs. ${total.toFixed(2)}`;
         }
 
         async function loadSavedAddresses() {
@@ -700,7 +428,7 @@
             const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
             const actualShipping = subtotal >= shippingFreeAbove ? 0 : shippingCharge;
             const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
-            const total = Math.floor(subtotal + actualShipping - couponDiscount);
+            const total = subtotal + actualShipping - couponDiscount;
             if (selectedPaymentMethod === 'ONLINE') handleRazorpayPayment(addressData, total);
             else if (selectedPaymentMethod === 'WHATSAPP') placeWhatsAppOrder(addressData, total);
             else placeOrder(addressData, total, 'COD');
@@ -764,23 +492,22 @@
                     }
 
                     // Build WhatsApp message
-                    let msg = `Hello Devangi Sewing Products,\n\nI would like to place an order. Here are my details:\n\n`;
-                    msg += `*Order ID:* #${orderId}\n`;
-                    msg += `*Customer:* ${customerName}\n`;
-                    msg += `*Phone:* ${addressData.phone}\n`;
-                    msg += `*Delivery Address:* ${fullAddr}\n\n`;
-                    msg += `*Order Items:*\n`;
+                    let msg = `🛒 *New Order #${orderId}*\n\n`;
+                    msg += `👤 *Customer:* ${customerName}\n`;
+                    msg += `📞 *Phone:* ${addressData.phone}\n`;
+                    msg += `📍 *Address:* ${fullAddr}\n\n`;
+                    msg += `📦 *Order Items:*\n`;
                     cartItems.forEach((item, i) => {
                         const itemName = item.title || item.name;
-                        msg += `▪ ${itemName} (Qty: ${item.quantity}) - Rs. ${(item.price * item.quantity).toFixed(2)}\n`;
+                        msg += `${i + 1}. ${itemName} × ${item.quantity} = Rs. ${(item.price * item.quantity).toFixed(2)}\n`;
                     });
-                    msg += `\n*Subtotal:* Rs. ${subtotal.toFixed(2)}\n`;
-                    msg += `*Shipping:* ${actualShipping === 0 ? 'FREE' : 'Rs. ' + actualShipping.toFixed(2)}\n`;
+                    msg += `\n💰 *Subtotal:* Rs. ${subtotal.toFixed(2)}\n`;
+                    msg += `🚚 *Shipping:* ${actualShipping === 0 ? 'FREE' : 'Rs. ' + actualShipping.toFixed(2)}\n`;
                     if (appliedCoupon) {
-                        msg += `*Coupon Discount:* -Rs. ${appliedCoupon.discount.toFixed(2)}\n`;
+                        msg += `🎟️ *Coupon Discount:* -Rs. ${appliedCoupon.discount.toFixed(2)}\n`;
                     }
-                    msg += `\n*Total Amount:* Rs. ${total}\n`;
-                    msg += `\nPlease confirm my order and share the next steps. Thank you!`;
+                    msg += `\n✅ *Total: Rs. ${total.toFixed(2)}*\n`;
+                    msg += `\n💳 *Payment Method:* WhatsApp Order (Pay on Delivery)`;
 
                     // Get WhatsApp number from settings
                     const waNumber = whatsappOrderNumber || '919725340354';
@@ -1041,6 +768,4 @@
                 renderOrderSummary();
             } catch (err) { /* use defaults */ }
         }
-    </script>
-</body>
-</html>
+    

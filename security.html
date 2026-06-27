@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security & Privacy Policy - Devangi Products</title>
+  <meta name="description" content="Learn how Devangi Products protects your personal data and payment information. We use industry-standard 256-bit encryption and PCI DSS compliant secure payment processing.">
+
+  <link rel="shortcut icon" href="./assets/images/logo/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./assets/css/style-prefix.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    .user-dropdown-wrapper { position: relative; }
+    #user-dropdown {
+      display: none; position: absolute; top: calc(100% + 10px); right: 0;
+      background: #fff; border: 1px solid #f0f0f0; border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12); min-width: 210px; z-index: 9999; overflow: hidden;
+    }
+    #user-dropdown.show { display: block; }
+    .user-dropdown-link {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      font-size: 13px; color: #444; text-decoration: none;
+      font-family: 'Poppins', sans-serif; transition: background 0.15s;
+    }
+    .user-dropdown-link:hover { background: #fef6f9; color: #e83e8c; }
+    @media (max-width: 500px) {
+      #user-dropdown { right: auto; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 300px; }
+    }
+
+    /* Page Styles */
+    .page-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0d2137 50%, #0a3d62 100%);
+      color: white;
+      padding: 70px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: #f5f5f5;
+      clip-path: ellipse(55% 100% at 50% 100%);
+    }
+    .page-hero .hero-icon {
+      font-size: 56px;
+      margin-bottom: 15px;
+      display: block;
+    }
+    .page-hero h1 {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .page-hero p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.75);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .page-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 20px;
+      font-family: 'Poppins', sans-serif;
+      background: #f5f5f5;
+    }
+    .security-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border-left: 5px solid #e83e8c;
+      transition: transform 0.2s;
+    }
+    .security-card:hover { transform: translateX(5px); }
+    .security-card-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 18px;
+    }
+    .security-card-icon {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .security-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .security-card p, .security-card li {
+      font-size: 15px;
+      color: #555;
+      line-height: 1.8;
+    }
+    .security-card ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+    .security-card li { margin-bottom: 8px; }
+
+    .razorpay-badge {
+      background: linear-gradient(135deg, #0e3b80, #1a5ccf);
+      color: white;
+      border-radius: 20px;
+      padding: 40px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    .razorpay-badge h3 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .razorpay-badge p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.7;
+      max-width: 600px;
+      margin: 0 auto 20px;
+    }
+    .razorpay-features {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .razorpay-feature {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .update-notice {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 16px;
+      padding: 20px 25px;
+      font-size: 14px;
+      color: #6d4c00;
+      margin-top: 30px;
+    }
+    .update-notice strong { display: block; margin-bottom: 5px; font-size: 15px; }
+  </style>
+</head>
+
+<body>
+
+  <div class="overlay" data-overlay></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="container">
+        <ul class="header-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+        <div class="header-alert-news">
+          <p><b>Free Shipping</b> This Week Order Over - ₹550</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-main">
+      <div class="container flex-mobile-header">
+        <button class="action-btn mobile-menu-btn" data-mobile-menu-open-btn>
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <a href="/" class="header-logo">
+          <img src="./assets/images/logo/logo.svg" alt="Devangi Products logo" width="200" height="60" style="min-width: 160px; max-width: 100%;">
+        </a>
+        <div class="header-search-container">
+          <input type="search" name="search" class="search-field" placeholder="Enter your product name...">
+          <button class="search-btn"><ion-icon name="search-outline"></ion-icon></button>
+        </div>
+        <div class="header-user-actions">
+          <div class="user-dropdown-wrapper">
+            <button class="action-btn" id="user-action-btn" title="Login">
+              <ion-icon name="person-outline"></ion-icon>
+            </button>
+            <div id="user-dropdown"></div>
+          </div>
+          <button class="action-btn">
+            <ion-icon name="bag-handle-outline"></ion-icon>
+            <span class="count">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="desktop-navigation-menu">
+      <div class="container">
+        <ul class="desktop-menu-category-list" id="dynamic-desktop-nav"></ul>
+      </div>
+    </nav>
+
+    <div class="mobile-bottom-navigation">
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="menu-outline"></ion-icon></button>
+      <button class="action-btn"><ion-icon name="bag-handle-outline"></ion-icon><span class="count">0</span></button>
+      <button class="action-btn" onclick="location.href='/'"><ion-icon name="home-outline"></ion-icon></button>
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="grid-outline"></ion-icon></button>
+    </div>
+
+    <nav class="mobile-navigation-menu has-scrollbar" data-mobile-menu>
+      <div class="menu-top">
+        <h2 class="menu-title">Menu</h2>
+        <button class="menu-close-btn" data-mobile-menu-close-btn><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <ul class="mobile-menu-category-list" id="dynamic-mobile-nav"></ul>
+      <div class="menu-bottom">
+        <ul class="menu-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <div class="page-hero">
+      <span class="hero-icon">🔒</span>
+      <h1>Security & Privacy Policy</h1>
+      <p>Your trust and safety are our highest priority</p>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Payment Security Highlight -->
+      <div class="razorpay-badge">
+        <h3>🛡️ 100% Secure Payments</h3>
+        <p>All payments on Devangi Products are processed through a <strong>certified, RBI-licensed payment gateway</strong>. Your financial information is fully encrypted and never stored on our servers.</p>
+        <div class="razorpay-features">
+          <span class="razorpay-feature">🔐 256-bit SSL Encryption</span>
+          <span class="razorpay-feature">✅ PCI DSS Compliant</span>
+          <span class="razorpay-feature">🏦 RBI Licensed Gateway</span>
+          <span class="razorpay-feature">🔄 3D Secure Authentication</span>
+        </div>
+      </div>
+
+      <!-- Data We Collect -->
+      <div class="security-card">
+        <div class="security-card-header">
+          <div class="security-card-icon">📋</div>
+          <h2>Information We Collect</h2>
+        </div>
+        <p>We collect information necessary to process your orders and provide a better shopping experience:</p>
+        <ul>
+          <li><strong>Personal Information:</strong> Name, email address, phone number, and shipping address</li>
+          <li><strong>Account Information:</strong> Username and encrypted password (we never store plain-text passwords)</li>
+          <li><strong>Order Information:</strong> Products purchased, order history, and delivery preferences</li>
+          <li><strong>Device Information:</strong> Browser type, IP address (for security and analytics purposes)</li>
+        </ul>
+      </div>
+
+      <!-- Payment Security -->
+      <div class="security-card">
+        <div class="security-card-header">
+          <div class="security-card-icon">💳</div>
+          <h2>Payment Security</h2>
+        </div>
+        <p>We take payment security very seriously. Here's how your payment data is protected:</p>
+        <ul>
+          <li>All transactions are processed by our <strong>certified payment partner</strong> — we never see or store your card details</li>
+          <li>Payments are secured with <strong>256-bit AES encryption</strong> to protect all data in transit</li>
+          <li>Our checkout is <strong>PCI DSS Level 1 compliant</strong> — the highest security standard for card processing</li>
+          <li><strong>3D Secure (OTP verification)</strong> is required for added transaction safety</li>
+          <li>All payment pages are served over <strong>HTTPS</strong> with a valid SSL certificate</li>
+        </ul>
+      </div>
+
+      <!-- How We Use Your Data -->
+      <div class="security-card">
+        <div class="security-card-header">
+          <div class="security-card-icon">🔍</div>
+          <h2>How We Use Your Information</h2>
+        </div>
+        <p>Your data is used solely to serve you better. We use your information to:</p>
+        <ul>
+          <li>Process and fulfill your orders</li>
+          <li>Send order confirmation and shipment tracking emails</li>
+          <li>Provide customer support</li>
+          <li>Improve our website and product offerings</li>
+          <li>Send promotional offers (only if you opt-in)</li>
+        </ul>
+        <p style="margin-top: 15px; color: #e83e8c; font-weight: 600;">We never sell, rent, or share your personal data with third parties for marketing purposes.</p>
+      </div>
+
+      <!-- Data Protection -->
+      <div class="security-card">
+        <div class="security-card-header">
+          <div class="security-card-icon">🛡️</div>
+          <h2>How We Protect Your Data</h2>
+        </div>
+        <ul>
+          <li>All data transmitted between your browser and our server is encrypted using <strong>HTTPS/TLS</strong></li>
+          <li>Passwords are stored using strong <strong>bcrypt hashing</strong> — never in plain text</li>
+          <li>Access to customer data is restricted to authorized personnel only</li>
+          <li>Regular security audits and vulnerability testing are performed</li>
+          <li>Our servers are protected by firewalls and intrusion detection systems</li>
+        </ul>
+      </div>
+
+      <!-- Cookies -->
+      <div class="security-card">
+        <div class="security-card-header">
+          <div class="security-card-icon">🍪</div>
+          <h2>Cookies Policy</h2>
+        </div>
+        <p>We use cookies to enhance your shopping experience:</p>
+        <ul>
+          <li><strong>Essential Cookies:</strong> Keep you logged in and remember your cart items</li>
+          <li><strong>Analytics Cookies:</strong> Help us understand how visitors use our site (anonymous data only)</li>
+          <li><strong>Preference Cookies:</strong> Remember your language and display preferences</li>
+        </ul>
+        <p style="margin-top: 12px;">You can disable cookies in your browser settings, but this may affect site functionality.</p>
+      </div>
+
+      <!-- Your Rights -->
+      <div class="security-card">
+        <div class="security-card-header">
+          <div class="security-card-icon">👤</div>
+          <h2>Your Rights</h2>
+        </div>
+        <p>You have the following rights regarding your personal data:</p>
+        <ul>
+          <li><strong>Access:</strong> Request a copy of all data we hold about you</li>
+          <li><strong>Correction:</strong> Update or correct inaccurate personal information</li>
+          <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
+          <li><strong>Opt-out:</strong> Unsubscribe from marketing emails at any time</li>
+        </ul>
+        <p style="margin-top: 12px;">To exercise any of these rights, contact us at <a href="mailto:devangisewingclasses@gmail.com" style="color: #e83e8c;">devangisewingclasses@gmail.com</a></p>
+      </div>
+
+      <!-- Contact -->
+      <div class="security-card">
+        <div class="security-card-header">
+          <div class="security-card-icon">📞</div>
+          <h2>Security Concerns?</h2>
+        </div>
+        <p>If you have any security concerns or notice any suspicious activity related to your account, please contact us immediately:</p>
+        <ul>
+          <li>📧 Email: <a href="mailto:devangisewingclasses@gmail.com" style="color: #e83e8c;">devangisewingclasses@gmail.com</a></li>
+          <li>📞 Phone: <a href="tel:+917600550038" style="color: #e83e8c;">+91 7600550038</a></li>
+          <li>📍 Address: B-3, Yogiraj Soc., YogiChowk, Surat, Gujarat</li>
+        </ul>
+      </div>
+
+      <div class="update-notice">
+        <strong>📅 Last Updated: June 2025</strong>
+        This privacy and security policy may be updated from time to time. We will notify registered users of any significant changes via email.
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-nav">
+      <div class="container">
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Contact</h2></li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="location-outline"></ion-icon></div>
+            <address class="content">B-3, Yogiraj Soc., YogiChowk, Surat.</address>
+          </li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="call-outline"></ion-icon></div>
+            <a href="tel:+917600550038" class="footer-nav-link">+91 7600550038</a>
+          </li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="mail-outline"></ion-icon></div>
+            <a href="mailto:devangisewingclasses@gmail.com" class="footer-nav-link">devangisewingclasses@gmail.com</a>
+          </li>
+        </ul>
+
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Quick Links</h2></li>
+          <li class="footer-nav-item"><a href="./about.html" class="footer-nav-link">About Us</a></li>
+          <li class="footer-nav-item"><a href="./shipping-policy.html" class="footer-nav-link">Shipping Policy</a></li>
+          <li class="footer-nav-item"><a href="./security.html" class="footer-nav-link">Security</a></li>
+          <li class="footer-nav-item"><a href="./terms-conditions.html" class="footer-nav-link">Terms & Conditions</a></li>
+          <li class="footer-nav-item"><a href="./contact.html" class="footer-nav-link">Contact Us</a></li>
+        </ul>
+
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Follow Us</h2></li>
+          <li>
+            <ul class="social-link">
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">
+        <img src="./assets/images/payment.png" alt="payment method" class="payment-img">
+        <p class="copyright">Copyright &copy; <a href="#">Devangi Products</a> all rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/js/nav.js"></script>
+  <script src="./assets/js/cart.js"></script>
+  <script src="./assets/js/home.js"></script>
+  <script src="./assets/js/script.js"></script>
+  <script src="./assets/js/auth.js"></script>
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>

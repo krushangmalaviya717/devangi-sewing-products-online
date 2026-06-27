@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+﻿document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('id');
 
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // ---- Title ----
         document.getElementById('pdp-title').innerText = product.title;
-        document.title = product.title + ' - Devangi Sewing Products';
+        document.title = product.title + ' - Devangi Products';
 
         // ---- Price ----
         document.getElementById('pdp-price').innerText = `Rs. ${parseFloat(product.price).toFixed(2)}`;
@@ -116,8 +116,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // ---- Rating ----
+        let ratingText = `Excellent ${parseFloat(product.rating || 4.9).toFixed(1)}/5`;
+        try {
+            const settingsRes = await fetch('/api/settings');
+            if (settingsRes.ok) {
+                const settings = await settingsRes.json();
+                
+                // Rating text
+                if (settings.pdp_rating_text) {
+                    ratingText = settings.pdp_rating_text.replace('{rating}', parseFloat(product.rating || 4.9).toFixed(1));
+                }
+
+                // Delivery text
+                if (settings.pdp_delivery_text) {
+                    const dt = document.getElementById('pdp-delivery-text');
+                    if (dt) dt.innerHTML = settings.pdp_delivery_text;
+                }
+
+                // Delivery Info text & toggle
+                if (settings.pdp_delivery_info) {
+                    const infoToggle = document.getElementById('pdp-delivery-info-toggle');
+                    const infoContent = document.getElementById('pdp-delivery-info-content');
+                    const infoIcon = document.getElementById('pdp-delivery-info-icon');
+                    if (infoToggle && infoContent && infoIcon) {
+                        infoContent.innerHTML = settings.pdp_delivery_info;
+                        infoToggle.addEventListener('click', () => {
+                            if (infoContent.style.display === 'none') {
+                                infoContent.style.display = 'block';
+                                infoIcon.setAttribute('name', 'chevron-up-outline');
+                            } else {
+                                infoContent.style.display = 'none';
+                                infoIcon.setAttribute('name', 'chevron-down-outline');
+                            }
+                        });
+                    }
+                }
+            }
+        } catch(e) { console.error('Failed to load settings', e); }
+
+        document.getElementById('pdp-rating-text').innerText = ratingText;
         const rating = parseFloat(product.rating) || 4.9;
-        document.getElementById('pdp-rating-text').innerText = `Excellent ${rating.toFixed(1)}/5`;
         const starsEl = document.getElementById('pdp-stars');
         starsEl.innerHTML = '';
         for (let i = 1; i <= 5; i++) {
@@ -251,25 +289,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const qty = parseInt(qtyInput.value) || 1;
                 const selectedSize = sizesArr.length > 0 ? sizesSelect.value : 'All Size';
 
-                const productData = {
-                    id: product.id,
+                // Buy Now: send ONLY this single product to checkout via sessionStorage
+                // This does NOT touch the cart (anon_cart)
+                const buyNowItem = [{
+                    id: String(product.id),
                     title: product.title + (selectedSize !== 'All Size' ? ` (${selectedSize})` : ''),
                     price: parseFloat(product.price),
                     image: images[0],
                     quantity: qty
-                };
-
-                if (typeof addToCart === 'function') {
-                    const productId = String(product.id);
-                    const existing = cart.find(item => String(item.id) === productId && item.title === productData.title);
-                    if (existing) {
-                        existing.quantity += qty;
-                    } else {
-                        cart.push({...productData, id: productId});
-                    }
-                    saveCart();
-                    window.location.href = '/checkout.html';
-                }
+                }];
+                sessionStorage.setItem('buy_now_cart', JSON.stringify(buyNowItem));
+                window.location.href = '/checkout.html?buynow=1';
             });
         }
 

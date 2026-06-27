@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
@@ -114,8 +114,8 @@ const newMain = `
 let finalContent = beforeMain + newMain + afterMain;
 
 // Change title
-finalContent = finalContent.replace('<title>Anon - eCommerce Website</title>', '<title>Product Details - Devangi Sewing Products</title>');
-finalContent = finalContent.replace('<title>Devangi Sewing Products - eCommerce Website</title>', '<title>Product Details - Devangi Sewing Products</title>');
+finalContent = finalContent.replace('<title>Anon - eCommerce Website</title>', '<title>Product Details - Devangi Products</title>');
+finalContent = finalContent.replace('<title>Devangi Products - eCommerce Website</title>', '<title>Product Details - Devangi Products</title>');
 
 // Replace dynamic-products.js with product.js
 finalContent = finalContent.replace('<script src="./assets/js/dynamic-products.js"></script>', '<script src="./assets/js/product.js"></script>');

@@ -1,0 +1,470 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping Policy - Devangi Products</title>
+  <meta name="description" content="Learn about Devangi Products shipping policy - delivery timelines, charges, free shipping offers, and how we handle your orders across India.">
+
+  <link rel="shortcut icon" href="./assets/images/logo/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./assets/css/style-prefix.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    .user-dropdown-wrapper { position: relative; }
+    #user-dropdown {
+      display: none; position: absolute; top: calc(100% + 10px); right: 0;
+      background: #fff; border: 1px solid #f0f0f0; border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12); min-width: 210px; z-index: 9999; overflow: hidden;
+    }
+    #user-dropdown.show { display: block; }
+    .user-dropdown-link {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      font-size: 13px; color: #444; text-decoration: none;
+      font-family: 'Poppins', sans-serif; transition: background 0.15s;
+    }
+    .user-dropdown-link:hover { background: #fef6f9; color: #e83e8c; }
+    @media (max-width: 500px) {
+      #user-dropdown { right: auto; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 300px; }
+    }
+
+    /* Page Styles */
+    .page-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 50%, #1a1a2e 100%);
+      color: white;
+      padding: 70px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e83e8c' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .page-hero .hero-icon { font-size: 56px; margin-bottom: 15px; display: block; position: relative; z-index: 1; }
+    .page-hero h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; margin-bottom: 12px; position: relative; z-index: 1; }
+    .page-hero p { font-size: 16px; color: rgba(255,255,255,0.75); max-width: 600px; margin: 0 auto; position: relative; z-index: 1; }
+
+    .page-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 20px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Shipping Timeline */
+    .shipping-highlights {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+    .highlight-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      border-top: 4px solid #e83e8c;
+      transition: transform 0.2s;
+    }
+    .highlight-card:hover { transform: translateY(-5px); }
+    .highlight-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+    .highlight-card h3 { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+    .highlight-card p { font-size: 14px; color: #666; line-height: 1.6; }
+    .highlight-card .highlight-value { font-size: 22px; font-weight: 800; color: #e83e8c; margin-bottom: 5px; }
+
+    /* Policy Cards */
+    .policy-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .policy-card-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 2px solid #f5f5f5;
+    }
+    .policy-icon {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .policy-card h2 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+    .policy-card p, .policy-card li { font-size: 15px; color: #555; line-height: 1.8; }
+    .policy-card ul { padding-left: 20px; margin-top: 10px; }
+    .policy-card li { margin-bottom: 8px; }
+
+    /* Delivery table */
+    .delivery-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .delivery-table th {
+      background: #1a1a2e;
+      color: white;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+    }
+    .delivery-table td {
+      padding: 14px 18px;
+      font-size: 14px;
+      color: #444;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .delivery-table tr:nth-child(even) td { background: #fafafa; }
+    .delivery-table tr:hover td { background: #fef6f9; }
+
+    .free-shipping-banner {
+      background: linear-gradient(135deg, #e83e8c, #f06292);
+      color: white;
+      border-radius: 20px;
+      padding: 35px;
+      text-align: center;
+      margin: 30px 0;
+    }
+    .free-shipping-banner h3 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+    .free-shipping-banner p { font-size: 15px; color: rgba(255,255,255,0.9); }
+    .free-shipping-banner .amount { font-size: 40px; font-weight: 900; display: block; margin: 10px 0; }
+
+    .note-box {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      border-radius: 14px;
+      padding: 18px 22px;
+      font-size: 14px;
+      color: #1b5e20;
+      margin-top: 15px;
+    }
+    .update-notice {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 16px;
+      padding: 20px 25px;
+      font-size: 14px;
+      color: #6d4c00;
+      margin-top: 30px;
+    }
+    .update-notice strong { display: block; margin-bottom: 5px; font-size: 15px; }
+  </style>
+</head>
+
+<body>
+
+  <div class="overlay" data-overlay></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="container">
+        <ul class="header-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+        <div class="header-alert-news">
+          <p><b>Free Shipping</b> This Week Order Over - ₹550</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-main">
+      <div class="container flex-mobile-header">
+        <button class="action-btn mobile-menu-btn" data-mobile-menu-open-btn>
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <a href="/" class="header-logo">
+          <img src="./assets/images/logo/logo.svg" alt="Devangi Products logo" width="200" height="60" style="min-width: 160px; max-width: 100%;">
+        </a>
+        <div class="header-search-container">
+          <input type="search" name="search" class="search-field" placeholder="Enter your product name...">
+          <button class="search-btn"><ion-icon name="search-outline"></ion-icon></button>
+        </div>
+        <div class="header-user-actions">
+          <div class="user-dropdown-wrapper">
+            <button class="action-btn" id="user-action-btn" title="Login">
+              <ion-icon name="person-outline"></ion-icon>
+            </button>
+            <div id="user-dropdown"></div>
+          </div>
+          <button class="action-btn">
+            <ion-icon name="bag-handle-outline"></ion-icon>
+            <span class="count">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="desktop-navigation-menu">
+      <div class="container">
+        <ul class="desktop-menu-category-list" id="dynamic-desktop-nav"></ul>
+      </div>
+    </nav>
+
+    <div class="mobile-bottom-navigation">
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="menu-outline"></ion-icon></button>
+      <button class="action-btn"><ion-icon name="bag-handle-outline"></ion-icon><span class="count">0</span></button>
+      <button class="action-btn" onclick="location.href='/'"><ion-icon name="home-outline"></ion-icon></button>
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="grid-outline"></ion-icon></button>
+    </div>
+
+    <nav class="mobile-navigation-menu has-scrollbar" data-mobile-menu>
+      <div class="menu-top">
+        <h2 class="menu-title">Menu</h2>
+        <button class="menu-close-btn" data-mobile-menu-close-btn><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <ul class="mobile-menu-category-list" id="dynamic-mobile-nav"></ul>
+      <div class="menu-bottom">
+        <ul class="menu-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <div class="page-hero">
+      <span class="hero-icon">🚚</span>
+      <h1>Shipping Policy</h1>
+      <p>Fast, reliable delivery across India — straight to your doorstep</p>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Quick Highlights -->
+      <div class="shipping-highlights">
+        <div class="highlight-card">
+          <span class="highlight-icon">⚡</span>
+          <div class="highlight-value">1-2 Days</div>
+          <h3>Order Processing</h3>
+          <p>Orders are processed within 1-2 business days</p>
+        </div>
+        <div class="highlight-card">
+          <span class="highlight-icon">📦</span>
+          <div class="highlight-value">3-7 Days</div>
+          <h3>Delivery Time</h3>
+          <p>Standard delivery across India in 3-7 business days</p>
+        </div>
+        <div class="highlight-card">
+          <span class="highlight-icon">🆓</span>
+          <div class="highlight-value">FREE</div>
+          <h3>Free Shipping</h3>
+          <p>Free shipping on all orders above ₹550</p>
+        </div>
+        <div class="highlight-card">
+          <span class="highlight-icon">📍</span>
+          <div class="highlight-value">PAN India</div>
+          <h3>Delivery Coverage</h3>
+          <p>We deliver to all serviceable pin codes across India</p>
+        </div>
+      </div>
+
+      <!-- Free Shipping Banner -->
+      <div class="free-shipping-banner">
+        <h3>🎉 Free Shipping Offer</h3>
+        <span class="amount">₹550+</span>
+        <p>Get FREE shipping on all orders above ₹550. No coupon code required — discount applied automatically at checkout!</p>
+      </div>
+
+      <!-- Order Processing -->
+      <div class="policy-card">
+        <div class="policy-card-header">
+          <div class="policy-icon">⚙️</div>
+          <h2>Order Processing</h2>
+        </div>
+        <p>After you place your order, here's what happens:</p>
+        <ul>
+          <li>You will receive an <strong>order confirmation email</strong> within minutes of placing your order</li>
+          <li>Our team will verify and process your order within <strong>1-2 business days</strong></li>
+          <li>Orders placed on <strong>Sundays or public holidays</strong> will be processed the next business day</li>
+          <li>You will receive a <strong>shipping confirmation email</strong> with tracking details once dispatched</li>
+        </ul>
+      </div>
+
+      <!-- Delivery Time -->
+      <div class="policy-card">
+        <div class="policy-card-header">
+          <div class="policy-icon">🗓️</div>
+          <h2>Delivery Timeframes</h2>
+        </div>
+        <p>Estimated delivery times based on your location:</p>
+        <table class="delivery-table">
+          <thead>
+            <tr>
+              <th>Location</th>
+              <th>Estimated Delivery</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>📍 Surat City</td><td>1-2 Business Days</td></tr>
+            <tr><td>🌆 Gujarat (Major Cities)</td><td>2-3 Business Days</td></tr>
+            <tr><td>🏙️ Metro Cities (Mumbai, Delhi, etc.)</td><td>3-5 Business Days</td></tr>
+            <tr><td>🌏 Rest of India</td><td>5-7 Business Days</td></tr>
+            <tr><td>🏔️ Remote / Hilly Areas</td><td>7-10 Business Days</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box" style="margin-top: 15px;">
+          ℹ️ Delivery times may be extended during festivals, national holidays, or due to extreme weather conditions.
+        </div>
+      </div>
+
+      <!-- Shipping Charges -->
+      <div class="policy-card">
+        <div class="policy-card-header">
+          <div class="policy-icon">💰</div>
+          <h2>Shipping Charges</h2>
+        </div>
+        <table class="delivery-table">
+          <thead>
+            <tr>
+              <th>Order Value</th>
+              <th>Shipping Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Below ₹550</td><td>₹50 flat shipping</td></tr>
+            <tr><td>₹550 and above</td><td>🆓 FREE Shipping</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tracking -->
+      <div class="policy-card">
+        <div class="policy-card-header">
+          <div class="policy-icon">📱</div>
+          <h2>Order Tracking</h2>
+        </div>
+        <p>You can track your order at any time:</p>
+        <ul>
+          <li>A <strong>tracking link</strong> will be sent to your registered email once your order is shipped</li>
+          <li>Track your order on our <a href="./track-order.html" style="color: #e83e8c; font-weight: 600;">Track Order page</a></li>
+          <li>You can also call us at <a href="tel:+917600550038" style="color: #e83e8c;">+91 7600550038</a> for order status updates</li>
+        </ul>
+      </div>
+
+      <!-- Damaged / Lost -->
+      <div class="policy-card">
+        <div class="policy-card-header">
+          <div class="policy-icon">⚠️</div>
+          <h2>Damaged or Lost Packages</h2>
+        </div>
+        <p>In the rare event your package is damaged or lost:</p>
+        <ul>
+          <li>If your package arrives <strong>damaged</strong>, please take photos and contact us within <strong>24 hours</strong> of delivery</li>
+          <li>If your package is <strong>lost in transit</strong>, contact us and we will initiate an investigation with the courier</li>
+          <li>We will offer a <strong>replacement or full refund</strong> for confirmed lost or damaged packages</li>
+        </ul>
+        <p style="margin-top: 12px;">Contact: <a href="mailto:devangisewingclasses@gmail.com" style="color: #e83e8c;">devangisewingclasses@gmail.com</a> | <a href="tel:+917600550038" style="color: #e83e8c;">+91 7600550038</a></p>
+      </div>
+
+      <!-- Returns -->
+      <div class="policy-card">
+        <div class="policy-card-header">
+          <div class="policy-icon">🔄</div>
+          <h2>Returns & Exchanges</h2>
+        </div>
+        <ul>
+          <li>We accept returns within <strong>7 days</strong> of delivery for unused, unopened products</li>
+          <li>Return shipping charges are borne by the customer (unless product is defective)</li>
+          <li>Refunds are processed to the original payment method within <strong>5-7 business days</strong></li>
+          <li>To initiate a return, contact us with your order ID and reason for return</li>
+        </ul>
+      </div>
+
+      <div class="update-notice">
+        <strong>📅 Last Updated: June 2025</strong>
+        This shipping policy is subject to change. During sale events or special offers, shipping conditions may vary. Check back for the latest updates.
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-nav">
+      <div class="container">
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Contact</h2></li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="location-outline"></ion-icon></div>
+            <address class="content">B-3, Yogiraj Soc., YogiChowk, Surat.</address>
+          </li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="call-outline"></ion-icon></div>
+            <a href="tel:+917600550038" class="footer-nav-link">+91 7600550038</a>
+          </li>
+          <li class="footer-nav-item flex">
+            <div class="icon-box"><ion-icon name="mail-outline"></ion-icon></div>
+            <a href="mailto:devangisewingclasses@gmail.com" class="footer-nav-link">devangisewingclasses@gmail.com</a>
+          </li>
+        </ul>
+
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Quick Links</h2></li>
+          <li class="footer-nav-item"><a href="./about.html" class="footer-nav-link">About Us</a></li>
+          <li class="footer-nav-item"><a href="./shipping-policy.html" class="footer-nav-link">Shipping Policy</a></li>
+          <li class="footer-nav-item"><a href="./security.html" class="footer-nav-link">Security</a></li>
+          <li class="footer-nav-item"><a href="./terms-conditions.html" class="footer-nav-link">Terms & Conditions</a></li>
+          <li class="footer-nav-item"><a href="./contact.html" class="footer-nav-link">Contact Us</a></li>
+        </ul>
+
+        <ul class="footer-nav-list">
+          <li class="footer-nav-item"><h2 class="nav-title">Follow Us</h2></li>
+          <li>
+            <ul class="social-link">
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+              <li class="footer-nav-item"><a href="#" class="footer-nav-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">
+        <img src="./assets/images/payment.png" alt="payment method" class="payment-img">
+        <p class="copyright">Copyright &copy; <a href="#">Devangi Products</a> all rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./assets/js/nav.js"></script>
+  <script src="./assets/js/cart.js"></script>
+  <script src="./assets/js/home.js"></script>
+  <script src="./assets/js/script.js"></script>
+  <script src="./assets/js/auth.js"></script>
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+</body>
+</html>

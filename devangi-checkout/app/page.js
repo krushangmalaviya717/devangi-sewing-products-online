@@ -1,4 +1,4 @@
-import Navbar from '@/components/Navbar';
+﻿import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { ShoppingBag, Scissors, Package, Truck, ShieldCheck, ArrowRight, Heart } from 'lucide-react';
 
@@ -61,9 +61,9 @@ export default function Home() {
       <footer className="mt-auto py-12 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 text-slate-400 mb-6 grayscale">
-             <Scissors className="w-5 h-5" /> Devangi Sewing Products
+             <Scissors className="w-5 h-5" /> Devangi Products
           </div>
-          <p className="text-slate-400 text-sm font-medium">© 2024 Devangi Sewing Products. All rights reserved.</p>
+          <p className="text-slate-400 text-sm font-medium">© 2024 Devangi Products. All rights reserved.</p>
         </div>
       </footer>
     </div>

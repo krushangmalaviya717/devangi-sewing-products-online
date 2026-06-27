@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ function SuccessContent() {
           <CheckCircle className="w-12 h-12 text-green-600" />
         </div>
         <h1 className="text-3xl font-black text-slate-800 mb-2">Order Confirmed!</h1>
-        <p className="text-slate-500 mb-8 font-medium">Thank you for shopping with Devangi Sewing Products.</p>
+        <p className="text-slate-500 mb-8 font-medium">Thank you for shopping with Devangi Products.</p>
 
         <div className="bg-pink-50/50 rounded-3xl border border-pink-100 p-8 text-left space-y-5 mb-8 shadow-sm">
           <div className="flex items-center gap-4">

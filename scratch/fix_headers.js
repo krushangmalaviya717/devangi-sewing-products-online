@@ -1,7 +1,7 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 
-const adminDir = path.join('e:', 'website', 'devangi sewing products', 'admin');
+const adminDir = path.join('e:', 'website', 'Devangi Products', 'admin');
 
 const titles = {
     'orders.html': 'Order Management',

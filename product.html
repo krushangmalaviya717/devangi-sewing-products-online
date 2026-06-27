@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Details - Devangi Sewing Products</title>
+  <title>Product Details - Devangi Products</title>
 
   <!--
     - favicon
@@ -551,7 +551,7 @@
         </button>
 
         <a href="/" class="header-logo">
-          <img src="./assets/images/logo/logo.svg" alt="Devangi Sewing Products logo" width="200" height="60" style="min-width: 160px; max-width: 100%;">
+          <img src="./assets/images/logo/logo.svg" alt="Devangi Products logo" width="200" height="60" style="min-width: 160px; max-width: 100%;">
         </a>
 
         <div class="header-search-container" style="position: relative;">
@@ -769,15 +769,16 @@
                 </div>
                 <div style="padding: 15px; background-color: #f7f7f7; border-bottom: 1px solid var(--cultured); display: flex; align-items: center; gap: 10px; color: var(--onyx);">
                     <ion-icon name="airplane-outline" style="font-size: 1.2rem;"></ion-icon>
-                    <span style="font-size: 0.9rem;"><span style="font-weight: bold;">Free delivery</span> on all prepaid orders</span>
+                    <span id="pdp-delivery-text" style="font-size: 0.9rem;"><span style="font-weight: bold;">Free delivery</span> on all prepaid orders</span>
                 </div>
-                <div style="padding: 15px; background-color: #f7f7f7; border-bottom: 1px solid var(--cultured); display: flex; align-items: center; justify-content: space-between; color: var(--onyx); cursor: pointer;">
+                <div id="pdp-delivery-info-toggle" style="padding: 15px; background-color: #f7f7f7; border-bottom: 1px solid var(--cultured); display: flex; align-items: center; justify-content: space-between; color: var(--onyx); cursor: pointer;">
                     <div style="display:flex; align-items:center; gap: 10px;">
                         <ion-icon name="cube-outline" style="font-size: 1.2rem;"></ion-icon>
                         <span style="font-size: 0.9rem; font-weight: bold;">Delivery information</span>
                     </div>
-                    <ion-icon name="chevron-down-outline"></ion-icon>
+                    <ion-icon id="pdp-delivery-info-icon" name="chevron-down-outline"></ion-icon>
                 </div>
+                <div id="pdp-delivery-info-content" style="display: none; padding: 15px; background-color: #f7f7f7; border-bottom: 1px solid var(--cultured); color: var(--sonic-silver); font-size: 0.85rem; line-height: 1.5;"></div>
                 <div style="padding: 15px; background-color: #f7f7f7; display: flex; align-items: center; gap: 10px;">
                     <img src="./assets/images/payment.png" style="height: 20px; mix-blend-mode: multiply;">
                 </div>
@@ -870,6 +871,34 @@
         <ul class="footer-nav-list">
 
           <li class="footer-nav-item">
+            <h2 class="nav-title">Quick Links</h2>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./about.html" class="footer-nav-link">About Us</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./shipping-policy.html" class="footer-nav-link">Shipping Policy</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./security.html" class="footer-nav-link">Security & Privacy</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./terms-conditions.html" class="footer-nav-link">Terms & Conditions</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./contact.html" class="footer-nav-link">Contact Us</a>
+          </li>
+
+        </ul>
+
+        <ul class="footer-nav-list">
+
+          <li class="footer-nav-item">
             <h2 class="nav-title">Follow Us</h2>
           </li>
 
@@ -916,7 +945,7 @@
         <img src="./assets/images/payment.png" alt="payment method" class="payment-img">
 
         <p class="copyright">
-          Copyright &copy; <a href="#">Devangi Sewing Products</a> all rights reserved.
+          Copyright &copy; <a href="#">Devangi Products</a> all rights reserved.
         </p>
 
       </div>

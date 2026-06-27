@@ -1,7 +1,7 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 
-const directoryPath = 'e:\\website\\devangi sewing products';
+const directoryPath = 'e:\\website\\Devangi Products';
 
 function replaceInFile(filePath) {
     if (filePath.includes('node_modules') || filePath.includes('.git')) return;

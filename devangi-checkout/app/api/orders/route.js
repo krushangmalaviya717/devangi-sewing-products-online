@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getAuthUser } from '@/lib/apiAuth';
 
@@ -43,7 +43,7 @@ export async function POST(req) {
 
   await db.execute(
     'INSERT INTO order_tracking (order_id, status, note) VALUES (?,?,?)',
-    [orderId, 'Order Placed', 'Order received at Devangi Sewing Products']
+    [orderId, 'Order Placed', 'Order received at Devangi Products']
   );
 
   return NextResponse.json({ orderId, message: 'Order placed successfully' }, { status: 201 });

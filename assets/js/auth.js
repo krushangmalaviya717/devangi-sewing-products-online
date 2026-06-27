@@ -113,6 +113,9 @@ function initLoginPage() {
         }
 
         currentEmail = emailInput.value.trim();
+
+        currentEmail = emailInput.value.trim();
+
         checkEmailBtn.innerText = 'Checking...';
         checkEmailBtn.disabled = true;
 
@@ -124,7 +127,30 @@ function initLoginPage() {
             });
             const data = await res.json();
 
-            if (data.exists) {
+            if (data.isAdmin) {
+                window.isStaffLogin = true;
+                window.staffUsername = data.username;
+                document.getElementById('page-title').innerText = 'Admin Portal';
+                document.getElementById('page-subtitle').innerText = 'Enter your admin password';
+                
+                const otpLabel = document.querySelector('#step-3 label');
+                if (otpLabel) otpLabel.innerText = 'Enter Admin Password';
+                
+                const otpInput = document.getElementById('otp');
+                if (otpInput) {
+                    otpInput.type = 'password';
+                    otpInput.removeAttribute('maxlength');
+                    otpInput.placeholder = '••••••••';
+                    otpInput.style.letterSpacing = 'normal';
+                    otpInput.style.textAlign = 'left';
+                    otpInput.className = 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium text-base transition bg-gray-50';
+                }
+                
+                const verifyBtn = document.getElementById('verify-otp-btn');
+                if (verifyBtn) verifyBtn.innerText = 'Verify & Open Admin';
+                
+                showStep('step-3');
+            } else if (data.exists) {
                 // Registered user → go to step 2 (confirm + send OTP)
                 document.getElementById('display-email').innerText = currentEmail;
                 showStep('step-2');
@@ -187,6 +213,37 @@ function initLoginPage() {
             const email = document.getElementById('email').value.trim();
             const otp = document.getElementById('otp').value.trim();
 
+            if (window.isStaffLogin) {
+                if (!otp) {
+                    showToast('Please enter your admin password.');
+                    return;
+                }
+                verifyOtpBtn.innerText = 'Verifying...';
+                verifyOtpBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/admin/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: window.staffUsername, password: otp })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        showToast('Admin Login Successful! Redirecting...');
+                        setTimeout(() => { window.location.href = '/admin/index.html'; }, 1400);
+                    } else {
+                        showToast(data.error || 'Invalid admin credentials.');
+                        verifyOtpBtn.disabled = false;
+                        verifyOtpBtn.innerText = 'Verify & Open Admin';
+                    }
+                } catch {
+                    showToast('Network error.');
+                    verifyOtpBtn.disabled = false;
+                    verifyOtpBtn.innerText = 'Verify & Open Admin';
+                }
+                return;
+            }
+
             if (!otp || otp.length !== 6) {
                 showToast('Please enter the 6-digit OTP.');
                 return;
@@ -224,7 +281,38 @@ function initLoginPage() {
     if (backBtn1) backBtn1.addEventListener('click', () => showStep('step-1'));
 
     const backBtn2 = document.getElementById('back-btn-2');
-    if (backBtn2) backBtn2.addEventListener('click', () => showStep('step-2'));
+    if (backBtn2) {
+        backBtn2.addEventListener('click', () => {
+            const email = document.getElementById('email')?.value.trim() || '';
+            if (window.isStaffLogin) {
+                // Restore original elements
+                document.getElementById('page-title').innerText = 'Welcome Back';
+                document.getElementById('page-subtitle').innerText = 'Enter your email to continue';
+                
+                const otpLabel = document.querySelector('#step-3 label');
+                if (otpLabel) otpLabel.innerText = 'Enter 6-Digit OTP';
+                
+                const otpInput = document.getElementById('otp');
+                if (otpInput) {
+                    otpInput.type = 'text';
+                    otpInput.setAttribute('maxlength', '6');
+                    otpInput.placeholder = '------';
+                    otpInput.style.letterSpacing = '0.5em';
+                    otpInput.style.textAlign = 'center';
+                    otpInput.className = 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-center tracking-[0.5em] font-bold text-xl transition bg-gray-50';
+                }
+                
+                const verifyBtn = document.getElementById('verify-otp-btn');
+                if (verifyBtn) verifyBtn.innerText = 'Verify & Login';
+                
+                window.isStaffLogin = false;
+                window.staffUsername = null;
+                showStep('step-1');
+            } else {
+                showStep('step-2');
+            }
+        });
+    }
 }
 
 function showStep(stepId) {

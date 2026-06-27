@@ -122,7 +122,9 @@ function renderCategoryTiles(categories) {
         item.style.flexShrink = '0';
         item.innerHTML = `
             <a href="/shop.html?category=${encodeURIComponent(cat.name)}" class="cat-tile">
-                <div class="cat-tile-icon">${cat.icon || '🏷️'}</div>
+                <div class="cat-tile-icon">
+                    ${cat.icon && cat.icon.startsWith('/') ? `<img src="${cat.icon}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; margin: 0 auto;">` : (cat.icon || '🏷️')}
+                </div>
                 <div class="cat-tile-info">
                     <h3 class="cat-tile-name">${cat.name}</h3>
                     <p class="cat-tile-count">${cat.product_count || 0} Products</p>
@@ -152,7 +154,9 @@ function renderSidebarCategories(categories) {
                       text-decoration:none; width:100%; cursor:pointer;"
                onmouseover="this.style.background='#fef0f6';this.style.color='#e83e8c';"
                onmouseout="this.style.background='';this.style.color='';">
-                <span style="font-size:1.1rem;">${cat.icon || '🏷️'}</span>
+                <span style="font-size:1.1rem; display:flex; align-items:center; justify-content:center; width:24px; height:24px;">
+                    ${cat.icon && cat.icon.startsWith('/') ? `<img src="${cat.icon}" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;">` : (cat.icon || '🏷️')}
+                </span>
                 <p style="flex:1; margin:0;">${cat.name}</p>
                 <span style="font-size:12px; color:#aaa;">(${cat.product_count || 0})</span>
             </a>`;

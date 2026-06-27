@@ -1,4 +1,4 @@
-# 🏪 Admin Panel Feature Analysis — Devangi Sewing Products
+﻿# 🏪 Admin Panel Feature Analysis — Devangi Products
 
 > Real-world e-commerce admin panels (Shopify, WooCommerce, Meesho Seller, etc.) સાથે comparison
 
