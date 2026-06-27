@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -41,10 +41,10 @@
                             placeholder="Enter 10-digit mobile number">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">Order ID</label>
-                        <input type="text" id="track-order-id" required 
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">Order ID (Optional)</label>
+                        <input type="text" id="track-order-id" 
                             class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm" 
-                            placeholder="Enter Order ID (e.g. 1024)">
+                            placeholder="Enter Order ID if you remember (e.g. 1024)">
                     </div>
                     <button type="submit" id="search-btn" class="w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-pink-500/25 transition duration-200">
                         Track Now
@@ -63,36 +63,38 @@
                         </div>
                         <div class="text-right">
                             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Date</p>
-                            <p class="text-sm font-semibold text-gray-800" id="res-order-date">12 June 2026</p>
+                            <p class="text-sm font-semibold text-gray-700" id="res-order-date">April 08, 2022</p>
                         </div>
                     </div>
                     <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-50">
-                        <span class="text-sm font-semibold text-gray-700">Payment status:</span>
-                        <span id="res-payment-status" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase"></span>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Status</p>
+                            <span id="res-status" class="inline-block mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase"></span>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Status</p>
+                            <span id="res-payment-status" class="inline-block mt-1"></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Courier Live Tracking Info -->
-
-
-                <!-- Timeline Progress steps -->
-                <div>
-                    <h3 class="text-sm font-bold text-gray-700 mb-6">Delivery Status</h3>
-                    
-                    <div class="space-y-6" id="tracking-steps-container">
+                <!-- Live Tracking Stepper -->
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6">Delivery Progress</h3>
+                    <div class="space-y-6 relative">
                         <!-- Placed -->
                         <div class="flex items-start gap-4">
                             <div id="step-placed-dot" class="w-8 h-8 rounded-full flex items-center justify-center border-2 font-bold text-sm shrink-0">1</div>
                             <div>
-                                <p class="text-sm font-bold text-gray-800">Order Placed</p>
-                                <p class="text-xs text-gray-400" id="step-placed-note">Your order has been received successfully.</p>
+                                <h4 class="text-sm font-bold text-gray-800">Order Placed</h4>
+                                <p class="text-xs text-gray-400" id="step-placed-note">Your order has been received.</p>
                             </div>
                         </div>
                         <!-- Processing -->
                         <div class="flex items-start gap-4">
                             <div id="step-processing-dot" class="w-8 h-8 rounded-full flex items-center justify-center border-2 font-bold text-sm shrink-0">2</div>
                             <div>
-                                <p class="text-sm font-bold text-gray-800">Processing</p>
+                                <h4 class="text-sm font-bold text-gray-800">Processing</h4>
                                 <p class="text-xs text-gray-400" id="step-processing-note">We are preparing your items.</p>
                             </div>
                         </div>
@@ -100,7 +102,7 @@
                         <div class="flex items-start gap-4">
                             <div id="step-shipped-dot" class="w-8 h-8 rounded-full flex items-center justify-center border-2 font-bold text-sm shrink-0">3</div>
                             <div>
-                                <p class="text-sm font-bold text-gray-800">Shipped</p>
+                                <h4 class="text-sm font-bold text-gray-800">Shipped</h4>
                                 <p class="text-xs text-gray-400" id="step-shipped-note">Your order is on the way.</p>
                             </div>
                         </div>
@@ -108,50 +110,62 @@
                         <div class="flex items-start gap-4">
                             <div id="step-delivery-dot" class="w-8 h-8 rounded-full flex items-center justify-center border-2 font-bold text-sm shrink-0">4</div>
                             <div>
-                                <p class="text-sm font-bold text-gray-800">Out for Delivery</p>
-                                <p class="text-xs text-gray-400" id="step-delivery-note">Delivery partner is bringing your order.</p>
+                                <h4 class="text-sm font-bold text-gray-800">Out for Delivery</h4>
+                                <p class="text-xs text-gray-400" id="step-delivery-note">Our agent is delivering your package.</p>
                             </div>
                         </div>
                         <!-- Delivered -->
                         <div class="flex items-start gap-4">
                             <div id="step-delivered-dot" class="w-8 h-8 rounded-full flex items-center justify-center border-2 font-bold text-sm shrink-0">5</div>
                             <div>
-                                <p class="text-sm font-bold text-gray-800">Delivered</p>
-                                <p class="text-xs text-gray-400" id="step-delivered-note">Order delivered.</p>
+                                <h4 class="text-sm font-bold text-gray-800">Delivered</h4>
+                                <p class="text-xs text-gray-400" id="step-delivered-note">Package received.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Order Items list -->
-                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
                     <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Ordered Items</h3>
                     <div id="res-items-list" class="space-y-4">
                         <!-- Items injected here -->
                     </div>
                     <div class="border-t border-gray-200 mt-4 pt-4 flex justify-between items-center text-sm font-bold">
-                        <span class="text-gray-700">Total Amount (COD):</span>
-                        <span class="text-pink-500 text-lg" id="res-total-amount">Rs. 0.00</span>
+                        <span class="text-gray-500">Total Paid:</span>
+                        <span class="text-pink-600 text-base" id="res-total-amount"></span>
                     </div>
                 </div>
 
                 <!-- Shipping Address -->
-                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 text-sm">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Delivery Address</h3>
-                    <p id="res-address" class="text-gray-600 leading-relaxed font-medium whitespace-pre-line"></p>
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Delivery Details</h3>
+                    <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line font-medium" id="res-address"></p>
                 </div>
 
+                <!-- Action Buttons -->
                 <div class="flex gap-4">
-                    <button onclick="resetSearch()" class="flex-grow bg-white border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition text-sm">
+                    <button onclick="resetSearch()" class="flex-grow border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition text-sm">
                         Track Another Order
                     </button>
                     <button id="invoice-download-btn" onclick="generateInvoice()" class="hidden flex-grow bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:shadow-emerald-500/25 transition text-sm flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Download Invoice
+                        <span>📄</span> Download Invoice
                     </button>
                 </div>
             </div>
             
+            <!-- Orders List Section (when multiple orders are found for a phone number) -->
+            <div id="orders-list-section" class="hidden space-y-6">
+                <h3 class="text-lg font-bold text-gray-800 text-center">Select Order to Track</h3>
+                <p class="text-gray-500 text-sm text-center">We found multiple orders associated with your phone number. Please select one:</p>
+                <div id="orders-list-container" class="space-y-3 max-w-md mx-auto">
+                    <!-- Orders injected here -->
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="resetSearch()" class="px-6 py-2 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition">Back to Search</button>
+                </div>
+            </div>
+
             <!-- Error message section -->
             <div id="error-section" class="hidden text-center py-6 space-y-4">
                 <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl">
@@ -183,12 +197,71 @@
             }
         });
 
-        async function handleTrack(e) {
+         async function handleTrack(e) {
             e.preventDefault();
             const phone = document.getElementById('track-phone').value.trim();
             const orderId = document.getElementById('track-order-id').value.trim();
-            if (!phone || !orderId) return;
-            fetchTracking(phone, orderId);
+            if (!phone) return;
+            
+            if (orderId) {
+                fetchTracking(phone, orderId);
+            } else {
+                fetchOrdersByPhone(phone);
+            }
+        }
+
+        async function fetchOrdersByPhone(phone) {
+            const btn = document.getElementById('search-btn');
+            btn.disabled = true;
+            btn.innerText = 'Searching...';
+            document.getElementById('error-section').classList.add('hidden');
+            document.getElementById('results-section').classList.add('hidden');
+            document.getElementById('orders-list-section').classList.add('hidden');
+            document.getElementById('search-section').classList.add('hidden');
+
+            try {
+                const res = await fetch(`/api/guest/orders-by-phone?phone=${encodeURIComponent(phone)}`);
+                const orders = await res.json();
+
+                if (!orders || orders.length === 0) {
+                    const errTitle = document.querySelector('#error-section h3');
+                    const errDesc = document.querySelector('#error-section p');
+                    if (errTitle) errTitle.innerText = 'No Orders Found';
+                    if (errDesc) errDesc.innerText = 'We could not find any orders associated with this phone number.';
+                    document.getElementById('error-section').classList.remove('hidden');
+                } else if (orders.length === 1) {
+                    fetchTracking(phone, orders[0].id);
+                } else {
+                    const listContainer = document.getElementById('orders-list-container');
+                    listContainer.innerHTML = '';
+                    orders.forEach(o => {
+                        const date = new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                        const card = document.createElement('div');
+                        card.className = 'bg-white p-4 rounded-xl border border-gray-200 hover:border-pink-500 hover:shadow-md cursor-pointer transition flex justify-between items-center';
+                        card.onclick = () => fetchTracking(phone, o.id);
+                        card.innerHTML = `
+                            <div class="text-left">
+                                <p class="text-sm font-bold text-gray-800">Order #ORD-${o.id.toString().padStart(4, '0')}</p>
+                                <p class="text-[10px] text-gray-400 mt-1">Placed on: ${date}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-pink-600">Rs. ${parseFloat(o.total_amount).toFixed(2)}</p>
+                                <span class="inline-block text-[9px] px-2 py-0.5 rounded-full font-bold uppercase mt-1 ${
+                                    o.status === 'Delivered' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-pink-50 text-pink-700 border border-pink-100'
+                                }">${o.status}</span>
+                            </div>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                    document.getElementById('orders-list-section').classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('error-section').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Track Now';
+            }
         }
 
         async function fetchTracking(phone, orderId) {
@@ -197,6 +270,7 @@
             btn.innerText = 'Loading...';
             document.getElementById('error-section').classList.add('hidden');
             document.getElementById('results-section').classList.add('hidden');
+            document.getElementById('orders-list-section').classList.add('hidden');
             document.getElementById('search-section').classList.add('hidden');
 
             try {
@@ -235,13 +309,20 @@
             // Items list
             const itemsList = document.getElementById('res-items-list');
             itemsList.innerHTML = items.map(item => `
-                <div class="flex items-center gap-3">
-                    <img src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%23f1f5f9\'/%3E%3C/svg%3E'}" 
-                        class="w-12 h-12 rounded-lg object-cover border border-gray-100">
-                    <div class="flex-grow text-xs">
-                        <p class="font-bold text-gray-800 line-clamp-1">${item.name}</p>
-                        <p class="text-gray-400 mt-0.5">Qty: ${item.quantity} × Rs. ${parseFloat(item.price).toFixed(2)}</p>
+                <div class="flex items-center justify-between gap-3 border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                    <div class="flex items-center gap-3">
+                        <img src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%23f1f5f9\'/%3E%3C/svg%3E'}" 
+                            class="w-12 h-12 rounded-lg object-cover border border-gray-100">
+                        <div class="flex-grow text-xs">
+                            <p class="font-bold text-gray-800 line-clamp-1">${item.name}</p>
+                            <p class="text-gray-400 mt-0.5">Qty: ${item.quantity} × Rs. ${parseFloat(item.price).toFixed(2)}</p>
+                        </div>
                     </div>
+                    ${order.status === 'Delivered' ? `
+                        <button onclick="openReviewModal('${item.product_id}', '${(item.name || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-pink-500 hover:bg-pink-600 text-white text-[10px] font-bold rounded-lg transition shrink-0 shadow-sm">
+                            Write a Review
+                        </button>
+                    ` : ''}
                 </div>
             `).join('');
 
@@ -313,6 +394,7 @@
             document.getElementById('search-section').classList.remove('hidden');
             document.getElementById('results-section').classList.add('hidden');
             document.getElementById('error-section').classList.add('hidden');
+            document.getElementById('orders-list-section').classList.add('hidden');
             document.getElementById('track-order-id').value = '';
         }
     </script>
@@ -457,6 +539,156 @@
             invoiceWindow.document.write(invoiceHTML);
             invoiceWindow.document.close();
         }
+
+        // --- REVIEW SYSTEM FOR GUESTS / TRACKED ORDERS ---
+        let activeReviewProductId = null;
+        let activeOrderData = null;
+
+        // Hook into displayResults to save the order details
+        const originalDisplayResults = displayResults;
+        displayResults = function(order, items, tracking) {
+            activeOrderData = order;
+            originalDisplayResults(order, items, tracking);
+        };
+
+        window.openReviewModal = function(productId, productName) {
+            activeReviewProductId = productId;
+            document.getElementById('modal-product-name').innerText = productName;
+            document.getElementById('review-rating').value = '';
+            document.getElementById('review-comment').value = '';
+            updateModalStars(0);
+            document.getElementById('review-modal').style.display = 'flex';
+        };
+
+        window.closeReviewModal = function() {
+            document.getElementById('review-modal').style.display = 'none';
+        };
+
+        function updateModalStars(rating) {
+            const stars = document.querySelectorAll('#star-selector .star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.style.color = '#f5a623';
+                } else {
+                    star.style.color = '#ddd';
+                }
+            });
+        }
+
+        // Setup star event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const starSelector = document.getElementById('star-selector');
+            const ratingInput = document.getElementById('review-rating');
+            
+            if (starSelector) {
+                const stars = starSelector.querySelectorAll('.star');
+                stars.forEach(star => {
+                    star.addEventListener('click', () => {
+                        const r = star.getAttribute('data-rating');
+                        ratingInput.value = r;
+                        updateModalStars(r);
+                    });
+                    star.addEventListener('mouseover', () => {
+                        const r = star.getAttribute('data-rating');
+                        highlightStars(r);
+                    });
+                    star.addEventListener('mouseout', () => {
+                        const current = ratingInput.value || 0;
+                        updateModalStars(current);
+                    });
+                });
+            }
+
+            function highlightStars(r) {
+                const stars = document.querySelectorAll('#star-selector .star');
+                stars.forEach((star, index) => {
+                    if (index < r) {
+                        star.style.color = '#f5a623';
+                    } else {
+                        star.style.color = '#ddd';
+                    }
+                });
+            }
+
+            // Form submission
+            const form = document.getElementById('review-form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!activeOrderData || !activeReviewProductId) {
+                        alert('Order details not loaded.');
+                        return;
+                    }
+
+                    const rating = parseInt(ratingInput.value);
+                    const comment = document.getElementById('review-comment').value.trim();
+
+                    if (!rating || rating < 1 || rating > 5) {
+                        alert('Please select a rating.');
+                        return;
+                    }
+
+                    // Guests don't have a user_id, registered users do
+                    const userId = activeOrderData.user_id || null;
+                    const userName = activeOrderData.fullname + (userId ? '' : ' (Guest)');
+
+                    try {
+                        const res = await fetch('/api/reviews', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                product_id: parseInt(activeReviewProductId),
+                                user_id: userId,
+                                user_name: userName,
+                                rating: rating,
+                                comment: comment
+                            })
+                        });
+
+                        if (res.ok) {
+                            alert('Review submitted successfully! Thank you ✨');
+                            closeReviewModal();
+                        } else {
+                            const data = await res.json();
+                            alert('Error: ' + (data.error || 'Failed to submit review'));
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Failed to submit review.');
+                    }
+                });
+            }
+        });
     </script>
+
+    <!-- Review Modal -->
+    <div id="review-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(4px);">
+        <div style="background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 460px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative; font-family: Poppins, sans-serif;">
+            <button onclick="closeReviewModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #aaa; font-weight: bold; line-height: 1;">✕</button>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #222; text-align: center; margin-bottom: 5px;">Write a Review</h3>
+            <p id="modal-product-name" style="font-size: 0.85rem; color: #666; text-align: center; margin-bottom: 20px; font-weight: 600;"></p>
+            
+            <form id="review-form" style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 8px;">Select Rating</label>
+                    <div id="star-selector" style="display: flex; gap: 10px; font-size: 2.2rem; color: #ddd; cursor: pointer; justify-content: center; user-select: none;">
+                        <span data-rating="1" class="star" style="transition: color 0.2s;">★</span>
+                        <span data-rating="2" class="star" style="transition: color 0.2s;">★</span>
+                        <span data-rating="3" class="star" style="transition: color 0.2s;">★</span>
+                        <span data-rating="4" class="star" style="transition: color 0.2s;">★</span>
+                        <span data-rating="5" class="star" style="transition: color 0.2s;">★</span>
+                    </div>
+                    <input type="hidden" id="review-rating" required>
+                </div>
+                
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 8px;">Your Comment</label>
+                    <textarea id="review-comment" rows="4" placeholder="How was the product? Share your experience..." style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; resize: none; outline: none; transition: border 0.2s; font-family: inherit;" required></textarea>
+                </div>
+                
+                <button type="submit" style="width: 100%; background: #ec4899; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: background 0.3s; box-shadow: 0 4px 15px rgba(236,72,153,0.3); font-family: inherit;">Submit Review</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

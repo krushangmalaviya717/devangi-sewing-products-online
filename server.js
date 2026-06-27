@@ -1,6 +1,7 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
+const helmet = require('helmet');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -157,6 +158,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             offer_text TEXT,
             rating REAL DEFAULT 4.9,
             badge TEXT,
+            related_products TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`, () => {
             // Migrate: add new columns if they don't exist (for existing DBs)
@@ -166,7 +168,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 { name: 'sizes', def: 'TEXT' },
                 { name: 'offer_text', def: 'TEXT' },
                 { name: 'rating', def: 'REAL DEFAULT 4.9' },
-                { name: 'badge', def: 'TEXT' }
+                { name: 'badge', def: 'TEXT' },
+                { name: 'related_products', def: 'TEXT' }
             ];
             newCols.forEach(col => {
                 db.run(`ALTER TABLE products ADD COLUMN ${col.name} ${col.def}`, (err) => {
@@ -500,6 +503,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
+        // Admin audit logs table
+        db.run(`CREATE TABLE IF NOT EXISTS admin_audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            action TEXT NOT NULL,
+            details TEXT,
+            ip_address TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+
         // Add stock column to products
         db.run(`ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT -1`, (err) => {}); // -1 = unlimited
 
@@ -518,13 +531,19 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 // Middleware
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP to avoid blocking Razorpay & Ionicons
+}));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Session secret fallback with cryptographically secure random bytes to prevent session forgery
 const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(session({
+    name: 'devangi_sid', // Custom name to prevent fingerprinting
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
@@ -532,7 +551,7 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         httpOnly: true,
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production'
+        secure: isProduction // Secure cookie on live HTTPS site, insecure on local
     }
 }));
 
@@ -548,6 +567,17 @@ function requireAdmin(req, res, next) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     return res.redirect('/admin/login.html');
+}
+
+// Helper to log admin actions
+function logAdminAction(req, action, details) {
+    const username = req.session && req.session.adminUser ? req.session.adminUser.username : 'unknown';
+    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    db.run('INSERT INTO admin_audit_logs (username, action, details, ip_address) VALUES (?, ?, ?, ?)', 
+        [username, action, details, ip], (err) => {
+            if (err) console.error('Error writing audit log:', err);
+        }
+    );
 }
 
 // Helper function to check granular permissions with backward compatibility
@@ -756,7 +786,15 @@ app.use('/api/admin', (req, res, next) => {
 });
 
 // Static file serving
-app.use(express.static(path.join(__dirname, '.')));
+app.use(express.static(path.join(__dirname, '.'), {
+    maxAge: '1d', // Cache static assets for 1 day in browser
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            // Do not cache HTML files so users always get the latest content updates
+            res.setHeader('Cache-Control', 'no-cache');
+        }
+    }
+}));
 
 app.get("/test", (req, res) => {
   res.send("Server working");
@@ -919,6 +957,7 @@ app.post('/api/categories', (req, res) => {
                     if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Category already exists' });
                     return res.status(500).json({ error: err.message });
                 }
+                logAdminAction(req, 'category_create', `Created category: ${name.trim()}`);
                 res.json({ success: true, id: this.lastID, name: name.trim() });
             });
     });
@@ -943,6 +982,7 @@ app.put('/api/categories/:id', (req, res) => {
                 }
                 // Also update all products that had the old category name
                 db.run('UPDATE products SET category = ? WHERE category = ?', [name.trim(), oldName], () => {
+                    logAdminAction(req, 'category_edit', `Updated category ID ${req.params.id}: ${name.trim()} (previously ${oldName})`);
                     res.json({ success: true });
                 });
             });
@@ -953,6 +993,7 @@ app.put('/api/categories/:id', (req, res) => {
 app.delete('/api/categories/:id', (req, res) => {
     db.run('DELETE FROM categories WHERE id = ?', [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
+        logAdminAction(req, 'category_delete', `Deleted category ID: ${req.params.id}`);
         res.json({ success: true });
     });
 });
@@ -994,7 +1035,7 @@ app.get('/api/search', (req, res) => {
 
 // Add a new product (supports up to 10 images via 'images' field)
 app.post('/api/products', upload.array('images', 10), (req, res) => {
-    const { title, category, price, original_price, description, sizes, offer_text, rating, badge, stock } = req.body;
+    const { title, category, price, original_price, description, sizes, offer_text, rating, badge, stock, related_products } = req.body;
 
     if (!title || !category || !price) {
         return res.status(400).json({ error: 'Title, category, and price are required' });
@@ -1015,8 +1056,8 @@ app.post('/api/products', upload.array('images', 10), (req, res) => {
     const sizesJson = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim()).filter(Boolean)) : null;
 
     const sql = `INSERT INTO products 
-        (title, category, price, original_price, image, images, description, sizes, offer_text, rating, badge, stock) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        (title, category, price, original_price, image, images, description, sizes, offer_text, rating, badge, stock, related_products) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const params = [
         title, category, parseFloat(price),
         original_price ? parseFloat(original_price) : null,
@@ -1026,7 +1067,8 @@ app.post('/api/products', upload.array('images', 10), (req, res) => {
         offer_text || null,
         rating ? parseFloat(rating) : 4.9,
         badge || null,
-        stock !== undefined && stock !== '' ? parseInt(stock) : -1
+        stock !== undefined && stock !== '' ? parseInt(stock) : -1,
+        related_products || null
     ];
 
     db.run(sql, params, function (err) {
@@ -1034,6 +1076,7 @@ app.post('/api/products', upload.array('images', 10), (req, res) => {
             res.status(500).json({ error: err.message });
             return;
         }
+        logAdminAction(req, 'product_create', `Created product: ${title} (Price: ${price})`);
         res.json({ id: this.lastID, message: 'Product added successfully' });
     });
 });
@@ -1055,7 +1098,7 @@ app.get('/api/products/:id', (req, res) => {
 // Update a product (Edit)
 app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
     const id = req.params.id;
-    const { title, category, price, original_price, description, sizes, offer_text, rating, badge, keep_images } = req.body;
+    const { title, category, price, original_price, description, sizes, offer_text, rating, badge, keep_images, related_products } = req.body;
 
     if (!title || !category || !price) {
         return res.status(400).json({ error: 'Title, category, and price are required' });
@@ -1088,7 +1131,7 @@ app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
 
         const sql = `UPDATE products SET
             title=?, category=?, price=?, original_price=?, image=?, images=?,
-            description=?, sizes=?, offer_text=?, rating=?, badge=?, stock=?
+            description=?, sizes=?, offer_text=?, rating=?, badge=?, stock=?, related_products=?
             WHERE id=?`;
         const params = [
             title, category, parseFloat(price),
@@ -1100,11 +1143,13 @@ app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
             rating ? parseFloat(rating) : 4.9,
             badge || null,
             stockVal,
+            related_products || null,
             id
         ];
 
         db.run(sql, params, function(err) {
             if (err) return res.status(500).json({ error: err.message });
+            logAdminAction(req, 'product_edit', `Updated product: ${title} (ID: ${id})`);
             res.json({ message: 'Product updated successfully' });
         });
     });
@@ -1119,6 +1164,7 @@ app.delete('/api/products/:id', (req, res) => {
             res.status(500).json({ error: err.message });
             return;
         }
+        logAdminAction(req, 'product_delete', `Deleted product ID: ${id}`);
         res.json({ message: 'Product deleted', changes: this.changes });
     });
 });
@@ -1164,6 +1210,58 @@ app.get('/api/reviews/user/:product_id/:user_id', (req, res) => {
     db.get('SELECT * FROM reviews WHERE product_id = ? AND user_id = ?', [product_id, user_id], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(row || null);
+    });
+});
+
+// Check if user has purchased the product (for verified reviews)
+app.get('/api/reviews/check-purchase/:product_id/:user_id', (req, res) => {
+    const { product_id, user_id } = req.params;
+    const query = `
+        SELECT 1 FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.user_id = ? AND oi.product_id = ? AND o.status != 'Cancelled'
+        LIMIT 1
+    `;
+    db.get(query, [user_id, product_id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ purchased: !!row });
+    });
+});
+
+// Verify guest purchase to allow reviews
+app.post('/api/reviews/verify-guest-purchase', (req, res) => {
+    const { phone, product_id } = req.body;
+    if (!phone || !product_id) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const query = `
+        SELECT o.fullname FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.phone = ? AND oi.product_id = ? AND o.status != 'Cancelled'
+        LIMIT 1
+    `;
+    db.get(query, [phone, product_id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (row) {
+            res.json({ verified: true, guest_name: row.fullname });
+        } else {
+            res.json({ verified: false, error: 'No purchased order found for this product with this phone number.' });
+        }
+    });
+});
+
+// Get latest reviews (Public - for homepage testimonials)
+app.get('/api/public/reviews/latest', (req, res) => {
+    db.all(`
+        SELECT r.*, p.title as product_title 
+        FROM reviews r 
+        JOIN products p ON r.product_id = p.id 
+        ORDER BY r.created_at DESC 
+        LIMIT 6
+    `, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
     });
 });
 
@@ -1516,6 +1614,7 @@ app.delete('/api/admin/orders/:id', (req, res) => {
                     return res.status(500).json({ error: 'Failed to delete order record' });
                 }
                 console.log(`[ADMIN SUCCESS] Deleted Order #${orderId}`);
+                logAdminAction(req, 'order_delete', `Deleted order #${orderId}`);
                 res.json({ success: true, message: 'Order deleted successfully' });
             });
         });
@@ -1596,6 +1695,18 @@ app.get('/api/guest/track-order', (req, res) => {
     });
 });
 
+// Get all orders by phone number (for guest lookups)
+app.get('/api/guest/orders-by-phone', (req, res) => {
+    const { phone } = req.query;
+    if (!phone) {
+        return res.status(400).json({ error: 'Phone number is required' });
+    }
+    db.all('SELECT id, total_amount, status, created_at FROM orders WHERE phone = ? ORDER BY created_at DESC', [phone], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows || []);
+    });
+});
+
 // Note: /api/user/orders/:id has been moved to the top of API section to prevent shadowing
 
 // Update Order Status (Admin) with Logic & Automation
@@ -1642,6 +1753,7 @@ app.post('/api/admin/orders/:id/status', (req, res) => {
             // Log event
             db.run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)', 
                 [orderId, status, note || `Status updated to ${status}`], (err) => {
+                logAdminAction(req, 'order_status_update', `Updated order #${orderId} status to: ${status}`);
                 res.json({ success: true, message: `Status updated to ${status}` });
             });
         });
@@ -1657,6 +1769,7 @@ app.post('/api/admin/orders/:id/payment', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         
         db.run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)', [orderId, 'Payment: ' + status, note || ''], (err) => {
+            logAdminAction(req, 'order_payment_update', `Updated order #${orderId} payment status to: ${status}`);
             res.json({ success: true, message: `Payment status updated to ${status}` });
         });
     });
@@ -1717,6 +1830,7 @@ app.put('/api/admin/orders/:id', requireAdmin, (req, res) => {
             status || 'Order Updated', 
             'Order details were updated by admin.'
         ], (err) => {
+            logAdminAction(req, 'order_edit', `Updated order details for #${orderId}`);
             res.json({ success: true, message: 'Order updated successfully' });
         });
     });
@@ -2114,7 +2228,10 @@ app.put('/api/admin/settings', (req, res) => {
         db.get('SELECT id FROM store_settings WHERE setting_key = ?', [key], (err, row) => {
             const finalize = () => {
                 completed++;
-                if (completed === keys.length) res.json({ success: true });
+                if (completed === keys.length) {
+                    logAdminAction(req, 'settings_update', 'Updated global store settings');
+                    res.json({ success: true });
+                }
             };
             if (row) {
                 db.run('UPDATE store_settings SET setting_value = ? WHERE setting_key = ?', [val, key], finalize);
@@ -2196,6 +2313,18 @@ const rateLimitMiddleware = (req, res, next) => {
     next();
 };
 
+app.post('/api/admin/check-username', (req, res) => {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ error: 'Username is required' });
+
+    db.get('SELECT username, display_name FROM admin_users WHERE username = ?', [username.trim()], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(404).json({ error: 'Username not found' });
+        
+        res.json({ exists: true, display_name: user.display_name });
+    });
+});
+
 app.post('/api/admin/login', rateLimitMiddleware, (req, res) => {
     const { username, password, rememberMe } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
@@ -2234,6 +2363,8 @@ app.post('/api/admin/login', rateLimitMiddleware, (req, res) => {
             loginAttempts[req.ip] = [];
         }
 
+        logAdminAction(req, 'login', `Staff logged in (Remember me: ${!!rememberMe})`);
+
         res.json({ 
             success: true, 
             admin: { 
@@ -2246,11 +2377,13 @@ app.post('/api/admin/login', rateLimitMiddleware, (req, res) => {
 });
 
 app.post('/api/admin/logout', (req, res) => {
+    logAdminAction(req, 'logout', 'Staff logged out');
     req.session.destroy();
     res.json({ success: true });
 });
 
 app.get('/api/admin/logout', (req, res) => {
+    logAdminAction(req, 'logout', 'Staff logged out');
     req.session.destroy(() => {
         res.redirect('/admin/login.html');
     });
@@ -2277,6 +2410,7 @@ app.post('/api/admin/change-password', (req, res) => {
         const newHash = hashPassword(new_password);
         db.run('UPDATE admin_users SET password_hash = ? WHERE id = ?', [newHash, req.session.adminUser.id], (err) => {
             if (err) return res.status(500).json({ error: err.message });
+            logAdminAction(req, 'change_password', 'Staff changed their password');
             res.json({ success: true });
         });
     });
@@ -2315,6 +2449,7 @@ app.post('/api/admin/staff', (req, res) => {
                 }
                 return res.status(500).json({ error: err.message });
             }
+            logAdminAction(req, 'staff_create', `Created staff account: ${username}`);
             res.json({ success: true, message: 'Staff member created successfully', id: this.lastID });
         }
     );
@@ -2322,46 +2457,105 @@ app.post('/api/admin/staff', (req, res) => {
 
 // Edit staff member
 app.put('/api/admin/staff/:id', (req, res) => {
-    const { username, display_name, permissions, password } = req.body;
-    const staffId = req.params.id;
+    const { username, password, display_name, permissions } = req.body;
+    const { id } = req.params;
 
-    // Don't allow changing username of default 'admin'
-    if (staffId == 1 && username !== 'admin') {
-        return res.status(400).json({ error: 'Cannot change username of main admin' });
+    // Check if editing main admin
+    if (parseInt(id) === 1 && req.session.adminUser.id !== 1) {
+        return res.status(403).json({ error: 'Only the main administrator can edit their own profile' });
     }
 
-    const permsString = JSON.stringify(permissions || []);
+    let query = 'UPDATE admin_users SET display_name = ?';
+    const params = [display_name || 'Staff'];
+
+    if (parseInt(id) !== 1) {
+        query += ', username = ?, permissions = ?';
+        params.push(username.trim(), JSON.stringify(permissions || []));
+    }
 
     if (password && password.trim() !== '') {
-        const hash = hashPassword(password);
-        db.run('UPDATE admin_users SET username = ?, password_hash = ?, display_name = ?, permissions = ? WHERE id = ?',
-            [username.trim(), hash, display_name || 'Staff', permsString, staffId],
-            function(err) {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ success: true, message: 'Staff member updated successfully' });
-            }
-        );
-    } else {
-        db.run('UPDATE admin_users SET username = ?, display_name = ?, permissions = ? WHERE id = ?',
-            [username.trim(), display_name || 'Staff', permsString, staffId],
-            function(err) {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ success: true, message: 'Staff member updated successfully' });
-            }
-        );
+        query += ', password_hash = ?';
+        params.push(hashPassword(password));
     }
+
+    query += ' WHERE id = ?';
+    params.push(id);
+
+    db.run(query, params, function(err) {
+        if (err) {
+            if (err.message.includes('UNIQUE')) {
+                return res.status(400).json({ error: 'Username already exists' });
+            }
+            return res.status(500).json({ error: err.message });
+        }
+        logAdminAction(req, 'staff_edit', `Updated staff account: ${username || id}`);
+        res.json({ success: true, message: 'Staff member updated successfully' });
+    });
 });
 
 // Delete staff member
 app.delete('/api/admin/staff/:id', (req, res) => {
-    const staffId = req.params.id;
-    if (staffId == 1) {
+    const { id } = req.params;
+    if (parseInt(id) === 1) {
         return res.status(400).json({ error: 'Cannot delete primary admin' });
     }
 
-    db.run('DELETE FROM admin_users WHERE id = ?', [staffId], function(err) {
+    db.run('DELETE FROM admin_users WHERE id = ?', [id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
+        logAdminAction(req, 'staff_delete', `Deleted staff account ID: ${id}`);
         res.json({ success: true, message: 'Staff member deleted successfully' });
+    });
+});
+
+// Get Admin Audit Logs
+app.get('/api/admin/audit-logs', (req, res) => {
+    if (!req.session || !req.session.adminUser) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const perms = req.session.adminUser.permissions || [];
+    const isSuper = req.session.adminUser.id === 1 || req.session.adminUser.username === 'admin';
+    if (!isSuper && !checkPermission(perms, 'staff', 'view') && !checkPermission(perms, 'settings', 'view')) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { username, action, limit = 100, offset = 0 } = req.query;
+    let query = 'SELECT * FROM admin_audit_logs WHERE 1=1';
+    const params = [];
+
+    if (username) {
+        query += ' AND username LIKE ?';
+        params.push(`%${username}%`);
+    }
+    if (action) {
+        query += ' AND action = ?';
+        params.push(action);
+    }
+
+    query += ' ORDER BY id DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), parseInt(offset));
+
+    db.all(query, params, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        let countQuery = 'SELECT COUNT(*) AS count FROM admin_audit_logs WHERE 1=1';
+        const countParams = [];
+        if (username) {
+            countQuery += ' AND username LIKE ?';
+            countParams.push(`%${username}%`);
+        }
+        if (action) {
+            countQuery += ' AND action = ?';
+            countParams.push(action);
+        }
+
+        db.get(countQuery, countParams, (err2, countRow) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            res.json({
+                logs: rows,
+                total: countRow ? countRow.count : 0
+            });
+        });
     });
 });
 
@@ -2397,6 +2591,7 @@ app.post('/api/admin/coupons', (req, res) => {
                 if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Coupon code already exists' });
                 return res.status(500).json({ error: err.message });
             }
+            logAdminAction(req, 'coupon_create', `Created coupon: ${code.toUpperCase().trim()}`);
             res.json({ success: true, id: this.lastID });
         });
 });
@@ -2420,6 +2615,7 @@ app.put('/api/admin/coupons/:id', (req, res) => {
         ],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
+            logAdminAction(req, 'coupon_edit', `Updated coupon: ${code.toUpperCase().trim()} (ID: ${req.params.id})`);
             res.json({ success: true });
         });
 });
@@ -2427,6 +2623,7 @@ app.put('/api/admin/coupons/:id', (req, res) => {
 app.delete('/api/admin/coupons/:id', (req, res) => {
     db.run('DELETE FROM coupons WHERE id = ?', [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
+        logAdminAction(req, 'coupon_delete', `Deleted coupon ID: ${req.params.id}`);
         res.json({ success: true });
     });
 });
@@ -2436,6 +2633,7 @@ app.post('/api/admin/coupons/:id/status', (req, res) => {
     const { is_active } = req.body;
     db.run('UPDATE coupons SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
+        logAdminAction(req, 'coupon_toggle', `Toggled coupon ID ${req.params.id} status to ${is_active ? 'Active' : 'Inactive'}`);
         res.json({ success: true });
     });
 });

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -66,23 +66,30 @@
             </button>
         </div>
 
-        <!-- Step 3: Enter OTP -->
+        <!-- Step 3: Enter OTP / Password -->
         <div id="step-3" class="step space-y-5 hidden">
             <div>
                 <div class="flex justify-between items-center mb-1">
-                    <label class="block text-sm font-medium text-gray-700">Enter 6-Digit OTP</label>
+                    <label id="step3-label" class="block text-sm font-medium text-gray-700">Enter 6-Digit OTP</label>
                     <span id="resend-text" class="text-xs text-pink-500 cursor-pointer hidden" onclick="resendOtp()">Resend Code</span>
                 </div>
+                <!-- OTP Input (for customers) -->
                 <input type="text" id="otp" maxlength="6" inputmode="numeric" pattern="[0-9]*"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-center tracking-[0.5em] font-bold text-xl transition bg-gray-50"
-                    placeholder="------" required>
+                    placeholder="------">
+                
+                <!-- Password Input (for Admin/Staff - completely separate to guarantee normal keyboard on mobile) -->
+                <input type="password" id="admin-password"
+                    class="hidden w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium text-base transition bg-gray-50"
+                    placeholder="Enter password">
+                    
                 <p class="text-xs text-gray-400 mt-2 text-center" id="email-sent-to"></p>
             </div>
             
             <button id="verify-otp-btn" class="w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-pink-500/30 transform hover:-translate-y-0.5 transition duration-200">
                 Verify & Login
             </button>
-
+            
             <button id="back-btn-2" class="w-full border border-gray-200 text-gray-600 font-medium py-2.5 rounded-xl hover:bg-gray-50 transition text-sm">
                 ← Back
             </button>

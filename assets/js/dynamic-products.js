@@ -82,15 +82,25 @@ async function fetchMainProducts() {
                         ${p.original_price ? `<del class="np-del">Rs. ${parseFloat(p.original_price).toFixed(0)}</del>` : ''}
                     </div>
                     <button class="np-add-btn add-to-cart-btn${isOutOfStock ? ' disabled' : ''}"
-                        data-id="${p.id}"
-                        data-title="${p.title}"
-                        data-price="${p.price}"
-                        data-image="${img1}"
-                        ${isOutOfStock ? 'disabled style="opacity:0.4;cursor:not-allowed;background:#999"' : ''}>
+                         data-id="${p.id}"
+                         data-title="${p.title}"
+                         data-price="${p.price}"
+                         data-image="${img1}"
+                         ${isOutOfStock ? 'disabled style="opacity:0.4;cursor:not-allowed;background:#999"' : ''}>
                         <ion-icon name="${isOutOfStock ? 'close-circle-outline' : 'bag-add-outline'}"></ion-icon> ${isOutOfStock ? 'OUT OF STOCK' : 'ADD TO CART'}
                     </button>
                 </div>
             `;
+            
+            // Make the entire card clickable (excluding specific buttons/links)
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.np-add-btn') || e.target.closest('.np-cat') || e.target.closest('.np-actions')) {
+                    return;
+                }
+                window.location.href = `/product.html?id=${p.id}`;
+            });
+
             grid.appendChild(card);
         });
 

@@ -200,6 +200,16 @@ function renderShopProducts(products) {
                 </button>
             </div>
         `;
+        
+        // Make the entire card clickable (excluding specific buttons/links)
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.np-add-btn') || e.target.closest('.np-cat') || e.target.closest('.np-actions')) {
+                return;
+            }
+            window.location.href = `/product.html?id=${p.id}`;
+        });
+
         grid.appendChild(card);
     });
 }

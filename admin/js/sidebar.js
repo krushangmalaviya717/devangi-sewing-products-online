@@ -42,6 +42,7 @@
                         { href: 'settings.html?tab=whatsapp', label: 'WhatsApp Alerts', tab: 'whatsapp', permission: 'settings' },
                         { href: 'settings.html?tab=seo', label: 'SEO & Socials', tab: 'seo', permission: 'settings' },
                         { href: 'staff.html', label: 'Staff & Roles', permission: 'staff' },
+                        { href: 'audit-logs.html', label: 'Activity Logs', permission: 'staff' },
                     ]
                 }
             ]

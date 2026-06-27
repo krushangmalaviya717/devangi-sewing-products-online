@@ -1,4 +1,40 @@
 // ===== Global Utils =====
+function formatDateDDMMYYYY(dateInput, includeTime = false) {
+    if (!dateInput) return '—';
+    let date;
+    
+    // If the input is a SQLite UTC string (has space or T but no Z/offset), treat it as UTC
+    if (typeof dateInput === 'string') {
+        let normalized = dateInput.trim();
+        if (!normalized.includes('Z') && !normalized.includes('+') && !normalized.includes('-') && (normalized.includes(' ') || normalized.includes('T'))) {
+            normalized = normalized.replace(' ', 'T') + 'Z';
+        }
+        date = new Date(normalized);
+    } else {
+        date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    }
+    
+    if (isNaN(date.getTime())) return dateInput;
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    if (!includeTime) {
+        return `${day}-${month}-${year}`;
+    }
+
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const hoursStr = String(hours).padStart(2, '0');
+
+    return `${day}-${month}-${year} ${hoursStr}:${minutes}:${seconds} ${ampm}`;
+}
+
 function showToast(message, duration = 3000) {
     const toast = document.createElement('div');
     toast.className = 'fixed bottom-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-xl shadow-2xl z-[9999] transform transition-all duration-300 translate-y-20 opacity-0 flex items-center gap-3 border border-gray-700';
@@ -256,6 +292,55 @@ function renderEditExistingImages() {
     document.getElementById('edit_keep_images').value = JSON.stringify(editKeepImages);
 }
 
+// Global list of products for related products selection
+window.allProductsList = [];
+
+function populateRelatedProductsSelects(excludeProductId = null, selectedIds = []) {
+    try {
+        const addSelect = document.querySelector('#addProductForm select[name="related_products_select"]');
+        const editSelect = document.querySelector('#editProductForm select[name="related_products_select"]');
+        
+        const products = window.allProductsList || [];
+
+        const buildOptionsHtml = (selectEl, isEdit) => {
+            if (!selectEl) return;
+            selectEl.innerHTML = '';
+            
+            if (products.length === 0) {
+                const opt = document.createElement('option');
+                opt.disabled = true;
+                opt.innerText = 'No products found';
+                selectEl.appendChild(opt);
+                return;
+            }
+
+            products.forEach(p => {
+                try {
+                    if (!p) return;
+                    if (isEdit && parseInt(p.id) === parseInt(excludeProductId)) return;
+                    
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    const priceVal = p.price ? parseFloat(p.price) : 0;
+                    opt.innerText = `#${p.id} - ${p.title || 'Untitled'} (Rs. ${priceVal.toFixed(2)})`;
+                    
+                    if (isEdit && Array.isArray(selectedIds) && selectedIds.map(Number).includes(Number(p.id))) {
+                        opt.selected = true;
+                    }
+                    selectEl.appendChild(opt);
+                } catch (innerErr) {
+                    console.error('Error adding option for product:', p, innerErr);
+                }
+            });
+        };
+
+        if (addSelect) buildOptionsHtml(addSelect, false);
+        if (editSelect) buildOptionsHtml(editSelect, true);
+    } catch (err) {
+        console.error('Error populating related products select:', err);
+    }
+}
+
 // ===== Open Edit Modal =====
 async function openEditModal(id) {
     try {
@@ -283,6 +368,12 @@ async function openEditModal(id) {
             ? [...p.images]
             : (p.image ? [p.image] : []);
         renderEditExistingImages();
+
+        // Parse and select related products
+        const selectedRelatedIds = p.related_products 
+            ? p.related_products.split(',').map(id => parseInt(id.trim())).filter(Boolean)
+            : [];
+        populateRelatedProductsSelects(p.id, selectedRelatedIds);
 
         // Reset new image upload
         editSelectedFiles = [];
@@ -415,6 +506,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remove the product_id field — it's in the URL
             formData.delete('product_id');
 
+            // Append related products
+            const selectedRelated = Array.from(editProductForm.elements['related_products_select'].selectedOptions).map(opt => opt.value);
+            formData.append('related_products', selectedRelated.join(','));
+
             try {
                 const res = await fetch(`/api/products/${id}`, {
                     method: 'PUT',
@@ -442,6 +537,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
 
             const formData = new FormData(addProductForm);
+
+            // Append related products
+            const selectedRelated = Array.from(addProductForm.elements['related_products_select'].selectedOptions).map(opt => opt.value);
+            formData.append('related_products', selectedRelated.join(','));
 
             try {
                 const res = await fetch('/api/products', {
@@ -638,6 +737,9 @@ async function fetchProducts() {
         const res = await fetch('/api/products');
         const products = await res.json();
 
+        window.allProductsList = products;
+        populateRelatedProductsSelects(null, []);
+
         tbody.innerHTML = '';
 
         if (products.length === 0) {
@@ -797,7 +899,7 @@ async function fetchUsers() {
                 <td class="p-4 font-medium text-gray-800">#${u.id}</td>
                 <td class="p-4"><a href="user_details.html?email=${encodeURIComponent(u.email)}" class="hover:text-pink-600 hover:underline font-bold text-gray-800">${u.fullname}</a></td>
                 <td class="p-4 text-gray-600">${u.email}</td>
-                <td class="p-4 text-gray-500 text-xs">${new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                <td class="p-4 text-gray-500 text-xs">${formatDateDDMMYYYY(u.created_at)}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -1382,7 +1484,7 @@ async function loadOrders(page = 1) {
                 <td class="p-4 text-center">
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getOrderStatusColor(o.status)}">${o.status}</span>
                 </td>
-                <td class="p-4 text-xs text-gray-400">${new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                <td class="p-4 text-xs text-gray-400">${formatDateDDMMYYYY(o.created_at)}</td>
                 <td class="p-4 text-right flex items-center justify-end gap-2" onclick="event.stopPropagation()">
                     <button onclick="openOrderDetail(${o.id})" class="text-pink-600 hover:text-pink-700 font-semibold text-xs transition-colors">View Details</button>
                     <span class="text-gray-350">|</span>
@@ -1581,7 +1683,7 @@ async function openOrderDetail(id) {
                         </div>
                         <div class="text-right">
                             <p class="text-[10px] text-gray-400 font-medium uppercase">${new Date(t.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                            <p class="text-[9px] text-gray-300 font-medium">${new Date(t.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                            <p class="text-[9px] text-gray-300 font-medium">${formatDateDDMMYYYY(t.updated_at)}</p>
                         </div>
                     </div>
                 </div>`).reverse().join(''); 
@@ -1729,7 +1831,7 @@ function prepareInvoicePrint() {
     document.getElementById('print-customer-address').innerText = order.address;
     document.getElementById('print-customer-email').innerText = order.email || '-';
     document.getElementById('print-customer-phone').innerText = order.phone;
-    document.getElementById('print-order-date').innerText = new Date(order.created_at).toLocaleDateString();
+    document.getElementById('print-order-date').innerText = formatDateDDMMYYYY(order.created_at);
     document.getElementById('print-payment-method').innerText = order.payment_method;
     document.getElementById('print-payment-status').innerText = order.payment_status;
     
@@ -2946,7 +3048,7 @@ function generateSingleInvoiceHTML(order, items) {
                 </div>
                 <div style="text-align: right;">
                     <h4 style="text-transform: uppercase; font-size: 10px; color: #999; margin-bottom: 10px;">Invoice Details</h4>
-                    <p style="margin: 5px 0; font-size: 13px;">Date: <span>${new Date(order.created_at).toLocaleDateString()}</span></p>
+                    <p style="margin: 5px 0; font-size: 13px;">Date: <span>${formatDateDDMMYYYY(order.created_at)}</span></p>
                     <p style="margin: 5px 0; font-size: 13px;">Payment: <span>${order.payment_method}</span></p>
                     <p style="margin: 5px 0; font-size: 13px;">Status: <span>${order.payment_status}</span></p>
                 </div>

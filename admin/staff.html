@@ -89,13 +89,26 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Configure Authorities / Permissions</label>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider">Configure Authorities / Permissions</label>
+                        <div class="flex gap-2 text-xs">
+                            <button type="button" onclick="selectAllPermissions(true)" class="text-pink-500 hover:text-pink-600 font-medium">Select All</button>
+                            <span class="text-gray-300">|</span>
+                            <button type="button" onclick="selectAllPermissions(false)" class="text-pink-500 hover:text-pink-600 font-medium">Deselect All</button>
+                        </div>
+                    </div>
                     <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 border rounded-xl p-4 bg-gray-50/50">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             
                             <!-- Dashboard -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">📊 Dashboard</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">📊 Dashboard</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="dashboard_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -106,7 +119,13 @@
 
                             <!-- Orders -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">🛒 Orders</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">🛒 Orders</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="orders_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -129,7 +148,13 @@
 
                             <!-- Products -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">📦 Products</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">📦 Products</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="products_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -152,7 +177,13 @@
 
                             <!-- Categories -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">🏷️ Categories</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">🏷️ Categories</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="categories_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -175,7 +206,13 @@
 
                             <!-- Coupons -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">🎟️ Coupons</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">🎟️ Coupons</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="coupons_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -198,7 +235,13 @@
 
                             <!-- Customers -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">👥 Customers</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">👥 Customers</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="users_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -209,7 +252,13 @@
 
                             <!-- Banners -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">🎨 Banners</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">🎨 Banners</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="banners_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -232,7 +281,13 @@
 
                             <!-- Reviews -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">💬 Reviews</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">💬 Reviews</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="reviews_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -247,7 +302,13 @@
 
                             <!-- Navigation Links -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">🔗 Navigation</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">🔗 Navigation</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="navigation_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -270,7 +331,13 @@
 
                             <!-- Contact Queries -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">📧 Contact Queries</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">📧 Contact Queries</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="contact_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -285,7 +352,13 @@
 
                             <!-- Reports -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">📈 Reports</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">📈 Reports</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="space-y-1.5">
                                     <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                                         <input type="checkbox" value="reports_view" class="perm-checkbox rounded text-pink-500 focus:ring-pink-500">
@@ -296,7 +369,13 @@
 
                             <!-- Store Settings & Staff -->
                             <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm col-span-1 sm:col-span-2">
-                                <span class="text-xs font-bold text-gray-800 border-b pb-1 mb-2 block">⚙️ Store Settings & Staff Roles</span>
+                                <div class="flex justify-between items-center border-b pb-1 mb-2">
+                                    <span class="text-xs font-bold text-gray-800">⚙️ Store Settings & Staff Roles</span>
+                                    <label class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer select-none">
+                                        <input type="checkbox" onchange="toggleGroup(this)" class="group-toggler rounded text-pink-500 focus:ring-pink-500 w-3.5 h-3.5">
+                                        <span>Select All</span>
+                                    </label>
+                                </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                                     <div class="space-y-1.5">
                                         <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
@@ -392,7 +471,7 @@
                         <td class="p-4 font-bold text-gray-900">${s.username}</td>
                         <td class="p-4 text-gray-600">${s.display_name}</td>
                         <td class="p-4 max-w-xs">${permBadges}</td>
-                        <td class="p-4 text-xs text-gray-400">${s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}</td>
+                        <td class="p-4 text-xs text-gray-400">${s.created_at ? formatDateDDMMYYYY(s.created_at) : '—'}</td>
                         <td class="p-4 text-right space-x-1">
                             <button onclick='editStaff(${JSON.stringify(s)})' class="p-1.5 text-pink-500 hover:bg-pink-50 rounded transition-colors text-xs font-medium">Edit</button>
                             ${isMainAdmin ? '' : `<button onclick="deleteStaff(${s.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors text-xs font-medium">Delete</button>`}
@@ -420,6 +499,10 @@
                 cb.checked = false;
                 cb.disabled = false;
             });
+            document.querySelectorAll('.group-toggler').forEach(gt => {
+                gt.checked = false;
+                gt.disabled = false;
+            });
 
             document.getElementById('staffModal').classList.remove('hidden');
         }
@@ -445,9 +528,46 @@
                 // If main admin, lock permissions to full access
                 cb.disabled = (s.id === 1);
             });
+            document.querySelectorAll('.group-toggler').forEach(gt => {
+                const card = gt.closest('.bg-white');
+                const allChecked = Array.from(card.querySelectorAll('.perm-checkbox')).every(cb => cb.checked);
+                gt.checked = allChecked;
+                gt.disabled = (s.id === 1);
+            });
 
             document.getElementById('staffModal').classList.remove('hidden');
         }
+
+        function selectAllPermissions(checked) {
+            document.querySelectorAll('.perm-checkbox:not(:disabled)').forEach(cb => {
+                cb.checked = checked;
+            });
+            document.querySelectorAll('.group-toggler:not(:disabled)').forEach(gt => {
+                gt.checked = checked;
+            });
+        }
+
+        function toggleGroup(toggler) {
+            const card = toggler.closest('.bg-white');
+            const checkboxes = card.querySelectorAll('.perm-checkbox:not(:disabled)');
+            checkboxes.forEach(cb => {
+                cb.checked = toggler.checked;
+            });
+        }
+
+        // Listen for changes in individual checkboxes to update the group togglers
+        document.getElementById('staffModal').addEventListener('change', (e) => {
+            if (e.target.classList.contains('perm-checkbox')) {
+                const card = e.target.closest('.bg-white');
+                if (card) {
+                    const toggler = card.querySelector('.group-toggler');
+                    if (toggler) {
+                        const allChecked = Array.from(card.querySelectorAll('.perm-checkbox')).every(cb => cb.checked);
+                        toggler.checked = allChecked;
+                    }
+                }
+            }
+        });
 
         function closeStaffModal() {
             document.getElementById('staffModal').classList.add('hidden');

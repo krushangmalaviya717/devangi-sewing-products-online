@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Logs - Devangi Sewing Store</title>
+    <script src="/assets/js/tailwindcss.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased overflow-hidden flex h-screen">
+    <!-- Mobile Overlay -->
+    <div id="sidebar-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+    
+    <!-- Sidebar (rendered by sidebar.js) -->
+    <aside id="admin-sidebar"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
+        <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-10 sticky top-0">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h1 class="text-xl font-bold text-gray-800 hidden sm:block tracking-tight">Activity Logs</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="settings.html" class="text-sm text-pink-500 hover:text-pink-600 font-medium flex items-center gap-1 transition-colors">
+                    <span>←</span> Settings
+                </a>
+                <button onclick="adminLogout()" class="text-sm text-gray-500 hover:text-red-600 font-medium transition-colors">Logout</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div class="mb-6">
+                <p class="text-sm text-gray-500">Track and monitor all staff operations, logins, and settings changes.</p>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Search Staff Username</label>
+                    <input type="text" id="filter-username" oninput="debounceFilter()" placeholder="e.g. admin" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                </div>
+                <div class="w-full sm:w-64">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Filter by Action</label>
+                    <select id="filter-action" onchange="loadLogs()" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white">
+                        <option value="">All Actions</option>
+                        <option value="login">Login</option>
+                        <option value="logout">Logout</option>
+                        <option value="change_password">Change Password</option>
+                        <option value="product_create">Product Create</option>
+                        <option value="product_edit">Product Edit</option>
+                        <option value="product_delete">Product Delete</option>
+                        <option value="category_create">Category Create</option>
+                        <option value="category_edit">Category Edit</option>
+                        <option value="category_delete">Category Delete</option>
+                        <option value="order_status_update">Order Status Update</option>
+                        <option value="order_payment_update">Order Payment Update</option>
+                        <option value="order_edit">Order Details Edit</option>
+                        <option value="order_delete">Order Delete</option>
+                        <option value="coupon_create">Coupon Create</option>
+                        <option value="coupon_edit">Coupon Edit</option>
+                        <option value="coupon_delete">Coupon Delete</option>
+                        <option value="coupon_toggle">Coupon Status Toggle</option>
+                        <option value="staff_create">Staff Create</option>
+                        <option value="staff_edit">Staff Edit</option>
+                        <option value="staff_delete">Staff Delete</option>
+                        <option value="settings_update">Settings Update</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
+                                <th class="p-4 font-medium w-36">Timestamp</th>
+                                <th class="p-4 font-medium w-32">Username</th>
+                                <th class="p-4 font-medium w-44">Action</th>
+                                <th class="p-4 font-medium">Details</th>
+                                <th class="p-4 font-medium w-36">IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body" class="text-sm">
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-gray-400">Loading activity logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="p-4 border-t border-gray-100 flex items-center justify-between bg-white text-sm text-gray-500">
+                    <div id="pagination-info">Showing 0 to 0 of 0 logs</div>
+                    <div class="flex gap-2">
+                        <button id="btn-prev" onclick="prevPage()" class="px-3 py-1.5 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium">Previous</button>
+                        <button id="btn-next" onclick="nextPage()" class="px-3 py-1.5 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium">Next</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/sidebar.js"></script>
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        function adminLogout() { 
+            fetch('/api/admin/logout', {method:'POST'}).then(() => window.location.href = '/admin/login.html'); 
+        }
+
+        let currentPage = 1;
+        const limit = 25;
+        let debounceTimer;
+
+        document.addEventListener('DOMContentLoaded', loadLogs);
+
+        function debounceFilter() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                currentPage = 1;
+                loadLogs();
+            }, 3000);
+        }
+
+        async function loadLogs() {
+            const tbody = document.getElementById('logs-table-body');
+            const username = document.getElementById('filter-username').value.trim();
+            const action = document.getElementById('filter-action').value;
+            const offset = (currentPage - 1) * limit;
+
+            try {
+                let url = `/api/admin/audit-logs?limit=${limit}&offset=${offset}`;
+                if (username) url += `&username=${encodeURIComponent(username)}`;
+                if (action) url += `&action=${encodeURIComponent(action)}`;
+
+                const res = await fetch(url);
+                if (res.status === 401) {
+                    window.location.href = '/admin/login.html';
+                    return;
+                }
+                if (res.status === 403) {
+                    alert('You do not have permission to access activity logs.');
+                    window.location.href = '/admin/index.html';
+                    return;
+                }
+
+                const data = await res.json();
+                const logs = data.logs || [];
+                const total = data.total || 0;
+
+                tbody.innerHTML = '';
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No activity logs found matching the criteria.</td></tr>';
+                    document.getElementById('pagination-info').textContent = 'Showing 0 to 0 of 0 logs';
+                    document.getElementById('btn-prev').disabled = true;
+                    document.getElementById('btn-next').disabled = true;
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-gray-50 hover:bg-gray-50/50 transition-colors';
+                    
+                    const timeStr = formatDateDDMMYYYY(log.created_at, true);
+                    const actionBadge = getActionBadge(log.action);
+                    
+                    tr.innerHTML = `
+                        <td class="p-4 text-gray-500 text-xs">${timeStr}</td>
+                        <td class="p-4 font-semibold text-gray-800">${log.username}</td>
+                        <td class="p-4">${actionBadge}</td>
+                        <td class="p-4 text-gray-600 font-medium">${escapeHtml(log.details || '—')}</td>
+                        <td class="p-4 text-gray-500 font-mono text-xs">${log.ip_address || '—'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Update pagination
+                const start = offset + 1;
+                const end = Math.min(offset + logs.length, total);
+                document.getElementById('pagination-info').textContent = `Showing ${start} to ${end} of ${total} logs`;
+                
+                document.getElementById('btn-prev').disabled = currentPage === 1;
+                document.getElementById('btn-next').disabled = end >= total;
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Failed to load activity logs.</td></tr>';
+            }
+        }
+
+        function getActionBadge(action) {
+            let colors = 'bg-gray-100 text-gray-700';
+            let label = action;
+
+            if (action.includes('create')) {
+                colors = 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+            } else if (action.includes('edit') || action.includes('update') || action.includes('toggle')) {
+                colors = 'bg-amber-50 text-amber-700 border border-amber-100';
+            } else if (action.includes('delete')) {
+                colors = 'bg-rose-50 text-rose-700 border border-rose-100';
+            } else if (action === 'login') {
+                colors = 'bg-blue-50 text-blue-700 border border-blue-100';
+            } else if (action === 'logout') {
+                colors = 'bg-purple-50 text-purple-700 border border-purple-100';
+            } else if (action === 'change_password') {
+                colors = 'bg-indigo-50 text-indigo-700 border border-indigo-100';
+            }
+
+            // Clean label
+            label = label.replace('_', ' ').toUpperCase();
+
+            return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold tracking-wider ${colors}">${label}</span>`;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadLogs();
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadLogs();
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

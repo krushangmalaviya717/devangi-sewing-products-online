@@ -1,12 +1,19 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./database.sqlite');
+const path = require('path');
 
-db.all('SELECT * FROM orders', [], (err, rows) => {
+const dbPath = path.join(__dirname, '../database.sqlite');
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error(err);
-        return;
+        process.exit(1);
     }
-    console.log('Total orders:', rows.length);
-    console.log(JSON.stringify(rows, null, 2));
+});
+
+db.all('SELECT id, fullname, phone, total_amount, status FROM orders ORDER BY id DESC LIMIT 5', [], (err, rows) => {
+    if (err) {
+        console.error(err);
+    } else {
+        console.log(JSON.stringify(rows, null, 2));
+    }
     db.close();
 });

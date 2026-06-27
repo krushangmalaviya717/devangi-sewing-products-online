@@ -26,6 +26,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderBestSellers(products);
         renderNewArrivals(products);
 
+        // Fetch and render latest reviews for testimonials
+        try {
+            const reviewsRes = await fetch('/api/public/reviews/latest');
+            const reviews = await reviewsRes.json();
+            renderTestimonials(reviews);
+        } catch (e) {
+            console.error('Error loading testimonials:', e);
+        }
+
     } catch (err) {
         console.error('home.js error:', err);
     }
@@ -215,6 +224,37 @@ function fillShowcaseContainer(container, items) {
                     ${p.original_price ? `<del>Rs. ${parseFloat(p.original_price).toFixed(0)}</del>` : ''}
                 </div>
             </div>`;
+        container.appendChild(div);
+    });
+}
+
+function renderTestimonials(reviews) {
+    const container = document.getElementById('testimonials-container');
+    if (!container) return;
+
+    if (!reviews || reviews.length === 0) {
+        // Keep the default ones if no reviews in DB yet
+        return;
+    }
+
+    container.innerHTML = '';
+    reviews.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'testimonial-card';
+        div.style.cssText = 'background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); flex: 1; min-width: 300px; max-width: 360px; display: flex; flex-direction: column; justify-content: space-between;';
+        
+        const stars = '⭐'.repeat(r.rating);
+        
+        div.innerHTML = `
+            <div>
+                <div style="color: #ffb800; font-size: 18px; margin-bottom: 10px;">${stars}</div>
+                <p style="font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 15px;">"${r.comment}"</p>
+            </div>
+            <div>
+                <h4 style="font-size: 14px; font-weight: 600; color: #333;">- ${r.user_name}</h4>
+                <p style="font-size: 11px; color: #aaa; margin-top: 5px;">Reviewed on: <a href="/product.html?id=${r.product_id}" style="color: var(--salmon-pink); font-weight: 500; text-decoration: underline;">${r.product_title || 'Product'}</a></p>
+            </div>
+        `;
         container.appendChild(div);
     });
 }

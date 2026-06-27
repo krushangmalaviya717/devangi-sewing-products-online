@@ -104,6 +104,39 @@ function initLoginPage() {
 
     let currentEmail = '';
 
+    // Add Enter key listeners for easy submission
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkEmailBtn.click();
+            }
+        });
+    }
+
+    const otpInput = document.getElementById('otp');
+    if (otpInput) {
+        otpInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const verifyBtn = document.getElementById('verify-otp-btn');
+                if (verifyBtn) verifyBtn.click();
+            }
+        });
+    }
+
+    const adminPasswordInput = document.getElementById('admin-password');
+    if (adminPasswordInput) {
+        adminPasswordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const verifyBtn = document.getElementById('verify-otp-btn');
+                if (verifyBtn) verifyBtn.click();
+            }
+        });
+    }
+
     // Step 1 → Check Email
     checkEmailBtn.addEventListener('click', async () => {
         const emailInput = document.getElementById('email');
@@ -111,8 +144,6 @@ function initLoginPage() {
             showToast('Please enter a valid email address.');
             return;
         }
-
-        currentEmail = emailInput.value.trim();
 
         currentEmail = emailInput.value.trim();
 
@@ -133,17 +164,17 @@ function initLoginPage() {
                 document.getElementById('page-title').innerText = 'Admin Portal';
                 document.getElementById('page-subtitle').innerText = 'Enter your admin password';
                 
-                const otpLabel = document.querySelector('#step-3 label');
+                const otpLabel = document.getElementById('step3-label');
                 if (otpLabel) otpLabel.innerText = 'Enter Admin Password';
                 
                 const otpInput = document.getElementById('otp');
-                if (otpInput) {
-                    otpInput.type = 'password';
-                    otpInput.removeAttribute('maxlength');
-                    otpInput.placeholder = '••••••••';
-                    otpInput.style.letterSpacing = 'normal';
-                    otpInput.style.textAlign = 'left';
-                    otpInput.className = 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium text-base transition bg-gray-50';
+                if (otpInput) otpInput.classList.add('hidden');
+                
+                const adminPasswordInput = document.getElementById('admin-password');
+                if (adminPasswordInput) {
+                    adminPasswordInput.classList.remove('hidden');
+                    adminPasswordInput.value = '';
+                    setTimeout(() => adminPasswordInput.focus(), 100);
                 }
                 
                 const verifyBtn = document.getElementById('verify-otp-btn');
@@ -151,9 +182,42 @@ function initLoginPage() {
                 
                 showStep('step-3');
             } else if (data.exists) {
-                // Registered user → go to step 2 (confirm + send OTP)
-                document.getElementById('display-email').innerText = currentEmail;
-                showStep('step-2');
+                // Registered user → Send OTP directly!
+                showToast('Account found! Sending OTP...');
+                
+                try {
+                    const otpRes = await fetch('/api/send-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: currentEmail })
+                    });
+                    const otpData = await otpRes.json();
+                    if (otpRes.ok) {
+                        showToast('OTP sent successfully!');
+                        document.getElementById('email-sent-to').innerText = `OTP sent to ${currentEmail}`;
+                        
+                        // Setup resend text timer
+                        const r = document.getElementById('resend-text');
+                        if (r) r.classList.add('hidden');
+                        setTimeout(() => {
+                            const r = document.getElementById('resend-text');
+                            if (r) r.classList.remove('hidden');
+                        }, 30000);
+                        
+                        showStep('step-3');
+                        
+                        // Focus on OTP input
+                        const otpInput = document.getElementById('otp');
+                        if (otpInput) {
+                            otpInput.value = '';
+                            setTimeout(() => otpInput.focus(), 150);
+                        }
+                    } else {
+                        showToast(otpData.error || 'Failed to send OTP.');
+                    }
+                } catch (err) {
+                    showToast('Failed to send OTP. Please try again.');
+                }
             } else {
                 // Not registered → redirect to register page with email pre-filled
                 showToast('No account found. Redirecting to register...');
@@ -161,8 +225,6 @@ function initLoginPage() {
                     window.location.href = `/register.html?email=${encodeURIComponent(currentEmail)}`;
                 }, 1400);
             }
-        } catch {
-            showToast('Network error. Please try again.');
         } finally {
             checkEmailBtn.disabled = false;
             checkEmailBtn.innerText = 'Continue';
@@ -206,15 +268,15 @@ function initLoginPage() {
         });
     }
 
-    // Step 3 → Verify OTP
+    // Step 3 → Verify OTP / Password
     const verifyOtpBtn = document.getElementById('verify-otp-btn');
     if (verifyOtpBtn) {
         verifyOtpBtn.addEventListener('click', async () => {
             const email = document.getElementById('email').value.trim();
-            const otp = document.getElementById('otp').value.trim();
 
             if (window.isStaffLogin) {
-                if (!otp) {
+                const passwordVal = document.getElementById('admin-password').value.trim();
+                if (!passwordVal) {
                     showToast('Please enter your admin password.');
                     return;
                 }
@@ -225,7 +287,7 @@ function initLoginPage() {
                     const res = await fetch('/api/admin/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: window.staffUsername, password: otp })
+                        body: JSON.stringify({ username: window.staffUsername, password: passwordVal })
                     });
                     const data = await res.json();
                     if (res.ok && data.success) {
@@ -244,6 +306,7 @@ function initLoginPage() {
                 return;
             }
 
+            const otp = document.getElementById('otp').value.trim();
             if (!otp || otp.length !== 6) {
                 showToast('Please enter the 6-digit OTP.');
                 return;
@@ -283,23 +346,24 @@ function initLoginPage() {
     const backBtn2 = document.getElementById('back-btn-2');
     if (backBtn2) {
         backBtn2.addEventListener('click', () => {
-            const email = document.getElementById('email')?.value.trim() || '';
             if (window.isStaffLogin) {
                 // Restore original elements
                 document.getElementById('page-title').innerText = 'Welcome Back';
                 document.getElementById('page-subtitle').innerText = 'Enter your email to continue';
                 
-                const otpLabel = document.querySelector('#step-3 label');
+                const otpLabel = document.getElementById('step3-label');
                 if (otpLabel) otpLabel.innerText = 'Enter 6-Digit OTP';
                 
                 const otpInput = document.getElementById('otp');
                 if (otpInput) {
-                    otpInput.type = 'text';
-                    otpInput.setAttribute('maxlength', '6');
-                    otpInput.placeholder = '------';
-                    otpInput.style.letterSpacing = '0.5em';
-                    otpInput.style.textAlign = 'center';
-                    otpInput.className = 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-center tracking-[0.5em] font-bold text-xl transition bg-gray-50';
+                    otpInput.classList.remove('hidden');
+                    otpInput.value = '';
+                }
+
+                const adminPasswordInput = document.getElementById('admin-password');
+                if (adminPasswordInput) {
+                    adminPasswordInput.classList.add('hidden');
+                    adminPasswordInput.value = '';
                 }
                 
                 const verifyBtn = document.getElementById('verify-otp-btn');

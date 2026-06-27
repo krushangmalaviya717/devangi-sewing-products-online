@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('id');
 
@@ -304,7 +304,7 @@
         }
 
         // Call Related Products
-        loadRelatedProducts(product.category, product.id);
+        loadRelatedProducts(product.category, product.id, product.related_products);
 
     } catch (error) {
         console.error('Error fetching product details:', error);
@@ -312,11 +312,21 @@
     }
 
     // --- RELATED PRODUCTS ---
-    async function loadRelatedProducts(category, currentId) {
+    async function loadRelatedProducts(category, currentId, explicitRelatedIdsString) {
         try {
             const res = await fetch('/api/products');
             const products = await res.json();
-            const related = products.filter(p => p.category === category && p.id !== currentId).slice(0, 4);
+            
+            let related = [];
+            if (explicitRelatedIdsString && explicitRelatedIdsString.trim() !== '') {
+                const explicitIds = explicitRelatedIdsString.split(',').map(id => parseInt(id.trim())).filter(Boolean);
+                related = products.filter(p => explicitIds.includes(p.id) && p.id !== currentId);
+            }
+            
+            // Fallback to same category if no explicit related products found
+            if (related.length === 0) {
+                related = products.filter(p => p.category === category && p.id !== currentId).slice(0, 4);
+            }
             
             const grid = document.getElementById('related-product-grid');
             if (related.length > 0) {
@@ -375,7 +385,9 @@
             const res = await fetch(`/api/reviews/${productId}`);
             const reviews = await res.json();
             
+            const reviewsSection = document.querySelector('.reviews-section');
             if (reviews.length > 0) {
+                if (reviewsSection) reviewsSection.style.display = 'block';
                 reviewsContainer.innerHTML = reviews.map(r => `
                     <div class="review-item">
                         <div class="review-top">
@@ -389,7 +401,7 @@
                     </div>
                 `).join('');
             } else {
-                reviewsContainer.innerHTML = '<p style="text-align:center; color:#888;">No reviews yet.</p>';
+                if (reviewsSection) reviewsSection.style.display = 'none';
             }
         } catch (err) {
             console.error('Reviews load error:', err);
