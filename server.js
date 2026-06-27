@@ -136,11 +136,12 @@ function verifyPassword(password, storedHash) {
 }
 
 // Database setup
-const db = new sqlite3.Database('./database.sqlite', (err) => {
+const dbPath = process.env.DATABASE_PATH || './database.sqlite';
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error connecting to database:', err.message);
     } else {
-        console.log('Connected to SQLite database.');
+        console.log(`Connected to SQLite database at: ${dbPath}`);
 
         // Initialize products table with all fields
         db.run(`CREATE TABLE IF NOT EXISTS products (
