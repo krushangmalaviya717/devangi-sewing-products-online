@@ -41,6 +41,7 @@ dns.lookup("smtp.gmail.com", (err, address) => {
 });
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (required for Hostinger to set secure session cookies)
 const port = 3000;
 
 // Security middleware to prevent public access to sensitive backend/source files
