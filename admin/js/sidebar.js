@@ -1,4 +1,4 @@
-﻿// ===== Advanced Admin Sidebar Component =====
+// ===== Advanced Admin Sidebar Component =====
 // Loaded on every admin page. Renders the sidebar dynamically.
 
 (function () {
@@ -228,6 +228,8 @@
             if (!res.ok) return;
             const data = await res.json();
             if (data.loggedIn && data.admin) {
+                if (data.isSuper) return; // Super admins see everything
+                
                 const permissions = data.admin.permissions || [];
 
                 // Filter items based on permissions

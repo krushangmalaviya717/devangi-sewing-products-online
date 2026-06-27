@@ -2257,7 +2257,8 @@ app.get('/api/admin/logout', (req, res) => {
 
 app.get('/api/admin/session', (req, res) => {
     if (req.session && req.session.adminUser) {
-        return res.json({ loggedIn: true, admin: req.session.adminUser });
+        const isSuper = req.session.adminUser.id === 1 || req.session.adminUser.username === 'admin';
+        return res.json({ loggedIn: true, admin: req.session.adminUser, isSuper });
     }
     res.json({ loggedIn: false });
 });

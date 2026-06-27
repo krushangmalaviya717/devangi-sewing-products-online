@@ -3610,6 +3610,7 @@ async function checkAdminPermissions() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.loggedIn && data.admin) {
+            if (data.isSuper) return; // Super admins see everything
             const permissions = data.admin.permissions || [];
             const sidebarLinks = document.querySelectorAll("#admin-sidebar a");
             sidebarLinks.forEach(link => {
