@@ -481,7 +481,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 'seo_description': 'Devangi Products Online Store - High quality sewing products and tools.',
                 'seo_keywords': 'sewing, sewing products, devangi, sewing classes, sewing tools',
                 'store_logo': '/assets/images/logo/logo.svg',
-                'store_favicon': '/favicon.ico'
+                'store_favicon': '/favicon.ico',
+                'minimum_order_amount': '0',
+                'store_url': 'http://localhost:3000',
+                'whatsapp_gateway_type': 'ultramsg',
+                'whatsapp_ultramsg_instance': '',
+                'whatsapp_ultramsg_token': '',
+                'whatsapp_template_delivered': 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view your order details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸'
             };
             Object.entries(defaults).forEach(([key, val]) => {
                 db.run('INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES (?, ?)', [key, val]);
@@ -489,6 +495,12 @@ const db = new sqlite3.Database(dbPath, (err) => {
             // Force update old default shipping values to new defaults (250 / 50)
             db.run("UPDATE store_settings SET setting_value = '250' WHERE setting_key = 'shipping_free_above' AND setting_value = '999'");
             db.run("UPDATE store_settings SET setting_value = '50' WHERE setting_key = 'shipping_default_charge' AND setting_value = '60'");
+            db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('minimum_order_amount', '0')");
+            db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('store_url', 'http://localhost:3000')");
+            db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('whatsapp_gateway_type', 'ultramsg')");
+            db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('whatsapp_ultramsg_instance', '')");
+            db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('whatsapp_ultramsg_token', '')");
+            db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('whatsapp_template_delivered', 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view your order details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸')");
         });
 
         // Contact queries table
@@ -578,6 +590,97 @@ function logAdminAction(req, action, details) {
             if (err) console.error('Error writing audit log:', err);
         }
     );
+}
+
+// Helper to send automatic WhatsApp alert using Ultramsg
+async function sendWhatsAppAlert(orderId, alertType) {
+    db.get('SELECT * FROM orders WHERE id = ?', [orderId], (err, order) => {
+        if (err || !order) {
+            console.error('WhatsApp Alert Error: Order not found', orderId);
+            return;
+        }
+        
+        db.all('SELECT setting_key, setting_value FROM store_settings', [], async (err, rows) => {
+            if (err) {
+                console.error('WhatsApp Alert Error: Settings not found');
+                return;
+            }
+            
+            const settings = {};
+            (rows || []).forEach(r => { settings[r.setting_key] = r.setting_value; });
+            
+            // Check if WhatsApp notification is enabled
+            if (settings.whatsapp_notify !== '1') {
+                console.log('WhatsApp Alert: Notifications are disabled in settings.');
+                return;
+            }
+            
+            const instanceId = settings.whatsapp_ultramsg_instance;
+            const token = settings.whatsapp_ultramsg_token;
+            
+            if (!instanceId || !token) {
+                console.error('WhatsApp Alert Error: Ultramsg Instance ID or Token is missing in settings.');
+                return;
+            }
+            
+            // Determine template
+            let template = '';
+            if (alertType === 'placed') {
+                template = settings.whatsapp_template_placed || '';
+            } else if (alertType === 'shipped') {
+                template = settings.whatsapp_template_shipped || '';
+            }
+            
+            if (!template) {
+                console.error('WhatsApp Alert Error: Template is empty for', alertType);
+                return;
+            }
+            
+            // Format phone number (prepend 91 if it's 10 digits)
+            let phone = (order.phone || '').trim().replace(/\D/g, '');
+            if (phone.length === 10) {
+                phone = '91' + phone;
+            }
+            
+            // Replace placeholders
+            const storeUrl = settings.store_url || 'http://localhost:3000';
+            const trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${orderId}`;
+            const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
+            
+            let message = template
+                .replace(/{name}/g, customerName)
+                .replace(/{order_id}/g, orderId)
+                .replace(/{total_amount}/g, order.total_amount)
+                .replace(/{payment_method}/g, order.payment_method || 'COD')
+                .replace(/{tracking_url}/g, trackingUrl)
+                .replace(/{courier}/g, order.courier_name || '')
+                .replace(/{tracking_number}/g, order.tracking_number || '')
+                .replace(/{store_name}/g, settings.store_name || 'Devangi Products');
+                
+            console.log(`Sending WhatsApp alert (${alertType}) to ${phone}...`);
+            
+            // Send request to Ultramsg
+            try {
+                const url = `https://api.ultramsg.com/${instanceId}/messages/chat`;
+                const payload = JSON.stringify({
+                    token: token,
+                    to: phone,
+                    body: message
+                });
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: payload
+                });
+                
+                const result = await response.json();
+                console.log('WhatsApp Alert Response:', result);
+            } catch (postErr) {
+                console.error('WhatsApp Alert Post Error:', postErr);
+            }
+        });
+    });
 }
 
 // Helper function to check granular permissions with backward compatibility
@@ -1754,6 +1857,13 @@ app.post('/api/admin/orders/:id/status', (req, res) => {
             db.run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)', 
                 [orderId, status, note || `Status updated to ${status}`], (err) => {
                 logAdminAction(req, 'order_status_update', `Updated order #${orderId} status to: ${status}`);
+                
+                if (status === 'Shipped') {
+                    sendWhatsAppAlert(orderId, 'shipped');
+                } else if (status === 'Delivered') {
+                    sendWhatsAppAlert(orderId, 'delivered');
+                }
+                
                 res.json({ success: true, message: `Status updated to ${status}` });
             });
         });
@@ -1831,6 +1941,13 @@ app.put('/api/admin/orders/:id', requireAdmin, (req, res) => {
             'Order details were updated by admin.'
         ], (err) => {
             logAdminAction(req, 'order_edit', `Updated order details for #${orderId}`);
+            
+            if (status === 'Shipped') {
+                sendWhatsAppAlert(orderId, 'shipped');
+            } else if (status === 'Delivered') {
+                sendWhatsAppAlert(orderId, 'delivered');
+            }
+            
             res.json({ success: true, message: 'Order updated successfully' });
         });
     });
@@ -2093,6 +2210,9 @@ app.post('/api/orders', (req, res) => {
             
             // Initial tracking
             db.run('INSERT INTO order_tracking (order_id, status, note) VALUES (?, ?, ?)', [orderId, 'Order Placed', 'Order received successfully.']);
+            
+            // Send automatic WhatsApp notification
+            sendWhatsAppAlert(orderId, 'placed');
             
             res.json({ orderId, message: 'Order placed successfully' });
         });

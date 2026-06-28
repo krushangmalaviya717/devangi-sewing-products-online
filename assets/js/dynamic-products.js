@@ -63,14 +63,11 @@ async function fetchMainProducts() {
                 <div class="np-img-wrap" ${isOutOfStock ? 'style="opacity:0.6"' : ''}>
                     <a href="/product.html?id=${p.id}">
                         <img src="${img1}" alt="${p.title}" class="np-img np-img-default">
-                        <img src="${img2}" alt="${p.title}" class="np-img np-img-hover">
                     </a>
                     ${badgeHtml}
                     ${stockBadgeHtml}
                     <div class="np-actions">
-
                         <button class="np-action-btn" title="Quick View" onclick="window.location.href='/product.html?id=${p.id}'"><ion-icon name="eye-outline"></ion-icon></button>
-                        <button class="np-action-btn" title="Compare"><ion-icon name="repeat-outline"></ion-icon></button>
                     </div>
                 </div>
                 <div class="np-info">

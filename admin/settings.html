@@ -160,6 +160,10 @@
                                         <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Cash on Delivery (COD) Extra Fee (Rs.)</label>
                                         <input type="number" data-key="cod_charge" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500" placeholder="0">
                                     </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Minimum Order Amount (Rs.)</label>
+                                        <input type="number" data-key="minimum_order_amount" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500" placeholder="0">
+                                    </div>
                                 </div>
                             </div>
 
@@ -250,6 +254,24 @@
                                             <option value="0">Disabled</option>
                                         </select>
                                     </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Store URL (For Order Tracking Link)</label>
+                                        <input type="text" data-key="store_url" placeholder="e.g. http://localhost:3000" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">WhatsApp Gateway Type</label>
+                                        <select data-key="whatsapp_gateway_type" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                                            <option value="ultramsg">Ultramsg API</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Ultramsg Instance ID</label>
+                                        <input type="text" data-key="whatsapp_ultramsg_instance" placeholder="e.g. instance12345" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Ultramsg Token</label>
+                                        <input type="password" data-key="whatsapp_ultramsg_token" placeholder="Ultramsg Token" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                                    </div>
                                 </div>
                             </div>
 
@@ -264,6 +286,10 @@
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Order Shipped Alert</label>
                                         <textarea data-key="whatsapp_template_shipped" rows="4" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-pink-500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Order Delivered Alert</label>
+                                        <textarea data-key="whatsapp_template_delivered" rows="4" class="setting-input w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-pink-500"></textarea>
                                     </div>
                                 </div>
                             </div>

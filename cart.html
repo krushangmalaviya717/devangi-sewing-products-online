@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -58,7 +58,10 @@
                         <span id="total-display" class="text-pink-500">Rs. 0.00</span>
                     </div>
                     
-                    <a href="/checkout.html" class="block w-full text-center bg-gray-900 text-white font-semibold py-3 rounded-xl hover:bg-pink-500 transition duration-300">
+                    <div id="min-order-notice" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm p-4 rounded-xl mb-4 text-center">
+                    </div>
+                    
+                    <a id="checkout-btn" href="/checkout.html" class="block w-full text-center bg-gray-900 text-white font-semibold py-3 rounded-xl hover:bg-pink-500 transition duration-300">
                         Proceed to Checkout
                     </a>
                 </div>
@@ -69,6 +72,7 @@
     <script>
         let shippingCharge = 50;
         let shippingFreeAbove = 250;
+        let minimumOrderAmount = 0;
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadShippingSettings();
@@ -81,6 +85,7 @@
                 const settings = await res.json();
                 shippingCharge = parseFloat(settings.shipping_default_charge) || 50;
                 shippingFreeAbove = parseFloat(settings.shipping_free_above) || 250;
+                minimumOrderAmount = parseFloat(settings.minimum_order_amount) || 0;
             } catch (err) { /* use defaults */ }
         }
 
@@ -96,7 +101,7 @@
             if(cart.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-16">
-                        <img src="/assets/images/newsletter.png" class="mx-auto h-40 opacity-50 mb-6" alt="Empty Cart">
+                        <img src="/assets/images/empty_cart.png" class="mx-auto h-48 mb-6" alt="Empty Cart">
                         <h2 class="text-2xl font-semibold mb-2">Your cart is empty</h2>
                         <p class="text-gray-500 mb-6">Looks like you haven't added anything to your cart yet.</p>
                         <a href="/index.html" class="inline-block bg-pink-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-pink-600 transition shadow-lg shadow-pink-200">Shop Now</a>
@@ -177,6 +182,29 @@
 
             const grandTotal = total + actualShipping;
             document.getElementById('total-display').innerText = 'Rs. ' + grandTotal.toFixed(2);
+
+            // Minimum order validation
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const minOrderNotice = document.getElementById('min-order-notice');
+            
+            if (total < minimumOrderAmount) {
+                if (checkoutBtn) {
+                    checkoutBtn.removeAttribute('href');
+                    checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                }
+                if (minOrderNotice) {
+                    minOrderNotice.innerHTML = `⚠️ Minimum order amount is <strong>Rs. ${minimumOrderAmount.toFixed(2)}</strong>. You need <strong>Rs. ${(minimumOrderAmount - total).toFixed(2)}</strong> more to place an order.`;
+                    minOrderNotice.classList.remove('hidden');
+                }
+            } else {
+                if (checkoutBtn) {
+                    checkoutBtn.setAttribute('href', '/checkout.html');
+                    checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                }
+                if (minOrderNotice) {
+                    minOrderNotice.classList.add('hidden');
+                }
+            }
         }
 
         function updateQty(index, change) {

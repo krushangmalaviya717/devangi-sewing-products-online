@@ -822,8 +822,9 @@ body::-webkit-scrollbar-thumb:hover { background: hsl(0, 0%, 70%); }
 .slider-item {
   position: relative;
   min-width: 100%;
-  max-height: 450px;
-  aspect-ratio: 1 / 1;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  max-height: none !important;
   -webkit-border-radius: var(--border-radius-md);
           border-radius: var(--border-radius-md);
   overflow: hidden;
@@ -832,11 +833,9 @@ body::-webkit-scrollbar-thumb:hover { background: hsl(0, 0%, 70%); }
 
 .slider-item .banner-img {
   width: 100%;
-  height: 100%;
-  -o-object-fit: cover;
-     object-fit: cover;
-  -o-object-position: right;
-     object-position: right;
+  height: auto !important;
+  display: block;
+  object-fit: contain !important;
 }
 
 .banner-content {
@@ -3444,3 +3443,17 @@ footer {
   }
 }
 /* End Mobile Category Item Fix */
+
+/* Mobile Banner Spacing Fix */
+@media (max-width: 575px) {
+  .banner {
+    margin: 10px 0 5px 0 !important;
+  }
+  .banner .container {
+    padding: 0 16px !important;
+  }
+  .slider-container {
+    gap: 0 !important;
+  }
+}
+

@@ -666,9 +666,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (croppedFiles['add_image_input']) {
                 formData.set('image', croppedFiles['add_image_input']);
             }
-            if (croppedFiles['add_mobile_image_input']) {
-                formData.set('mobile_image', croppedFiles['add_mobile_image_input']);
-            }
 
             try {
                 const res = await fetch('/api/banners', {
@@ -702,9 +699,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Override fields with cropped files if any
             if (croppedFiles['edit_image_input']) {
                 formData.set('image', croppedFiles['edit_image_input']);
-            }
-            if (croppedFiles['edit_mobile_image_input']) {
-                formData.set('mobile_image', croppedFiles['edit_mobile_image_input']);
             }
 
             try {
@@ -1165,17 +1159,8 @@ async function fetchBanners() {
                     <img src="${b.image_url}" class="w-24 h-12 rounded object-cover border border-gray-100">
                 </td>
                 <td class="p-4">
-                    ${b.mobile_image_url ? `<img src="${b.mobile_image_url}" class="w-24 h-12 rounded object-cover border border-gray-100">` : `<span class="text-xs text-gray-400">Same as desktop</span>`}
-                </td>
-                <td class="p-4">
-                    <p class="text-xs text-pink-500 font-semibold uppercase tracking-wider">${b.subtitle || ''}</p>
-                    <p class="font-bold text-gray-800">${b.title || '<span class="text-gray-400 italic">No Title</span>'}</p>
-                    <p class="text-xs text-gray-500">${b.offer_text || ''}</p>
-                </td>
-                <td class="p-4">
-                    ${b.button_text ? `<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium">${b.button_text}</span>` : '<span class="text-xs text-gray-400 italic">No Button</span>'}
-                    <p class="text-[10px] text-gray-400 mt-1 truncate max-w-[150px]" title="${b.link_url}">${b.link_url || 'No redirect link'}</p>
-                    ${b.open_new_tab ? `<span class="text-[9px] bg-blue-50 text-blue-600 px-1 py-0.5 rounded">New Tab</span>` : ''}
+                    <p class="text-sm font-medium text-gray-800 truncate max-w-[250px]" title="${b.link_url}">${b.link_url || 'No redirect link'}</p>
+                    ${b.open_new_tab ? `<span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded mt-1 inline-block">New Tab</span>` : ''}
                 </td>
                 <td class="p-4 text-center font-bold text-gray-400">${b.sort_order}</td>
                 <td class="p-4 text-center">
@@ -1212,26 +1197,11 @@ async function openEditBannerModal(id) {
         resetBannerForm('editBannerForm');
 
         document.getElementById('edit_banner_id').value = b.id;
-        document.getElementById('edit_banner_title').value = b.title || '';
-        document.getElementById('edit_banner_subtitle').value = b.subtitle || '';
-        document.getElementById('edit_banner_offer_text').value = b.offer_text || '';
-        document.getElementById('edit_banner_button_text').value = b.button_text || '';
         document.getElementById('edit_banner_link_url').value = b.link_url || '';
         document.getElementById('edit_banner_sort_order').value = b.sort_order || 0;
 
         document.getElementById('edit_banner_status').checked = b.status === 1;
         document.getElementById('edit_banner_open_new_tab').checked = b.open_new_tab === 1;
-
-        const removeMobileContainer = document.getElementById('remove_mobile_image_container');
-        const removeMobileCheckbox = document.getElementById('edit_banner_remove_mobile');
-        if (removeMobileContainer && removeMobileCheckbox) {
-            removeMobileCheckbox.checked = false;
-            if (b.mobile_image_url) {
-                removeMobileContainer.classList.remove('hidden');
-            } else {
-                removeMobileContainer.classList.add('hidden');
-            }
-        }
 
         // Populate existing previews in Edit modal
         const editDesktopPreview = document.getElementById('edit_image_preview');
@@ -1239,18 +1209,6 @@ async function openEditBannerModal(id) {
         if (editDesktopPreview && editDesktopContainer) {
             editDesktopPreview.src = b.image_url;
             editDesktopContainer.classList.remove('hidden');
-        }
-
-        const editMobilePreview = document.getElementById('edit_mobile_image_preview');
-        const editMobileContainer = document.getElementById('edit_mobile_image_preview_container');
-        if (editMobilePreview && editMobileContainer) {
-            if (b.mobile_image_url) {
-                editMobilePreview.src = b.mobile_image_url;
-                editMobileContainer.classList.remove('hidden');
-            } else {
-                editMobilePreview.src = '';
-                editMobileContainer.classList.add('hidden');
-            }
         }
 
         toggleModal('editBannerModal');
@@ -1290,9 +1248,7 @@ let croppedFiles = {
 function initCropperListeners() {
     const fileInputs = [
         { inputId: 'add_image_input', previewId: 'add_image_preview', containerId: 'add_image_preview_container', defaultRatio: 2.66 },
-        { inputId: 'add_mobile_image_input', previewId: 'add_mobile_image_preview', containerId: 'add_mobile_image_preview_container', defaultRatio: 1.33 },
-        { inputId: 'edit_image_input', previewId: 'edit_image_preview', containerId: 'edit_image_preview_container', defaultRatio: 2.66 },
-        { inputId: 'edit_mobile_image_input', previewId: 'edit_mobile_image_preview', containerId: 'edit_mobile_image_preview_container', defaultRatio: 1.33 }
+        { inputId: 'edit_image_input', previewId: 'edit_image_preview', containerId: 'edit_image_preview_container', defaultRatio: 2.66 }
     ];
 
     fileInputs.forEach(({ inputId, previewId, containerId, defaultRatio }) => {
@@ -1398,22 +1354,14 @@ function applyCrop() {
 function resetBannerForm(formId) {
     if (formId === 'addBannerForm') {
         croppedFiles['add_image_input'] = null;
-        croppedFiles['add_mobile_image_input'] = null;
         
         const deskContainer = document.getElementById('add_image_preview_container');
         if (deskContainer) deskContainer.classList.add('hidden');
-        
-        const mobContainer = document.getElementById('add_mobile_image_preview_container');
-        if (mobContainer) mobContainer.classList.add('hidden');
     } else if (formId === 'editBannerForm') {
         croppedFiles['edit_image_input'] = null;
-        croppedFiles['edit_mobile_image_input'] = null;
         
         const deskContainer = document.getElementById('edit_image_preview_container');
         if (deskContainer) deskContainer.classList.add('hidden');
-        
-        const mobContainer = document.getElementById('edit_mobile_image_preview_container');
-        if (mobContainer) mobContainer.classList.add('hidden');
     }
 }
 
@@ -1816,6 +1764,83 @@ async function sendInvoiceEmail() {
     } catch (err) {
         console.error(err);
         alert('Error sending invoice.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+function toggleWhatsAppDropdown(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('whatsapp-dropdown-menu');
+    if (menu) menu.classList.toggle('hidden');
+}
+
+// Close WhatsApp dropdown when clicking outside
+window.addEventListener('click', (e) => {
+    const menu = document.getElementById('whatsapp-dropdown-menu');
+    if (menu && !e.target.closest('#btn-send-whatsapp')) {
+        menu.classList.add('hidden');
+    }
+});
+
+async function sendWhatsAppAlert(alertType) {
+    if (!currentOrderData || !currentOrderData.order) {
+        alert('No order data loaded.');
+        return;
+    }
+    
+    // Hide dropdown menu
+    const menu = document.getElementById('whatsapp-dropdown-menu');
+    if (menu) menu.classList.add('hidden');
+    
+    const { order } = currentOrderData;
+    const btn = document.getElementById('btn-send-whatsapp');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = 'Loading...';
+    
+    try {
+        const res = await fetch('/api/settings');
+        const settings = await res.json();
+        
+        let template = '';
+        if (alertType === 'shipped') {
+            template = settings.whatsapp_template_shipped || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been shipped! 🚀\nCourier: {courier}\nTracking No: {tracking_number}\n\nTrack here: {tracking_url}';
+        } else if (alertType === 'delivered') {
+            template = settings.whatsapp_template_delivered || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸';
+        } else {
+            template = settings.whatsapp_template_placed || 'Hello {name},\n\nThank you for shopping at {store_name}! 🌸\n\nYour Order #{order_id} has been placed successfully.\nTotal Amount: Rs. {total_amount}\nPayment Method: {payment_method}\n\nTrack your order here: {tracking_url}';
+        }
+        
+        // Format phone number
+        let phone = (order.phone || '').trim().replace(/\D/g, '');
+        if (phone.length === 10) {
+            phone = '91' + phone;
+        }
+        
+        // Use the configured store URL from settings, or fallback to the current domain
+        const storeUrl = settings.store_url || window.location.origin;
+        const trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
+        const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
+        
+        const message = template
+            .replace(/{name}/g, customerName)
+            .replace(/{order_id}/g, order.id)
+            .replace(/{total_amount}/g, order.total_amount)
+            .replace(/{payment_method}/g, order.payment_method || 'COD')
+            .replace(/{tracking_url}/g, trackingUrl)
+            .replace(/{courier}/g, order.courier_name || '')
+            .replace(/{tracking_number}/g, order.tracking_number || '')
+            .replace(/{store_name}/g, settings.store_name || 'Devangi Products');
+            
+        // Open WhatsApp Web or App
+        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        window.open(waUrl, '_blank');
+    } catch (err) {
+        console.error(err);
+        alert('Error preparing WhatsApp message.');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;

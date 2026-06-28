@@ -160,15 +160,10 @@
       top: 0;
       left: 0;
       opacity: 0;
+      display: none !important;
     }
 
-    .np-img-wrap:hover .np-img-default {
-      opacity: 0;
-    }
 
-    .np-img-wrap:hover .np-img-hover {
-      opacity: 1;
-    }
 
     /* Badge */
     .np-badge {
@@ -744,7 +739,10 @@
 
           <div class="slider-item">
 
-            <img src="./assets/images/banner-1.jpg" alt="women's latest fashion sale" class="banner-img">
+            <picture>
+              <source media="(max-width: 575px)" srcset="./assets/images/banner-1-mobile.jpg">
+              <img src="./assets/images/banner-1.jpg" alt="women's latest fashion sale" class="banner-img">
+            </picture>
 
             <div class="banner-content">
 
@@ -764,7 +762,10 @@
 
           <div class="slider-item">
 
-            <img src="./assets/images/banner-2.jpg" alt="modern sunglasses" class="banner-img">
+            <picture>
+              <source media="(max-width: 575px)" srcset="./assets/images/banner-2-mobile.jpg">
+              <img src="./assets/images/banner-2.jpg" alt="modern sunglasses" class="banner-img">
+            </picture>
 
             <div class="banner-content">
 
@@ -784,7 +785,10 @@
 
           <div class="slider-item">
 
-            <img src="./assets/images/banner-3.jpg" alt="new fashion summer sale" class="banner-img">
+            <picture>
+              <source media="(max-width: 575px)" srcset="./assets/images/banner-3-mobile.jpg">
+              <img src="./assets/images/banner-3.jpg" alt="new fashion summer sale" class="banner-img">
+            </picture>
 
             <div class="banner-content">
 

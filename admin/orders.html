@@ -240,6 +240,23 @@
                     <div id="detail-fulfillment-badge" class="status-badge">Unfulfilled</div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleWhatsAppDropdown(event)" id="btn-send-whatsapp" class="px-4 py-1.5 bg-green-50 text-green-600 border border-green-100 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-green-100">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.835-4.573c1.637.971 3.258 1.481 5.141 1.482 5.378 0 9.755-4.38 9.758-9.762.002-2.605-1.013-5.053-2.86-6.903C17.026 2.394 14.57 1.378 11.998 1.378c-5.385 0-9.765 4.383-9.767 9.767a9.697 9.697 0 001.47 5.07l-.988 3.606 3.7-.971c.001.002.001.002.001.003z"/></svg>
+                            WhatsApp Alert ▾
+                        </button>
+                        <div id="whatsapp-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-30 py-1">
+                            <button onclick="sendWhatsAppAlert('placed')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                                <span>📢</span> Order Placed
+                            </button>
+                            <button onclick="sendWhatsAppAlert('shipped')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                                <span>🚚</span> Order Shipped
+                            </button>
+                            <button onclick="sendWhatsAppAlert('delivered')" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                                <span>🎉</span> Order Delivered
+                            </button>
+                        </div>
+                    </div>
                     <button onclick="sendInvoiceEmail()" id="btn-send-invoice" class="px-4 py-1.5 bg-pink-50 text-pink-600 border border-pink-100 rounded-md text-sm font-medium">Send Invoice</button>
                     <button onclick="printInvoice()" class="px-4 py-1.5 bg-white border border-gray-300 rounded-md text-sm font-medium">Print</button>
                     <button onclick="downloadInvoice()" class="px-4 py-1.5 bg-white border border-gray-300 rounded-md text-sm font-medium">Download</button>

@@ -79,40 +79,26 @@ function renderBanners(banners) {
 
         // HTML picture element for responsive mobile image swap
         let imageHTML = '';
-        if (b.mobile_image_url) {
+        if (b.mobile_image_url && b.mobile_image_url.trim() !== '') {
             imageHTML = `
-                <picture class="banner-picture" style="width: 100%; height: 100%; display: block;">
+                <picture class="banner-picture" style="width: 100%; display: block;">
                     <source media="(max-width: 768px)" srcset="${b.mobile_image_url}">
-                    <img src="${b.image_url}" alt="${b.title || 'Banner'}" class="banner-img" style="width: 100%; height: 100%; object-fit: cover;">
+                    <img src="${b.image_url}" alt="${b.title || 'Banner'}" class="banner-img" style="width: 100%; height: auto; display: block; object-fit: contain;">
                 </picture>
             `;
         } else {
-            imageHTML = `<img src="${b.image_url}" alt="${b.title || 'Banner'}" class="banner-img" style="width: 100%; height: 100%; object-fit: cover;">`;
-        }
-
-        let contentHTML = '';
-        if (hasOverlay) {
-            contentHTML = `
-                <div class="banner-content">
-                    ${b.subtitle && b.subtitle.toLowerCase() !== 'none' ? `<p class="banner-subtitle">${b.subtitle}</p>` : ''}
-                    ${b.title && b.title.toLowerCase() !== 'none' ? `<h2 class="banner-title">${b.title}</h2>` : ''}
-                    ${b.offer_text && b.offer_text.toLowerCase() !== 'none' ? `<p class="banner-text" style="display: block;">${b.offer_text}</p>` : ''}
-                    ${b.button_text && b.button_text.toLowerCase() !== 'none' ? `<span class="banner-btn" style="display: inline-block;">${b.button_text}</span>` : ''}
-                </div>
-            `;
+            imageHTML = `<img src="${b.image_url}" alt="${b.title || 'Banner'}" class="banner-img" style="width: 100%; height: auto; display: block; object-fit: contain;">`;
         }
 
         if (b.link_url) {
             item.innerHTML = `
                 <a ${hrefAttr} ${targetAttr} class="banner-link-wrapper" style="display: block; width: 100%; height: 100%; position: relative; color: inherit; text-decoration: none;">
                     ${imageHTML}
-                    ${contentHTML}
                 </a>
             `;
         } else {
             item.innerHTML = `
                 ${imageHTML}
-                ${contentHTML}
             `;
         }
 
