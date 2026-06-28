@@ -910,6 +910,35 @@ app.use('/api/admin', (req, res, next) => {
     return next();
 });
 
+// Dynamic Favicon Route (Serves the uploaded favicon from settings globally)
+app.get(['/favicon.ico', '/assets/images/logo/favicon.ico'], (req, res) => {
+    db.get("SELECT setting_value FROM store_settings WHERE setting_key = 'store_favicon'", [], (err, row) => {
+        if (!err && row && row.setting_value) {
+            const favPath = row.setting_value;
+            if (favPath.startsWith('/uploads/')) {
+                const absolutePath = path.join(UPLOADS_BASE_DIR, favPath.replace('/uploads/', ''));
+                if (fs.existsSync(absolutePath)) {
+                    res.setHeader('Cache-Control', 'public, max-age=86400');
+                    return res.sendFile(absolutePath);
+                }
+            } else if (favPath.startsWith('/assets/')) {
+                const absolutePath = path.join(__dirname, favPath);
+                if (fs.existsSync(absolutePath)) {
+                    res.setHeader('Cache-Control', 'public, max-age=86400');
+                    return res.sendFile(absolutePath);
+                }
+            }
+        }
+        // Fallback to default favicon
+        const defaultFav = path.join(__dirname, 'assets', 'images', 'logo', 'favicon.ico');
+        if (fs.existsSync(defaultFav)) {
+            res.sendFile(defaultFav);
+        } else {
+            res.status(404).end();
+        }
+    });
+});
+
 // Serve persistent uploads statically
 app.use('/uploads', express.static(UPLOADS_BASE_DIR, {
     maxAge: '30d'
