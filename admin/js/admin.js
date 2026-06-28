@@ -1830,7 +1830,10 @@ function sendWhatsAppAlert(alertType) {
     }
     
     // Use the configured store URL from settings, or fallback to the current domain
-    const storeUrl = settings.store_url || window.location.origin;
+    let storeUrl = settings.store_url || window.location.origin;
+    if (storeUrl.includes('localhost') || storeUrl.includes('127.0.0.1')) {
+        storeUrl = window.location.origin;
+    }
     const trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
     const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
     
