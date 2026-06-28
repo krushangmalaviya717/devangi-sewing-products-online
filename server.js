@@ -934,15 +934,27 @@ app.put('/api/admin/settings', (req, res) => {
     if (!settings || typeof settings !== 'object') return res.status(400).json({ error: 'Invalid settings' });
 
     const entries = Object.entries(settings);
+    if (entries.length === 0) return res.json({ success: true });
+
     let completed = 0;
-    let errors = 0;
+    let errors = [];
 
     entries.forEach(([key, value]) => {
-        db.run('INSERT OR REPLACE INTO store_settings (setting_key, setting_value) VALUES (?, ?)', [key, value], (err) => {
-            if (err) errors++;
+        const val = typeof value === 'object' ? JSON.stringify(value) : value;
+        db.run('INSERT OR REPLACE INTO store_settings (setting_key, setting_value) VALUES (?, ?)', [key, val], (err) => {
+            if (err) {
+                console.error(`Failed to save setting ${key}:`, err);
+                errors.push({ key, error: err.message });
+            }
             completed++;
             if (completed === entries.length) {
-                if (errors > 0) return res.status(500).json({ error: `${errors} settings failed to save` });
+                if (errors.length > 0) {
+                    return res.status(500).json({ 
+                        error: 'Failed to save some settings', 
+                        details: errors 
+                    });
+                }
+                logAdminAction(req, 'settings_update', 'Updated global store settings');
                 res.json({ success: true });
             }
         });
@@ -2341,32 +2353,6 @@ app.get('/api/settings', (req, res) => {
         const settings = {};
         rows.forEach(r => settings[r.setting_key] = r.setting_value);
         res.json(settings);
-    });
-});
-
-// Update store settings (Admin)
-app.put('/api/admin/settings', (req, res) => {
-    const settings = req.body;
-    const keys = Object.keys(settings);
-    if (keys.length === 0) return res.json({ success: true });
-
-    let completed = 0;
-    keys.forEach(key => {
-        const val = typeof settings[key] === 'object' ? JSON.stringify(settings[key]) : settings[key];
-        db.get('SELECT id FROM store_settings WHERE setting_key = ?', [key], (err, row) => {
-            const finalize = () => {
-                completed++;
-                if (completed === keys.length) {
-                    logAdminAction(req, 'settings_update', 'Updated global store settings');
-                    res.json({ success: true });
-                }
-            };
-            if (row) {
-                db.run('UPDATE store_settings SET setting_value = ? WHERE setting_key = ?', [val, key], finalize);
-            } else {
-                db.run('INSERT INTO store_settings (setting_key, setting_value) VALUES (?, ?)', [key, val], finalize);
-            }
-        });
     });
 });
 

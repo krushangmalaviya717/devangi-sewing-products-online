@@ -484,10 +484,11 @@
                     const img = document.getElementById('sidebar-logo-img');
                     if (img && settings.store_logo) img.src = settings.store_logo;
                 } else {
-                    alert('Failed to save settings');
+                    const data = await res.json().catch(() => ({ error: 'Unknown server error' }));
+                    alert('Failed to save settings: ' + data.error);
                 }
             } catch (err) { 
-                alert('Error saving settings'); 
+                alert('Error saving settings: ' + err.message); 
             }
         }
 
