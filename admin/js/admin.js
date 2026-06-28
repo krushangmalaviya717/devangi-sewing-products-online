@@ -1499,14 +1499,24 @@ function renderPagination(pagination) {
 }
 
 let currentOrderData = null;
+let cachedSettings = null;
 
 async function openOrderDetail(id) {
     try {
+        // Start pre-fetching settings to avoid async delay during window.open
+        const settingsPromise = cachedSettings ? Promise.resolve(cachedSettings) : fetch('/api/settings').then(r => r.json()).catch(() => null);
+
         const res = await fetch('/api/admin/orders/' + id);
         if (!res.ok) throw new Error('Order not found');
         const data = await res.json();
         currentOrderData = data; // Store for invoice printing
         const order = data.order;
+
+        // Resolve and cache settings
+        const settings = await settingsPromise;
+        if (settings) {
+            cachedSettings = settings;
+        }
         const items = data.items;
         const tracking = data.tracking;
 
@@ -1784,7 +1794,7 @@ window.addEventListener('click', (e) => {
     }
 });
 
-async function sendWhatsAppAlert(alertType) {
+function sendWhatsAppAlert(alertType) {
     if (!currentOrderData || !currentOrderData.order) {
         alert('No order data loaded.');
         return;
@@ -1795,56 +1805,41 @@ async function sendWhatsAppAlert(alertType) {
     if (menu) menu.classList.add('hidden');
     
     const { order } = currentOrderData;
-    const btn = document.getElementById('btn-send-whatsapp');
-    const originalText = btn.innerHTML;
+    const settings = cachedSettings || {};
     
-    btn.disabled = true;
-    btn.innerHTML = 'Loading...';
-    
-    try {
-        const res = await fetch('/api/settings');
-        const settings = await res.json();
-        
-        let template = '';
-        if (alertType === 'shipped') {
-            template = settings.whatsapp_template_shipped || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been shipped! 🚀\nCourier: {courier}\nTracking No: {tracking_number}\n\nTrack here: {tracking_url}';
-        } else if (alertType === 'delivered') {
-            template = settings.whatsapp_template_delivered || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸';
-        } else {
-            template = settings.whatsapp_template_placed || 'Hello {name},\n\nThank you for shopping at {store_name}! 🌸\n\nYour Order #{order_id} has been placed successfully.\nTotal Amount: Rs. {total_amount}\nPayment Method: {payment_method}\n\nTrack your order here: {tracking_url}';
-        }
-        
-        // Format phone number
-        let phone = (order.phone || '').trim().replace(/\D/g, '');
-        if (phone.length === 10) {
-            phone = '91' + phone;
-        }
-        
-        // Use the configured store URL from settings, or fallback to the current domain
-        const storeUrl = settings.store_url || window.location.origin;
-        const trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
-        const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
-        
-        const message = template
-            .replace(/{name}/g, customerName)
-            .replace(/{order_id}/g, order.id)
-            .replace(/{total_amount}/g, order.total_amount)
-            .replace(/{payment_method}/g, order.payment_method || 'COD')
-            .replace(/{tracking_url}/g, trackingUrl)
-            .replace(/{courier}/g, order.courier_name || '')
-            .replace(/{tracking_number}/g, order.tracking_number || '')
-            .replace(/{store_name}/g, settings.store_name || 'Devangi Products');
-            
-        // Open WhatsApp Web or App
-        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-        window.open(waUrl, '_blank');
-    } catch (err) {
-        console.error(err);
-        alert('Error preparing WhatsApp message.');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+    let template = '';
+    if (alertType === 'shipped') {
+        template = settings.whatsapp_template_shipped || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been shipped! 🚀\nCourier: {courier}\nTracking No: {tracking_number}\n\nTrack here: {tracking_url}';
+    } else if (alertType === 'delivered') {
+        template = settings.whatsapp_template_delivered || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸';
+    } else {
+        template = settings.whatsapp_template_placed || 'Hello {name},\n\nThank you for shopping at {store_name}! 🌸\n\nYour Order #{order_id} has been placed successfully.\nTotal Amount: Rs. {total_amount}\nPayment Method: {payment_method}\n\nTrack your order here: {tracking_url}';
     }
+    
+    // Format phone number
+    let phone = (order.phone || '').trim().replace(/\D/g, '');
+    if (phone.length === 10) {
+        phone = '91' + phone;
+    }
+    
+    // Use the configured store URL from settings, or fallback to the current domain
+    const storeUrl = settings.store_url || window.location.origin;
+    const trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
+    const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
+    
+    const message = template
+        .replace(/{name}/g, customerName)
+        .replace(/{order_id}/g, order.id)
+        .replace(/{total_amount}/g, order.total_amount)
+        .replace(/{payment_method}/g, order.payment_method || 'COD')
+        .replace(/{tracking_url}/g, trackingUrl)
+        .replace(/{courier}/g, order.courier_name || '')
+        .replace(/{tracking_number}/g, order.tracking_number || '')
+        .replace(/{store_name}/g, settings.store_name || 'Devangi Products');
+        
+    // Open WhatsApp Web or App (fully synchronous to prevent popup blockers)
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
 }
 
 function prepareInvoicePrint() {
