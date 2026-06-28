@@ -510,6 +510,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
             db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('whatsapp_ultramsg_instance', '')");
             db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('whatsapp_ultramsg_token', '')");
             db.run("INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES ('whatsapp_template_delivered', 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view your order details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸')");
+            
+            // Automatically correct store_url to the live domain on the production Linux server
+            if (require('fs').existsSync('/home')) {
+                db.run("UPDATE store_settings SET setting_value = 'https://devangiproduct.com' WHERE setting_key = 'store_url' AND setting_value LIKE '%localhost%'");
+            }
         });
 
         // Contact queries table
