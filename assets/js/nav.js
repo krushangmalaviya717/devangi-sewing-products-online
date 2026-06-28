@@ -68,6 +68,69 @@ async function loadDynamicSettings() {
             faqCod.style.display = settings.payment_enable_cod === '0' ? 'none' : 'block';
         }
 
+        // 4. Handle social links visibility and URLs
+        const socialEnabled = settings.social_enabled !== '0';
+        const headerSocials = document.querySelectorAll('.header-social-container');
+        const menuSocials = document.querySelectorAll('.menu-social-container');
+        const footerSocials = document.querySelectorAll('ul.social-link');
+        const footerLists = document.querySelectorAll('footer .footer-nav-list');
+
+        if (!socialEnabled) {
+            headerSocials.forEach(el => el.style.setProperty('display', 'none', 'important'));
+            menuSocials.forEach(el => el.style.setProperty('display', 'none', 'important'));
+            footerSocials.forEach(el => el.style.setProperty('display', 'none', 'important'));
+            footerLists.forEach(list => {
+                if (list.textContent.includes('Follow Us')) {
+                    list.style.setProperty('display', 'none', 'important');
+                }
+            });
+        } else {
+            headerSocials.forEach(el => el.style.display = '');
+            menuSocials.forEach(el => el.style.display = '');
+            footerSocials.forEach(el => el.style.display = '');
+            footerLists.forEach(list => {
+                if (list.textContent.includes('Follow Us')) {
+                    list.style.display = '';
+                }
+            });
+
+            const urlMap = {
+                'logo-facebook': settings.social_facebook,
+                'logo-instagram': settings.social_instagram,
+                'logo-youtube': settings.social_youtube
+            };
+
+            const updateSocialContainer = (container) => {
+                const links = container.querySelectorAll('a');
+                links.forEach(link => {
+                    const icon = link.querySelector('ion-icon');
+                    if (icon) {
+                        const iconName = icon.getAttribute('name');
+                        const targetUrl = urlMap[iconName];
+                        if (targetUrl && targetUrl.trim() !== '') {
+                            link.href = targetUrl;
+                            link.target = '_blank';
+                            link.rel = 'noopener noreferrer';
+                            const parentLi = link.closest('li');
+                            if (parentLi) parentLi.style.display = '';
+                            link.style.display = '';
+                        } else {
+                            const parentLi = link.closest('li');
+                            if (parentLi) {
+                                parentLi.style.display = 'none';
+                            } else {
+                                link.style.display = 'none';
+                            }
+                        }
+                    }
+                });
+            };
+
+            headerSocials.forEach(updateSocialContainer);
+            menuSocials.forEach(updateSocialContainer);
+            footerSocials.forEach(updateSocialContainer);
+        }
+
     } catch (error) {
         console.error('Error loading store settings:', error);
     }

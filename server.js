@@ -470,6 +470,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 'social_instagram': '',
                 'social_facebook': '',
                 'social_youtube': '',
+                'social_enabled': '1',
                 'footer_text': 'Thank you for shopping with Devangi Products!',
                 'payment_enable_cod': '1',
                 'payment_enable_online': '1',
