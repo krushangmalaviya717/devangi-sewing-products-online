@@ -66,9 +66,6 @@ async function fetchMainProducts() {
                     </a>
                     ${badgeHtml}
                     ${stockBadgeHtml}
-                    <div class="np-actions">
-                        <button class="np-action-btn" title="Quick View" onclick="window.location.href='/product.html?id=${p.id}'"><ion-icon name="eye-outline"></ion-icon></button>
-                    </div>
                 </div>
                 <div class="np-info">
                     <a href="/shop.html?category=${encodeURIComponent(p.category)}" class="np-cat">${p.category}</a>
