@@ -1781,9 +1781,15 @@ async function sendInvoiceEmail() {
 }
 
 function toggleWhatsAppDropdown(event) {
+    console.log('toggleWhatsAppDropdown called!');
     event.stopPropagation();
     const menu = document.getElementById('whatsapp-dropdown-menu');
-    if (menu) menu.classList.toggle('hidden');
+    if (menu) {
+        menu.classList.toggle('hidden');
+        console.log('Menu classList after toggle:', menu.className);
+    } else {
+        console.error('whatsapp-dropdown-menu element not found!');
+    }
 }
 
 // Close WhatsApp dropdown when clicking outside
@@ -1795,6 +1801,7 @@ window.addEventListener('click', (e) => {
 });
 
 function sendWhatsAppAlert(alertType) {
+    console.log('sendWhatsAppAlert called with:', alertType);
     if (!currentOrderData || !currentOrderData.order) {
         alert('No order data loaded.');
         return;
