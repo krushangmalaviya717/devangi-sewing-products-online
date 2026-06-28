@@ -69,14 +69,22 @@ app.use((req, res, next) => {
     next();
 });
 
-// Set up storage for image uploads (up to 10 images)
+// Persistent Uploads Setup (Stored outside the project directory to survive Git redeployments)
+const UPLOADS_BASE_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '..', 'devangi-uploads');
+const productUploadDir = path.join(UPLOADS_BASE_DIR, 'products');
+const bannerUploadDir = path.join(UPLOADS_BASE_DIR, 'banners');
+const logoUploadDir = path.join(UPLOADS_BASE_DIR, 'logo');
+
+[productUploadDir, bannerUploadDir, logoUploadDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
+
+// Product Storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, 'assets', 'images', 'products');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+        cb(null, productUploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -88,11 +96,7 @@ const upload = multer({ storage: storage });
 // Banner Storage
 const bannerStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, 'assets', 'images', 'banners');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+        cb(null, bannerUploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -104,11 +108,7 @@ const uploadBanner = multer({ storage: bannerStorage });
 // Logo & Favicon Storage
 const logoStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, 'assets', 'images', 'logo');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+        cb(null, logoUploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -905,6 +905,11 @@ app.use('/api/admin', (req, res, next) => {
     return next();
 });
 
+// Serve persistent uploads statically
+app.use('/uploads', express.static(UPLOADS_BASE_DIR, {
+    maxAge: '30d'
+}));
+
 // Static file serving
 app.use(express.static(path.join(__dirname, '.'), {
     maxAge: '1d', // Cache static assets for 1 day in browser
@@ -983,7 +988,7 @@ app.post('/api/admin/settings/upload', uploadLogo.single('file'), (req, res) => 
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }
-    const filePath = `/assets/images/logo/${req.file.filename}`;
+    const filePath = `/uploads/logo/${req.file.filename}`;
     res.json({ success: true, filePath });
 });
 // --- API Endpoints ---
@@ -1176,7 +1181,7 @@ app.post('/api/products', upload.array('images', 10), (req, res) => {
     let imagePaths = [];
 
     if (req.files && req.files.length > 0) {
-        imagePaths = req.files.map(f => `/assets/images/products/${f.filename}`);
+        imagePaths = req.files.map(f => `/uploads/products/${f.filename}`);
     } else {
         imagePaths = ['/assets/images/products/1.jpg']; // default fallback
     }
@@ -1244,7 +1249,7 @@ app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
 
         if (req.files && req.files.length > 0) {
             // New images uploaded — use them
-            imagePaths = req.files.map(f => `/assets/images/products/${f.filename}`);
+            imagePaths = req.files.map(f => `/uploads/products/${f.filename}`);
         } else if (keep_images) {
             // Keep existing images (passed as JSON string from client)
             try { imagePaths = JSON.parse(keep_images); } catch(e) { imagePaths = []; }
@@ -2268,10 +2273,10 @@ app.post('/api/banners', uploadBanner.fields([{ name: 'image', maxCount: 1 }, { 
         return res.status(400).json({ error: 'Desktop image is required' });
     }
 
-    const imageUrl = `/assets/images/banners/${imageFile.filename}`;
+    const imageUrl = `/uploads/banners/${imageFile.filename}`;
     
     const mobileImageFile = req.files && req.files['mobile_image'] ? req.files['mobile_image'][0] : null;
-    const mobileImageUrl = mobileImageFile ? `/assets/images/banners/${mobileImageFile.filename}` : null;
+    const mobileImageUrl = mobileImageFile ? `/uploads/banners/${mobileImageFile.filename}` : null;
 
     const parsedStatus = (status === '1' || status === 'true') ? 1 : 0;
     const parsedOpenNewTab = (open_new_tab === '1' || open_new_tab === 'true') ? 1 : 0;
@@ -2323,13 +2328,13 @@ app.put('/api/banners/:id', uploadBanner.fields([{ name: 'image', maxCount: 1 },
     ];
 
     if (imageFile) {
-        const imageUrl = `/assets/images/banners/${imageFile.filename}`;
+        const imageUrl = `/uploads/banners/${imageFile.filename}`;
         sql += `, image_url=?`;
         params.push(imageUrl);
     }
-
+ 
     if (mobileImageFile) {
-        const mobileImageUrl = `/assets/images/banners/${mobileImageFile.filename}`;
+        const mobileImageUrl = `/uploads/banners/${mobileImageFile.filename}`;
         sql += `, mobile_image_url=?`;
         params.push(mobileImageUrl);
     } else if (removeMobile) {
