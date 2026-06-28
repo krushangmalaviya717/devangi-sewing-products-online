@@ -138,6 +138,15 @@ function verifyPassword(password, storedHash) {
 
 // Database setup
 const dbPath = process.env.DATABASE_PATH || './database.sqlite';
+try {
+    if (fs.existsSync(dbPath)) {
+        fs.chmodSync(dbPath, 0o666);
+        console.log('Database file permissions set to 0666');
+    }
+} catch (chmodErr) {
+    console.error('Failed to set database file permissions:', chmodErr.message);
+}
+
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error connecting to database:', err.message);
