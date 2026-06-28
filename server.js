@@ -550,7 +550,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Session secret fallback with cryptographically secure random bytes to prevent session forgery
-const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+// Session secret fallback using a stable value if process.env.SESSION_SECRET is missing to prevent logging out on server restart
+const sessionSecret = process.env.SESSION_SECRET || 'devangi_sewing_secret_fallback_key_2026';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -643,7 +644,14 @@ async function sendWhatsAppAlert(orderId, alertType) {
             }
             
             // Replace placeholders
-            const storeUrl = settings.store_url || 'http://localhost:3000';
+            let storeUrl = settings.store_url || 'http://localhost:3000';
+            if (storeUrl.includes('localhost')) {
+                if (process.env.STORE_URL) {
+                    storeUrl = process.env.STORE_URL;
+                } else if (process.env.VERCEL_URL) {
+                    storeUrl = `https://${process.env.VERCEL_URL}`;
+                }
+            }
             const trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${orderId}`;
             const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
             
