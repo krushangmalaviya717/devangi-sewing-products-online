@@ -1282,15 +1282,33 @@ app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
 
         let imagePaths = [];
 
-        if (req.files && req.files.length > 0) {
-            // New images uploaded — use them
-            imagePaths = req.files.map(f => `/uploads/products/${f.filename}`);
-        } else if (keep_images) {
-            // Keep existing images (passed as JSON string from client)
-            try { imagePaths = JSON.parse(keep_images); } catch(e) { imagePaths = []; }
+        if (req.body.image_order) {
+            try {
+                const order = JSON.parse(req.body.image_order);
+                let newFileIndex = 0;
+                imagePaths = order.map(item => {
+                    if (item.startsWith('new_file_')) {
+                        const file = req.files[newFileIndex];
+                        newFileIndex++;
+                        return file ? `/uploads/products/${file.filename}` : null;
+                    }
+                    return item;
+                }).filter(Boolean);
+            } catch (e) {
+                console.error("Error parsing image_order:", e);
+            }
         }
 
-        // Fallback to existing images if nothing provided
+        // Fallback to legacy behavior if image_order is not provided
+        if (imagePaths.length === 0) {
+            if (req.files && req.files.length > 0) {
+                imagePaths = req.files.map(f => `/uploads/products/${f.filename}`);
+            } else if (keep_images) {
+                try { imagePaths = JSON.parse(keep_images); } catch(e) { imagePaths = []; }
+            }
+        }
+
+        // Fallback to existing images if still nothing provided
         if (imagePaths.length === 0) {
             try { imagePaths = existing.images ? JSON.parse(existing.images) : [existing.image]; } catch(e) { imagePaths = [existing.image]; }
         }

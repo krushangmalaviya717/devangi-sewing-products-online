@@ -172,9 +172,58 @@ function handleDateRangeChange(val) {
 // ===== Image Preview Logic (Add Form) =====
 let selectedFiles = [];
 
-// ===== Edit Image Preview Logic =====
-let editSelectedFiles = [];
-let editKeepImages = []; // tracks existing images to keep
+let addDragSrcEl = null;
+
+function handleAddDragStart(e) {
+    addDragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    this.classList.add('dragging');
+}
+
+function handleAddDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleAddDragEnter(e) {
+    this.classList.add('over');
+}
+
+function handleAddDragLeave(e) {
+    this.classList.remove('over');
+}
+
+function handleAddDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    if (addDragSrcEl !== this) {
+        const fromIndex = parseInt(addDragSrcEl.getAttribute('data-index'));
+        const toIndex = parseInt(this.getAttribute('data-index'));
+        
+        const temp = selectedFiles[fromIndex];
+        selectedFiles.splice(fromIndex, 1);
+        selectedFiles.splice(toIndex, 0, temp);
+        
+        // Sync with the input element
+        const dt = new DataTransfer();
+        selectedFiles.forEach(f => dt.items.add(f));
+        document.getElementById('imageInput').files = dt.files;
+        
+        renderPreviews();
+    }
+    return false;
+}
+
+function handleAddDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('#imagePreviewGrid .image-preview-item').forEach(item => {
+        item.classList.remove('over');
+    });
+}
 
 function previewImages(event) {
     const files = Array.from(event.target.files);
@@ -203,13 +252,23 @@ function renderPreviews() {
 
     grid.style.display = 'grid';
     grid.innerHTML = '';
-    countEl.textContent = `${selectedFiles.length} image(s) selected (max 10)`;
+    countEl.textContent = `${selectedFiles.length} image(s) selected (max 10) — drag to reorder`;
 
     selectedFiles.forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const item = document.createElement('div');
             item.className = 'image-preview-item';
+            item.setAttribute('draggable', 'true');
+            item.setAttribute('data-index', index);
+            
+            item.addEventListener('dragstart', handleAddDragStart, false);
+            item.addEventListener('dragenter', handleAddDragEnter, false);
+            item.addEventListener('dragover', handleAddDragOver, false);
+            item.addEventListener('dragleave', handleAddDragLeave, false);
+            item.addEventListener('drop', handleAddDrop, false);
+            item.addEventListener('dragend', handleAddDragEnd, false);
+
             item.innerHTML = `
                 <img src="${e.target.result}" alt="Preview ${index + 1}">
                 <button type="button" class="remove-btn" onclick="removeImage(${index})" title="Remove">✕</button>
@@ -223,73 +282,122 @@ function renderPreviews() {
 
 function removeImage(index) {
     selectedFiles.splice(index, 1);
-    // Rebuild DataTransfer
     const dt = new DataTransfer();
     selectedFiles.forEach(f => dt.items.add(f));
     document.getElementById('imageInput').files = dt.files;
     renderPreviews();
 }
 
-// ===== Edit Image Preview =====
-function previewEditImages(event) {
-    const files = Array.from(event.target.files);
-    editSelectedFiles = files.slice(0, 10);
-    const dt = new DataTransfer();
-    editSelectedFiles.forEach(f => dt.items.add(f));
-    document.getElementById('editImageInput').files = dt.files;
-    renderEditNewPreviews();
+// ===== Edit Image Preview Logic (Unified list) =====
+let editImages = []; 
+
+let editDragSrcEl = null;
+
+function handleEditDragStart(e) {
+    editDragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    this.classList.add('dragging');
 }
 
-function renderEditNewPreviews() {
-    const grid = document.getElementById('editImagePreviewGrid');
-    const countEl = document.getElementById('editImageCount');
-    if (editSelectedFiles.length === 0) {
-        grid.style.display = 'none';
-        countEl.textContent = '';
-        return;
+function handleEditDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
     }
-    grid.style.display = 'grid';
-    grid.innerHTML = '';
-    countEl.textContent = `${editSelectedFiles.length} new image(s) selected — will replace existing images`;
-    editSelectedFiles.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const item = document.createElement('div');
-            item.className = 'image-preview-item';
-            item.innerHTML = `
-                <img src="${e.target.result}" alt="New ${index + 1}">
-                ${index === 0 ? '<span style="position:absolute;bottom:2px;left:2px;background:rgba(236,72,153,0.85);color:white;font-size:9px;padding:1px 4px;border-radius:4px;">Main</span>' : ''}
-            `;
-            grid.appendChild(item);
-        };
-        reader.readAsDataURL(file);
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleEditDragEnter(e) {
+    this.classList.add('over');
+}
+
+function handleEditDragLeave(e) {
+    this.classList.remove('over');
+}
+
+function handleEditDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    if (editDragSrcEl !== this) {
+        const fromIndex = parseInt(editDragSrcEl.getAttribute('data-index'));
+        const toIndex = parseInt(this.getAttribute('data-index'));
+        
+        const temp = editImages[fromIndex];
+        editImages.splice(fromIndex, 1);
+        editImages.splice(toIndex, 0, temp);
+        
+        renderEditImages();
+    }
+    return false;
+}
+
+function handleEditDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('#edit_existing_images .image-preview-item').forEach(item => {
+        item.classList.remove('over');
     });
 }
 
-function removeKeepImage(index) {
-    editKeepImages.splice(index, 1);
-    document.getElementById('edit_keep_images').value = JSON.stringify(editKeepImages);
-    renderEditExistingImages();
+function previewEditImages(event) {
+    const files = Array.from(event.target.files);
+    
+    // Add new files to our unified list
+    let processed = 0;
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            editImages.push({
+                type: 'new',
+                src: e.target.result,
+                file: file
+            });
+            processed++;
+            if (processed === files.length) {
+                renderEditImages();
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Reset file input value so same files can be chosen again if needed
+    event.target.value = '';
 }
 
-function renderEditExistingImages() {
+function renderEditImages() {
     const container = document.getElementById('edit_existing_images');
     container.innerHTML = '';
-    if (editKeepImages.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400">No existing images.</p>';
+    
+    if (editImages.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400">No images.</p>';
         return;
     }
-    editKeepImages.forEach((src, idx) => {
+    
+    editImages.forEach((img, idx) => {
         const item = document.createElement('div');
         item.className = 'image-preview-item';
+        item.setAttribute('draggable', 'true');
+        item.setAttribute('data-index', idx);
+        
+        item.addEventListener('dragstart', handleEditDragStart, false);
+        item.addEventListener('dragenter', handleEditDragEnter, false);
+        item.addEventListener('dragover', handleEditDragOver, false);
+        item.addEventListener('dragleave', handleEditDragLeave, false);
+        item.addEventListener('drop', handleEditDrop, false);
+        item.addEventListener('dragend', handleEditDragEnd, false);
+        
         item.innerHTML = `
-            <img src="${src}" alt="Image ${idx + 1}">
-            <button type="button" class="remove-btn" onclick="removeKeepImage(${idx})" title="Remove">✕</button>
+            <img src="${img.src}" alt="Image ${idx + 1}">
+            <button type="button" class="remove-btn" onclick="removeEditImage(${idx})" title="Remove">✕</button>
             ${idx === 0 ? '<span style="position:absolute;bottom:2px;left:2px;background:rgba(236,72,153,0.85);color:white;font-size:9px;padding:1px 4px;border-radius:4px;">Main</span>' : ''}
         `;
         container.appendChild(item);
     });
-    document.getElementById('edit_keep_images').value = JSON.stringify(editKeepImages);
+}
+
+function removeEditImage(index) {
+    editImages.splice(index, 1);
+    renderEditImages();
 }
 
 // Global list of products for related products selection
@@ -364,10 +472,11 @@ async function openEditModal(id) {
         document.getElementById('edit_sizes').value = sizesArr.join(', ');
 
         // Existing images
-        editKeepImages = Array.isArray(p.images) && p.images.length > 0
+        const existingImgs = Array.isArray(p.images) && p.images.length > 0
             ? [...p.images]
             : (p.image ? [p.image] : []);
-        renderEditExistingImages();
+        editImages = existingImgs.map(src => ({ type: 'existing', src }));
+        renderEditImages();
 
         // Parse and select related products
         const selectedRelatedIds = p.related_products 
@@ -376,11 +485,7 @@ async function openEditModal(id) {
         populateRelatedProductsSelects(p.id, selectedRelatedIds);
 
         // Reset new image upload
-        editSelectedFiles = [];
         document.getElementById('editImageInput').value = '';
-        document.getElementById('editImagePreviewGrid').innerHTML = '';
-        document.getElementById('editImagePreviewGrid').style.display = 'none';
-        document.getElementById('editImageCount').textContent = '';
 
         // Load and set category dropdown
         await refreshEditModalCategories(p.category);
@@ -505,10 +610,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(editProductForm);
             // Remove the product_id field — it's in the URL
             formData.delete('product_id');
+            formData.delete('new_images');
 
             // Append related products
             const selectedRelated = Array.from(editProductForm.elements['related_products_select'].selectedOptions).map(opt => opt.value);
             formData.append('related_products', selectedRelated.join(','));
+
+            // Build the image order and append new files in order
+            const imageOrder = [];
+            let newFileCount = 0;
+            editImages.forEach(img => {
+                if (img.type === 'existing') {
+                    imageOrder.push(img.src);
+                } else if (img.type === 'new') {
+                    const placeholderName = `new_file_${newFileCount}`;
+                    imageOrder.push(placeholderName);
+                    formData.append('new_images', img.file, img.file.name);
+                    newFileCount++;
+                }
+            });
+            formData.append('image_order', JSON.stringify(imageOrder));
 
             try {
                 const res = await fetch(`/api/products/${id}`, {
