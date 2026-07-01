@@ -499,9 +499,6 @@ async function openEditModal(id) {
 
 // ===== DOMContentLoaded =====
 document.addEventListener('DOMContentLoaded', () => {
-    // Check permission-based sidebar filtering
-    checkAdminPermissions();
-
     // Determine which page we are on and only fetch necessary data
     if (document.getElementById('products-table-body')) fetchProducts();
     if (document.getElementById('users-table-body')) fetchUsers();
@@ -3840,44 +3837,4 @@ async function openEditOrderDetail(id) {
     }
 }
 
-// Sidebar permission mapping & check
-const permissionMap = {
-    'index.html': 'dashboard',
-    'orders.html': 'orders',
-    'products.html': 'products',
-    'categories.html': 'categories',
-    'users.html': 'users',
-    'coupons.html': 'coupons',
-    'banners.html': 'banners',
-    'reviews.html': 'reviews',
-    'navigation.html': 'navigation',
-    'contact.html': 'contact',
-    'reports.html': 'reports',
-    'settings.html': 'settings',
-    'staff.html': 'settings'
-};
 
-async function checkAdminPermissions() {
-    try {
-        const res = await fetch('/api/admin/session');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.loggedIn && data.admin) {
-            if (data.isSuper) return; // Super admins see everything
-            const permissions = data.admin.permissions || [];
-            const sidebarLinks = document.querySelectorAll("#admin-sidebar a");
-            sidebarLinks.forEach(link => {
-                const href = link.getAttribute("href");
-                if (href) {
-                    const page = href.split('/').pop().split('?')[0];
-                    const requiredPermission = permissionMap[page];
-                    if (requiredPermission && !permissions.includes(requiredPermission)) {
-                        link.style.display = 'none';
-                    }
-                }
-            });
-        }
-    } catch (err) {
-        console.error("Error checking admin permissions:", err);
-    }
-}
