@@ -2562,34 +2562,111 @@ function getStateFromPincode(pincode) {
 let manualOrderItems = [];
 let allProducts = [];
 
+function saveManualOrderDraft() {
+    const draft = {
+        mo_first_name: document.getElementById('mo_first_name')?.value || '',
+        mo_last_name: document.getElementById('mo_last_name')?.value || '',
+        mo_phone: document.getElementById('mo_phone')?.value || '',
+        mo_email: document.getElementById('mo_email')?.value || '',
+        mo_house_no: document.getElementById('mo_house_no')?.value || '',
+        mo_society: document.getElementById('mo_society')?.value || '',
+        mo_street: document.getElementById('mo_street')?.value || '',
+        mo_landmark: document.getElementById('mo_landmark')?.value || '',
+        mo_city: document.getElementById('mo_city')?.value || '',
+        mo_state: document.getElementById('mo_state')?.value || '',
+        mo_pincode: document.getElementById('mo_pincode')?.value || '',
+        mo_payment_method: document.getElementById('mo_payment_method')?.value || 'COD',
+        mo_payment_status: document.getElementById('mo_payment_status')?.value || 'Pending',
+        mo_delivery_charge: document.getElementById('mo_delivery_charge')?.value || 0,
+        manualOrderItems: manualOrderItems || []
+    };
+    localStorage.setItem('manualOrderDraft', JSON.stringify(draft));
+}
+
+function loadManualOrderDraft() {
+    const draftStr = localStorage.getItem('manualOrderDraft');
+    if (draftStr) {
+        try {
+            const draft = JSON.parse(draftStr);
+            document.getElementById('mo_first_name').value = draft.mo_first_name || '';
+            document.getElementById('mo_last_name').value = draft.mo_last_name || '';
+            document.getElementById('mo_phone').value = draft.mo_phone || '';
+            document.getElementById('mo_email').value = draft.mo_email || '';
+            document.getElementById('mo_house_no').value = draft.mo_house_no || '';
+            document.getElementById('mo_society').value = draft.mo_society || '';
+            document.getElementById('mo_street').value = draft.mo_street || '';
+            document.getElementById('mo_landmark').value = draft.mo_landmark || '';
+            document.getElementById('mo_city').value = draft.mo_city || '';
+            document.getElementById('mo_state').value = draft.mo_state || '';
+            document.getElementById('mo_pincode').value = draft.mo_pincode || '';
+            
+            document.getElementById('mo_product_qty').value = 1;
+            document.getElementById('mo_delivery_charge').value = draft.mo_delivery_charge || 0;
+            
+            document.getElementById('mo_payment_method').value = draft.mo_payment_method || 'COD';
+            document.getElementById('mo_payment_status').value = draft.mo_payment_status || 'Pending';
+            
+            if (draft.manualOrderItems && Array.isArray(draft.manualOrderItems)) {
+                manualOrderItems = draft.manualOrderItems;
+            } else {
+                manualOrderItems = [];
+            }
+            return;
+        } catch(e) {
+            console.error('Error parsing draft', e);
+        }
+    }
+    
+    // Default / Clear if no draft or error
+    document.getElementById('mo_first_name').value = '';
+    document.getElementById('mo_last_name').value = '';
+    document.getElementById('mo_phone').value = '';
+    document.getElementById('mo_email').value = '';
+    document.getElementById('mo_house_no').value = '';
+    document.getElementById('mo_society').value = '';
+    document.getElementById('mo_street').value = '';
+    document.getElementById('mo_landmark').value = '';
+    document.getElementById('mo_city').value = '';
+    document.getElementById('mo_state').value = '';
+    document.getElementById('mo_pincode').value = '';
+    
+    document.getElementById('mo_product_qty').value = 1;
+    document.getElementById('mo_delivery_charge').value = 0;
+    
+    document.getElementById('mo_payment_method').value = 'COD';
+    document.getElementById('mo_payment_status').value = 'Pending';
+    
+    manualOrderItems = [];
+}
+
 async function initAddOrderModal() {
     try {
-        // Reset form inputs
-        document.getElementById('mo_first_name').value = '';
-        document.getElementById('mo_last_name').value = '';
-        document.getElementById('mo_phone').value = '';
-        document.getElementById('mo_email').value = '';
-        document.getElementById('mo_house_no').value = '';
-        document.getElementById('mo_society').value = '';
-        document.getElementById('mo_street').value = '';
-        document.getElementById('mo_landmark').value = '';
-        document.getElementById('mo_city').value = '';
-        document.getElementById('mo_state').value = '';
-        document.getElementById('mo_pincode').value = '';
-        
-        document.getElementById('mo_product_qty').value = 1;
-        document.getElementById('mo_delivery_charge').value = 0;
+        if (!window.__manualOrderDraftHooked) {
+            const addOrderForm = document.getElementById('addOrderForm');
+            if (addOrderForm) {
+                addOrderForm.addEventListener('input', saveManualOrderDraft);
+                addOrderForm.addEventListener('change', saveManualOrderDraft);
+            }
+            window.__manualOrderDraftHooked = true;
+        }
+
+        // Reset button state
+        const submitBtn = document.querySelector('#addOrderForm button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Order';
+        }
+
+        loadManualOrderDraft();
+
         if (document.getElementById('mo_pincode_error')) document.getElementById('mo_pincode_error').style.display = 'none';
         if (document.getElementById('mo_phone_error')) document.getElementById('mo_phone_error').style.display = 'none';
         
-        document.getElementById('mo_payment_method').value = 'COD';
-        document.getElementById('mo_payment_status').value = 'Pending';
-        
-        manualOrderItems = [];
         allProducts = [];
         
         renderManualOrderItems();
         updateManualOrderSummary();
+        saveManualOrderDraft();
         
         // Fetch products
         const select = document.getElementById('mo_product_select');
@@ -2656,6 +2733,7 @@ function removeManualOrderItem(index) {
     renderManualOrderItems();
     recalculateManualOrderShipping();
     updateManualOrderSummary();
+    saveManualOrderDraft();
 }
 
 function renderManualOrderItems() {
@@ -2775,6 +2853,8 @@ async function submitManualOrder(event) {
         if (!res.ok) throw new Error('Failed to create order');
         const data = await res.json();
         
+        localStorage.removeItem('manualOrderDraft');
+        
         showToast('Manual order created successfully! 📦✨');
         toggleModal('addOrderModal');
         
@@ -2788,6 +2868,12 @@ async function submitManualOrder(event) {
     } catch (error) {
         console.error('Error creating manual order:', error);
         alert('Failed to create order. Please try again.');
+    } finally {
+        const btn = event.submitter || document.querySelector('#addOrderForm button[type="submit"]');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Create Order';
+        }
     }
 }
 
