@@ -3457,3 +3457,7 @@ footer {
   }
 }
 
+/* Hide top header bar globally */
+.header-top {
+  display: none !important;
+}
