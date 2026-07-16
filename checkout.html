@@ -553,11 +553,13 @@
             const btnGpay = document.getElementById('modal-btn-gpay');
             const btnPhonepe = document.getElementById('modal-btn-phonepe');
             const btnPaytm = document.getElementById('modal-btn-paytm');
+            const btnBhim = document.getElementById('modal-btn-bhim');
             const btnOther = document.getElementById('modal-btn-other-upi');
             
             if (btnGpay) btnGpay.href = `tez://upi/pay${upiParams}`;
             if (btnPhonepe) btnPhonepe.href = `phonepe://pay${upiParams}`;
             if (btnPaytm) btnPaytm.href = `paytmmp://pay${upiParams}`;
+            if (btnBhim) btnBhim.href = `bhim://pay${upiParams}`;
             if (btnOther) btnOther.href = upiUrl;
         }
 
@@ -1196,16 +1198,22 @@
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png" class="w-8 h-8 object-contain" alt="GPay">
                         Google Pay
                     </a>
-                    <a id="modal-btn-phonepe" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-purple-700 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
-                        <svg class="w-8 h-8 text-purple-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-4H7l4.5-5.5L16 13h-2v4z"/></svg>
+                    <a id="modal-btn-phonepe" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
+                        <img src="https://download.logo.wine/logo/PhonePe/PhonePe-Logo.wine.png" class="w-8 h-8 object-contain" style="transform: scale(1.6);" alt="PhonePe">
                         PhonePe
                     </a>
-                    <a id="modal-btn-paytm" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
-                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-3H9v-2h2V9h2v2h2v2h-2v3z"/></svg>
+                    <a id="modal-btn-paytm" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo_%28standalone%29.svg" class="w-12 h-8 object-contain" alt="Paytm">
                         Paytm
                     </a>
+                    <a id="modal-btn-bhim" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" class="w-12 h-8 object-contain" alt="BHIM UPI">
+                        BHIM UPI
+                    </a>
                     <a id="modal-btn-other-upi" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <div class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full border border-gray-200">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
                         Other UPI App
                     </a>
                 </div>
