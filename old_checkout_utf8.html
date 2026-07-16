@@ -1,0 +1,1067 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Devangi Products</title>
+    <script src="/assets/js/tailwindcss.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .address-card.selected { border-color: #ec4899; background-color: #fdf2f8; }
+        .payment-card.selected { border-color: #ec4899; background-color: #fdf2f8; }
+        input:invalid:focus { border-color: #ef4444; ring-color: #ef4444; }
+        .error-text { color: #ef4444; font-size: 10px; margin-top: 2px; display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/index.html"><img src="/assets/images/logo/logo.svg" alt="Devangi Products Logo" class="h-8"></a>
+            <div class="flex items-center gap-2 text-gray-500 text-sm">
+                <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+                Secure Checkout
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-6 max-w-5xl">
+        <div class="flex flex-col lg:flex-row gap-6">
+            
+            <!-- Left Side: Address & Payment -->
+            <div class="flex-grow space-y-5">
+                
+                <!-- 1. Saved Addresses Section -->
+                <section id="saved-addresses-section" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold">Select Delivery Address</h3>
+                        <button onclick="showNewAddressForm()" class="text-pink-500 text-sm font-semibold hover:underline">+ Add New</button>
+                    </div>
+                    <div id="addresses-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Addresses injected here -->
+                    </div>
+                </section>
+
+                <!-- 2. New Address Form -->
+                <section id="address-form-section" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-gray-800">Delivery Address</h3>
+                        <div id="location-status" class="text-[10px] text-gray-400 italic">Auto-detecting location...</div>
+                    </div>
+                    
+                    <form id="address-form" class="space-y-4" oninput="validateForm()">
+                        <!-- Row 1: Names -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">First Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr-firstname" required placeholder="John" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Last Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr-lastname" required placeholder="Doe" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Phone -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Phone Number <span class="text-red-500">*</span></label>
+                            <input type="tel" id="addr-phone" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile number" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                            <p id="phone-error" class="error-text">Please enter exactly 10 digits</p>
+                        </div>
+                        
+                        <!-- Row 3: House & Society -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">House / Flat / Floor <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr-house" required placeholder="Flat 402, 4th Floor" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Society / Building <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr-society" required placeholder="Green Valley Residency" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Area -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Street / Area <span class="text-red-500">*</span></label>
+                            <input type="text" id="addr-street" required placeholder="Near Main Market, MG Road" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                        </div>
+
+                        <!-- Row 5: Landmark -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider text-gray-400">Landmark <span class="font-normal">(Optional)</span></label>
+                            <input type="text" id="addr-landmark" placeholder="Opposite HDFC Bank" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                        </div>
+
+                        <!-- Row 6: City, State, Pincode -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">City <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr-city" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">State <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr-state" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Pincode <span class="text-red-500">*</span></label>
+                                <input type="text" id="addr-pincode" required pattern="[1-9][0-9]{5}" maxlength="6" placeholder="6 digits" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm">
+                                <p id="pincode-error" class="error-text">Must be a valid 6-digit Indian Pincode (e.g. 380001)</p>
+                            </div>
+                        </div>
+
+                        <!-- Row 7: Save Toggle + Label -->
+                        <div class="flex flex-col md:flex-row md:items-end gap-6 pt-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="save-address-check" checked class="w-4 h-4 text-pink-500 rounded border-gray-300 focus:ring-pink-500 cursor-pointer">
+                                <label for="save-address-check" class="text-sm text-gray-600 cursor-pointer">Save this address for future orders</label>
+                            </div>
+                            <div id="label-container" class="flex-grow transition-all">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Address Label <span class="text-red-500">*</span></label>
+                                <select id="addr-label" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-pink-500 outline-none transition text-sm bg-white">
+                                    <option value="Home">Home</option>
+                                    <option value="Office">Office</option>
+                                    <option value="Shop">Shop</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 3. Payment Method Section -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                    <h3 class="text-lg font-bold mb-6">Payment Method</h3>
+                    <div class="space-y-4">
+                        <div onclick="selectPaymentMethod('COD')" id="pay-cod" class="payment-card border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:border-pink-200 flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-lg">≡ƒÆ╡</div>
+                                <div>
+                                    <p class="font-bold text-sm">Cash on Delivery (COD)</p>
+                                    <p class="text-xs text-gray-400">Pay when your order arrives</p>
+                                </div>
+                            </div>
+                            <div id="check-cod" class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-pink-500 opacity-0 transition-all"></div>
+                            </div>
+                        </div>
+
+                        <div onclick="selectPaymentMethod('ONLINE')" id="pay-online" class="payment-card border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:border-pink-200 flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-500 text-lg">≡ƒÆ│</div>
+                                <div>
+                                    <p class="font-bold text-sm">Online Payment</p>
+                                    <p class="text-xs text-gray-400">Cards, UPI, NetBanking (via Razorpay)</p>
+                                </div>
+                            </div>
+                            <div id="check-online" class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-pink-500 opacity-0 transition-all"></div>
+                            </div>
+                        </div>
+
+                        <div onclick="selectPaymentMethod('WHATSAPP')" id="pay-whatsapp" class="payment-card border border-gray-200 rounded-lg p-3 cursor-pointer transition-all hover:border-green-200 flex items-center justify-between hidden">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center text-green-500 text-lg">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm">Order via WhatsApp</p>
+                                    <p class="text-xs text-gray-400">Send order details directly on WhatsApp</p>
+                                </div>
+                            </div>
+                            <div id="check-whatsapp" class="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-green-500 opacity-0 transition-all"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Side: Order Summary -->
+            <div class="w-full lg:w-[380px]">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sticky top-24">
+                    <h3 class="text-lg font-bold mb-4">Order Summary</h3>
+                    
+                    <!-- Free Shipping Progress / Notice -->
+                    <div id="free-shipping-notice" class="mb-4 p-3 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-xl transition-all hidden">
+                        <p class="text-xs text-pink-700 font-semibold text-center mb-2">
+                            ≡ƒÜÜ Add <span class="font-bold text-pink-600" id="free-shipping-diff">Rs. 244.00</span> more for <span class="font-bold text-pink-600">FREE Shipping!</span>
+                        </p>
+                        <div class="w-full bg-pink-100 rounded-full h-1.5">
+                            <div id="free-shipping-bar" class="bg-gradient-to-r from-pink-400 to-rose-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-pink-400 text-center mt-1"><a href="/shop.html" class="underline font-semibold hover:text-pink-600">Browse more products ΓåÆ</a></p>
+                    </div>
+                    
+                    <div id="cart-summary-items" class="space-y-4 mb-3 max-h-60 overflow-y-auto pr-2">
+                        <!-- Items injected here -->
+                    </div>
+                    <!-- Add More Items link -->
+                    <div id="add-more-row" class="mb-4 text-center">
+                        <a id="add-more-link" href="/shop.html" class="inline-flex items-center gap-1 text-xs text-pink-500 font-semibold hover:text-pink-700 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Add More Items
+                        </a>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-4 space-y-3">
+                        <div class="flex justify-between text-gray-500 text-sm">
+                            <span>Subtotal</span>
+                            <span id="summary-subtotal">Rs. 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500 text-sm">
+                            <span>Shipping</span>
+                            <span id="summary-shipping" class="text-green-500 font-bold">FREE</span>
+                        </div>
+                        <div id="coupon-discount-row" class="hidden flex justify-between text-green-600 text-sm font-medium">
+                            <span>Coupon Discount</span>
+                            <span id="summary-coupon-discount">- Rs. 0</span>
+                        </div>
+                        
+                        <!-- Coupon Code Input -->
+                        <div class="border-t border-gray-100 pt-3">
+                            <div class="flex gap-2" id="coupon-input-row">
+                                <input type="text" id="coupon-code-input" placeholder="Enter coupon code" 
+                                    class="flex-grow px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 uppercase">
+                                <button onclick="applyCoupon()" id="apply-coupon-btn" 
+                                    class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap">Apply</button>
+                            </div>
+                            <div id="coupon-success-row" class="hidden mt-2 bg-green-50 border border-green-200 rounded-lg p-2 flex justify-between items-center">
+                                <span class="text-green-700 text-xs font-medium" id="coupon-success-msg">Coupon applied!</span>
+                                <button onclick="removeCoupon()" class="text-red-500 text-xs font-bold hover:underline">Remove</button>
+                            </div>
+                            <p id="coupon-error-msg" class="hidden text-red-500 text-xs mt-1"></p>
+                        </div>
+
+                        <div class="flex justify-between text-xl font-bold pt-2 border-t border-gray-100">
+                            <span>Total</span>
+                            <span id="summary-total" class="text-pink-500">Rs. 0.00</span>
+                        </div>
+                    </div>
+
+                    <div id="checkout-min-order-warning" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm p-4 rounded-xl mt-4 text-center">
+                    </div>
+
+                    <button onclick="processOrderPlacement()" id="main-place-btn" class="w-full mt-5 bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-xl shadow-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Place Order
+                    </button>
+                    
+                    <p class="text-[10px] text-gray-400 text-center mt-4 px-2">
+                        By clicking "Place Order", you agree to our <a href="#" class="underline">Terms of Service</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-10 text-center max-w-sm w-full">
+            <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Order Confirmed!</h2>
+            <p class="text-gray-500 mb-8" id="success-msg">Your order has been placed successfully.</p>
+            <div class="space-y-3" id="success-modal-actions">
+                <a href="/account.html" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">View My Orders</a>
+                <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('anon_user'));
+        const isGuest = sessionStorage.getItem('guest_checkout') === 'true';
+        
+        // Detect Buy Now mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const isBuyNow = urlParams.get('buynow') === '1';
+        
+        let cartItems;
+        if (isBuyNow) {
+            // Only show the single Buy Now product ΓÇö never touch the cart
+            cartItems = JSON.parse(sessionStorage.getItem('buy_now_cart')) || [];
+        } else {
+            cartItems = JSON.parse(localStorage.getItem('anon_cart')) || [];
+        }
+        
+        let selectedAddressId = null;
+        let selectedPaymentMethod = 'COD';
+        let savedAddresses = [];
+        let appliedCoupon = null;
+        let chargeGujarat = 50;
+        let chargeMaharashtra = 60;
+        let chargeOthers = 100;
+        let shippingFreeAbove = 250;
+        let shippingCharge = 100;
+        let whatsappOrderNumber = '';
+        let minimumOrderAmount = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (cartItems.length === 0) {
+                window.location.href = '/index.html';
+                return;
+            }
+
+            renderOrderSummary();
+            loadSavedAddresses();
+            loadShippingSettings();
+            selectPaymentMethod('COD');
+            validateForm();
+
+            // Add More Items link: hide in Buy Now mode, point to cart in normal mode
+            const addMoreRow = document.getElementById('add-more-row');
+            const addMoreLink = document.getElementById('add-more-link');
+            if (isBuyNow) {
+                if (addMoreRow) addMoreRow.classList.add('hidden');
+            } else {
+                if (addMoreLink) addMoreLink.href = '/cart.html';
+            }
+
+            // Background Geolocation
+            autoDetectLocation();
+            
+            // Sync checkbox with label visibility
+            const saveCheck = document.getElementById('save-address-check');
+            if (saveCheck) {
+                saveCheck.addEventListener('change', function() {
+                    const labelContainer = document.getElementById('label-container');
+                    const addrLabel = document.getElementById('addr-label');
+                    if (labelContainer) labelContainer.style.opacity = this.checked ? "1" : "0.3";
+                    if (addrLabel) addrLabel.disabled = !this.checked;
+                });
+            }
+
+            // Real-time validation and shipping charge updates as user types
+            const phoneInput = document.getElementById('addr-phone');
+            const pinInput = document.getElementById('addr-pincode');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', validateForm);
+            }
+            if (pinInput) {
+                pinInput.addEventListener('input', () => {
+                    const pin = pinInput.value.trim();
+                    if (pin.length >= 2) {
+                        const detectedState = getStateFromPincode(pin);
+                        if (detectedState) {
+                            const stateInput = document.getElementById('addr-state');
+                            if (stateInput) stateInput.value = detectedState;
+                        }
+                    }
+                    validateForm();
+                    renderOrderSummary();
+                });
+            }
+        });
+
+        function renderOrderSummary() {
+            const container = document.getElementById('cart-summary-items');
+            container.innerHTML = '';
+            cartItems.forEach(item => {
+                container.innerHTML += `
+                    <div class="flex gap-4">
+                        <img src="${item.image}" class="w-12 h-12 rounded-lg object-cover border border-gray-100">
+                        <div class="flex-grow">
+                            <p class="text-sm font-bold text-gray-800 line-clamp-1">${item.title || item.name}</p>
+                            <p class="text-xs text-gray-400">Qty: ${item.quantity} ├ù Rs. ${item.price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            document.getElementById('summary-subtotal').innerText = `Rs. ${subtotal.toFixed(2)}`;
+            
+            // Calculate dynamic shipping charge based on pincode
+            let pincode = '';
+            if (selectedAddressId) {
+                const addr = savedAddresses.find(a => a.id === selectedAddressId);
+                if (addr) pincode = addr.pincode || '';
+            } else {
+                const pinInput = document.getElementById('addr-pincode');
+                if (pinInput) pincode = pinInput.value.trim();
+            }
+
+            // Declare isPincodeValid BEFORE the if check
+            const isPincodeValid = /^[1-9][0-9]{5}$/.test(pincode);
+
+            // Helper: show the free-shipping nudge bar
+            function showFsNudge() {
+                const fsNotice = document.getElementById('free-shipping-notice');
+                if (!fsNotice) return;
+                if (subtotal < shippingFreeAbove) {
+                    const diff = shippingFreeAbove - subtotal;
+                    const pct = Math.min(100, Math.round((subtotal / shippingFreeAbove) * 100));
+                    document.getElementById('free-shipping-diff').textContent = `Rs. ${diff.toFixed(2)}`;
+                    const bar = document.getElementById('free-shipping-bar');
+                    if (bar) bar.style.width = pct + '%';
+                    fsNotice.classList.remove('hidden');
+                } else {
+                    fsNotice.classList.add('hidden');
+                }
+            }
+
+            // Helper: update coupon row
+            function updateCouponRow() {
+                if (appliedCoupon) {
+                    if (appliedCoupon.is_free_shipping) {
+                        document.getElementById('coupon-discount-row').classList.remove('hidden');
+                        document.getElementById('summary-coupon-discount').textContent = 'Free Shipping';
+                    } else {
+                        document.getElementById('coupon-discount-row').classList.remove('hidden');
+                        document.getElementById('summary-coupon-discount').textContent = `- Rs. ${appliedCoupon.discount.toFixed(2)}`;
+                    }
+                } else {
+                    document.getElementById('coupon-discount-row').classList.add('hidden');
+                }
+            }
+
+            // If no valid pincode yet ΓÇö show "Enter address" placeholder
+            if (!pincode || !isPincodeValid) {
+                shippingCharge = 0;
+                const shippingEl = document.getElementById('summary-shipping');
+                shippingEl.textContent = 'Enter address';
+                shippingEl.className = 'text-gray-400 font-medium text-xs italic';
+
+                const couponDiscountVal = (appliedCoupon && !appliedCoupon.is_free_shipping) ? appliedCoupon.discount : 0;
+                const tempTotal = Math.floor(subtotal - couponDiscountVal);
+                document.getElementById('summary-total').innerText = `Rs. ${tempTotal} + Shipping`;
+
+                showFsNudge();
+                updateCouponRow();
+                return;
+            }
+
+            // ΓöÇΓöÇ Pincode detected ΓåÆ calculate exact shipping ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+            const prefix2 = pincode.substring(0, 2);
+            const prefix3 = pincode.substring(0, 3);
+
+            // Gujarat: pincodes starting 36-39
+            let currentShipping = chargeOthers;
+            if (['36','37','38','39'].includes(prefix2)) {
+                currentShipping = chargeGujarat;
+            } else if (['40','41','42','43','44'].includes(prefix2) && prefix3 !== '403') {
+                currentShipping = chargeMaharashtra;
+            }
+
+            shippingCharge = subtotal >= shippingFreeAbove ? 0 : currentShipping;
+            if (appliedCoupon && appliedCoupon.is_free_shipping) {
+                shippingCharge = 0;
+            }
+            const shippingEl = document.getElementById('summary-shipping');
+            if (shippingCharge > 0) {
+                shippingEl.textContent = `Rs. ${shippingCharge}`;
+                shippingEl.className = 'text-gray-700 font-medium';
+            } else {
+                shippingEl.textContent = 'FREE';
+                shippingEl.className = 'text-green-500 font-bold';
+            }
+
+            // Free Shipping Notice Progress
+            const fsNotice = document.getElementById('free-shipping-notice');
+            if (fsNotice) {
+                if (shippingCharge > 0 && subtotal < shippingFreeAbove) {
+                    const diff = shippingFreeAbove - subtotal;
+                    const pct = Math.min(100, Math.round((subtotal / shippingFreeAbove) * 100));
+                    document.getElementById('free-shipping-diff').textContent = `Rs. ${diff.toFixed(2)}`;
+                    const bar = document.getElementById('free-shipping-bar');
+                    if (bar) bar.style.width = pct + '%';
+                    fsNotice.classList.remove('hidden');
+                } else {
+                    fsNotice.classList.add('hidden');
+                }
+            }
+
+            // Coupon discount
+            let couponDiscount = 0;
+            if (appliedCoupon) {
+                if (appliedCoupon.is_free_shipping) {
+                    couponDiscount = 0;
+                    document.getElementById('coupon-discount-row').classList.remove('hidden');
+                    document.getElementById('summary-coupon-discount').textContent = `Free Shipping`;
+                } else {
+                    couponDiscount = appliedCoupon.discount;
+                    document.getElementById('coupon-discount-row').classList.remove('hidden');
+                    document.getElementById('summary-coupon-discount').textContent = `- Rs. ${couponDiscount.toFixed(2)}`;
+                }
+            } else {
+                document.getElementById('coupon-discount-row').classList.add('hidden');
+            }
+
+            const total = Math.floor(subtotal + shippingCharge - couponDiscount);
+            document.getElementById('summary-total').innerText = `Rs. ${total}`;
+        }
+
+        async function loadSavedAddresses() {
+            if (!currentUser) {
+                document.getElementById('saved-addresses-section').classList.add('hidden');
+                document.getElementById('address-form-section').classList.remove('hidden');
+                
+                // Hide save address checkbox for guest users
+                const saveAddressWrapper = document.getElementById('save-address-check')?.closest('.flex');
+                if (saveAddressWrapper) {
+                    saveAddressWrapper.classList.add('hidden');
+                    document.getElementById('save-address-check').checked = false;
+                }
+                return;
+            }
+            try {
+                const res = await fetch(`/api/addresses?user_id=${currentUser.id}`);
+                savedAddresses = await res.json();
+                if (savedAddresses.length > 0) {
+                    document.getElementById('saved-addresses-section').classList.remove('hidden');
+                    renderAddressesList();
+                    const defaultAddr = savedAddresses.find(a => a.is_default) || savedAddresses[0];
+                    selectSavedAddress(defaultAddr.id);
+                } else {
+                    document.getElementById('address-form-section').classList.remove('hidden');
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function renderAddressesList() {
+            const container = document.getElementById('addresses-list');
+            container.innerHTML = '';
+            savedAddresses.forEach(addr => {
+                container.innerHTML += `
+                    <div onclick="selectSavedAddress(${addr.id})" id="addr-card-${addr.id}" class="address-card border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-pink-200 transition-all relative">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[9px] font-bold uppercase tracking-wider bg-pink-50 px-2 py-0.5 rounded text-pink-500">${addr.nickname || 'Address'}</span>
+                            ${addr.is_default ? '<span class="text-[9px] text-green-500 font-bold uppercase">Default</span>' : ''}
+                        </div>
+                        <p class="font-bold text-sm text-gray-800">${addr.fullname}</p>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-2">${addr.house_no}, ${addr.society}, ${addr.street || ''}, ${addr.landmark ? addr.landmark + ', ' : ''}${addr.city}</p>
+                        <p class="text-[11px] text-gray-400 mt-1">${addr.phone}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function selectSavedAddress(id) {
+            selectedAddressId = id;
+            document.querySelectorAll('.address-card').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`addr-card-${id}`)?.classList.add('selected');
+            document.getElementById('address-form-section').classList.add('hidden');
+            validateForm();
+            renderOrderSummary();
+        }
+
+        function showNewAddressForm() {
+            selectedAddressId = null;
+            document.querySelectorAll('.address-card').forEach(el => el.classList.remove('selected'));
+            document.getElementById('address-form-section').classList.remove('hidden');
+            document.getElementById('address-form').reset();
+            const names = (currentUser ? currentUser.fullname || '' : '').split(' ');
+            document.getElementById('addr-firstname').value = names[0] || '';
+            document.getElementById('addr-lastname').value = names.slice(1).join(' ') || '';
+            validateForm();
+            renderOrderSummary();
+        }
+
+        function getStateFromPincode(pincode) {
+            if (!pincode || pincode.length < 2) return '';
+            const prefix2 = pincode.substring(0, 2);
+            const prefix3 = pincode.substring(0, 3);
+            
+            if (prefix3 === '403') return 'Goa';
+            if (prefix3 === '160') return 'Chandigarh';
+            if (prefix3 === '605') return 'Puducherry';
+            if (prefix3 === '737') return 'Sikkim';
+            if (prefix3 === '744') return 'Andaman & Nicobar Islands';
+            
+            if (prefix3 === '248' || prefix3 === '249' || prefix3 === '263') return 'Uttarakhand';
+            
+            if (['814', '815', '816', '822', '825', '826', '827', '828', '829', '831', '832', '833', '834', '835'].includes(prefix3)) {
+                return 'Jharkhand';
+            }
+            
+            if (prefix2 === '79') {
+                if (prefix3 === '790' || prefix3 === '791' || prefix3 === '792') return 'Arunachal Pradesh';
+                if (prefix3 === '793' || prefix3 === '794') return 'Meghalaya';
+                if (prefix3 === '795') return 'Manipur';
+                if (prefix3 === '796') return 'Mizoram';
+                if (prefix3 === '797' || prefix3 === '798') return 'Nagaland';
+                if (prefix3 === '799') return 'Tripura';
+                return 'Northeast State';
+            }
+
+            const stateMap = {
+                '11': 'Delhi',
+                '12': 'Haryana', '13': 'Haryana',
+                '14': 'Punjab', '15': 'Punjab',
+                '17': 'Himachal Pradesh',
+                '18': 'Jammu and Kashmir', '19': 'Jammu and Kashmir',
+                '20': 'Uttar Pradesh', '21': 'Uttar Pradesh', '22': 'Uttar Pradesh', '23': 'Uttar Pradesh', '24': 'Uttar Pradesh', '25': 'Uttar Pradesh', '26': 'Uttar Pradesh', '27': 'Uttar Pradesh', '28': 'Uttar Pradesh',
+                '30': 'Rajasthan', '31': 'Rajasthan', '32': 'Rajasthan', '33': 'Rajasthan', '34': 'Rajasthan',
+                '36': 'Gujarat', '37': 'Gujarat', '38': 'Gujarat', '39': 'Gujarat',
+                '40': 'Maharashtra', '41': 'Maharashtra', '42': 'Maharashtra', '43': 'Maharashtra', '44': 'Maharashtra',
+                '45': 'Madhya Pradesh', '46': 'Madhya Pradesh', '47': 'Madhya Pradesh', '48': 'Madhya Pradesh',
+                '49': 'Chhattisgarh',
+                '50': 'Telangana',
+                '51': 'Andhra Pradesh', '52': 'Andhra Pradesh', '53': 'Andhra Pradesh',
+                '56': 'Karnataka', '57': 'Karnataka', '58': 'Karnataka', '59': 'Karnataka',
+                '60': 'Tamil Nadu', '61': 'Tamil Nadu', '62': 'Tamil Nadu', '63': 'Tamil Nadu', '64': 'Tamil Nadu',
+                '67': 'Kerala', '68': 'Kerala', '69': 'Kerala',
+                '70': 'West Bengal', '71': 'West Bengal', '72': 'West Bengal', '73': 'West Bengal', '74': 'West Bengal',
+                '75': 'Odisha', '76': 'Odisha', '77': 'Odisha',
+                '78': 'Assam',
+                '80': 'Bihar', '81': 'Bihar', '82': 'Bihar', '83': 'Bihar', '84': 'Bihar', '85': 'Bihar'
+            };
+
+            return stateMap[prefix2] || '';
+        }
+
+        function validateForm() {
+            const btn = document.getElementById('main-place-btn');
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            const minOrderWarning = document.getElementById('checkout-min-order-warning');
+            
+            // Check minimum order amount first
+            if (subtotal < minimumOrderAmount) {
+                btn.disabled = true;
+                if (minOrderWarning) {
+                    minOrderWarning.innerHTML = `ΓÜá∩╕Å Minimum order amount is <strong>Rs. ${minimumOrderAmount.toFixed(2)}</strong>. Your order subtotal is <strong>Rs. ${subtotal.toFixed(2)}</strong>. Please add more items to place an order.`;
+                    minOrderWarning.classList.remove('hidden');
+                }
+                return;
+            } else {
+                if (minOrderWarning) minOrderWarning.classList.add('hidden');
+            }
+
+            if (selectedAddressId) {
+                btn.disabled = false;
+                return;
+            }
+
+            const phone = document.getElementById('addr-phone').value;
+            const pincode = document.getElementById('addr-pincode').value;
+            
+            const isPhoneValid = /^[0-9]{10}$/.test(phone);
+            const isPincodeValid = /^[1-9][0-9]{5}$/.test(pincode);
+            
+            document.getElementById('phone-error').style.display = (phone && !isPhoneValid) ? "block" : "none";
+            document.getElementById('pincode-error').style.display = (pincode && !isPincodeValid) ? "block" : "none";
+
+            const form = document.getElementById('address-form');
+            btn.disabled = !form.checkValidity() || !isPhoneValid || !isPincodeValid;
+        }
+
+        async function autoDetectLocation() {
+            const status = document.getElementById('location-status');
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    try {
+                        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`);
+                        const data = await res.json();
+                        document.getElementById('addr-city').value = data.city || data.locality || '';
+                        document.getElementById('addr-state').value = data.principalSubdivision || '';
+                        document.getElementById('addr-pincode').value = data.postcode || '';
+                        status.innerText = "Location detected: " + (data.city || data.locality);
+                        validateForm();
+                    } catch (e) { status.innerText = ""; }
+                }, () => { status.innerText = ""; });
+            }
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.payment-card').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.payment-card .w-3').forEach(el => el.classList.add('opacity-0'));
+            const btn = document.getElementById('main-place-btn');
+            if (method === 'COD') {
+                document.getElementById('pay-cod').classList.add('selected');
+                document.getElementById('check-cod').querySelector('.w-3').classList.remove('opacity-0');
+                btn.innerText = 'Place Order (COD)';
+            } else if (method === 'WHATSAPP') {
+                document.getElementById('pay-whatsapp').classList.add('selected');
+                document.getElementById('check-whatsapp').querySelector('.w-3').classList.remove('opacity-0');
+                btn.innerText = '≡ƒÆ¼ Order via WhatsApp';
+            } else {
+                document.getElementById('pay-online').classList.add('selected');
+                document.getElementById('check-online').querySelector('.w-3').classList.remove('opacity-0');
+                btn.innerText = 'Pay & Place Order';
+            }
+        }
+
+        async function processOrderPlacement() {
+            const btn = document.getElementById('main-place-btn');
+            let addressData = {};
+
+            if (selectedAddressId) {
+                const saved = savedAddresses.find(a => a.id === selectedAddressId);
+                addressData = { ...saved, label: saved.nickname };
+            } else {
+                addressData = {
+                    first_name: document.getElementById('addr-firstname').value,
+                    last_name: document.getElementById('addr-lastname').value,
+                    phone: document.getElementById('addr-phone').value,
+                    house_no: document.getElementById('addr-house').value,
+                    society: document.getElementById('addr-society').value,
+                    street: document.getElementById('addr-street').value,
+                    landmark: document.getElementById('addr-landmark').value,
+                    city: document.getElementById('addr-city').value,
+                    state: document.getElementById('addr-state').value,
+                    pincode: document.getElementById('addr-pincode').value,
+                    label: document.getElementById('addr-label').value
+                };
+
+                if (document.getElementById('save-address-check').checked) {
+                    await fetch('/api/addresses', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...addressData, user_id: currentUser ? currentUser.id : null, nickname: addressData.label })
+                    });
+                }
+            }
+
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            const actualShipping = subtotal >= shippingFreeAbove ? 0 : shippingCharge;
+            const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
+            const total = Math.floor(subtotal + actualShipping - couponDiscount);
+            if (selectedPaymentMethod === 'ONLINE') handleRazorpayPayment(addressData, total);
+            else if (selectedPaymentMethod === 'WHATSAPP') placeWhatsAppOrder(addressData, total);
+            else placeOrder(addressData, total, 'COD');
+        }
+
+        async function placeWhatsAppOrder(addressData, total) {
+            const btn = document.getElementById('main-place-btn');
+            btn.disabled = true;
+            btn.innerText = 'Processing...';
+
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            const actualShipping = subtotal >= shippingFreeAbove ? 0 : shippingCharge;
+            const fullAddr = `${addressData.house_no}, ${addressData.society}, ${addressData.street}, ${addressData.landmark ? addressData.landmark + ', ' : ''}${addressData.city}, ${addressData.state} - ${addressData.pincode}`;
+            const customerName = `${addressData.first_name} ${addressData.last_name}`;
+
+            // Place order in database first (like COD)
+            const orderData = {
+                user_id: currentUser ? currentUser.id : null,
+                first_name: addressData.first_name,
+                last_name: addressData.last_name,
+                fullname: customerName,
+                phone: addressData.phone,
+                email: currentUser ? currentUser.email : "",
+                total_amount: total,
+                delivery_charge: actualShipping,
+                address: fullAddr,
+                house_no: addressData.house_no,
+                society: addressData.society,
+                street: addressData.street,
+                landmark: addressData.landmark,
+                city: addressData.city,
+                state: addressData.state,
+                pincode: addressData.pincode,
+                label: addressData.label || addressData.nickname,
+                items: cartItems.map(item => ({ id: item.id, name: item.title || item.name, price: item.price, quantity: item.quantity, image: item.image })),
+                payment_method: 'WhatsApp',
+                transaction_id: null,
+                payment_status: 'Pending'
+            };
+
+            try {
+                const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
+                if (res.ok) {
+                    const resData = await res.json();
+                    const orderId = resData.orderId;
+
+                    // Track coupon usage
+                    if (appliedCoupon && appliedCoupon.coupon_id) {
+                        fetch(`/api/coupons/use/${appliedCoupon.coupon_id}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ user_id: currentUser ? currentUser.id : null })
+                        });
+                    }
+
+                    // Clear cart
+                    if (isBuyNow) {
+                        sessionStorage.removeItem('buy_now_cart');
+                    } else {
+                        localStorage.removeItem('anon_cart');
+                    }
+
+                    // Build WhatsApp message
+                    let msg = `Hello Devangi Sewing Products,\n\nI would like to place an order. Here are my details:\n\n`;
+                    msg += `*Order ID:* #${orderId}\n`;
+                    msg += `*Customer:* ${customerName}\n`;
+                    msg += `*Phone:* ${addressData.phone}\n`;
+                    msg += `*Delivery Address:* ${fullAddr}\n\n`;
+                    msg += `*Order Items:*\n`;
+                    cartItems.forEach((item, i) => {
+                        const itemName = item.title || item.name;
+                        msg += `Γû¬ ${itemName} (Qty: ${item.quantity}) - Rs. ${(item.price * item.quantity).toFixed(2)}\n`;
+                    });
+                    msg += `\n*Subtotal:* Rs. ${subtotal.toFixed(2)}\n`;
+                    msg += `*Shipping:* ${actualShipping === 0 ? 'FREE' : 'Rs. ' + actualShipping.toFixed(2)}\n`;
+                    if (appliedCoupon) {
+                        msg += `*Coupon Discount:* -Rs. ${appliedCoupon.discount.toFixed(2)}\n`;
+                    }
+                    msg += `\n*Total Amount:* Rs. ${total}\n`;
+                    msg += `\nPlease confirm my order and share the next steps. Thank you!`;
+
+                    // Get WhatsApp number from settings
+                    const waNumber = whatsappOrderNumber || '919725340354';
+                    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+
+                    // Show success modal
+                    if (!currentUser) {
+                        const phone = orderData.phone;
+                        const trackingUrl = `/track-order.html?phone=${phone}&order_id=${orderId}`;
+                        document.getElementById('success-msg').innerHTML = `Your order has been placed successfully.<br><br><span class="font-bold text-lg text-pink-600">Order ID: #${orderId}</span><br><span class="text-xs text-gray-400">Redirecting to WhatsApp...</span>`;
+                        document.getElementById('success-modal-actions').innerHTML = `
+                            <a href="${trackingUrl}" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">Track Order Status</a>
+                            <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
+                        `;
+                        sessionStorage.removeItem('guest_checkout');
+                    } else {
+                        document.getElementById('success-msg').innerHTML = `Your order has been placed successfully.<br><span class="text-xs text-gray-400">Redirecting to WhatsApp...</span>`;
+                        document.getElementById('success-modal-actions').innerHTML = `
+                            <a href="/account.html" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">View My Orders</a>
+                            <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
+                        `;
+                    }
+                    document.getElementById('successModal').classList.remove('hidden');
+
+                    // Redirect to WhatsApp after short delay
+                    setTimeout(() => {
+                        window.open(waUrl, '_blank');
+                    }, 800);
+                } else {
+                    alert('Order failed.');
+                }
+            } catch (err) {
+                alert('Network error.');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function handleRazorpayPayment(addressData, total) {
+            const btn = document.getElementById('main-place-btn');
+            btn.disabled = true;
+            btn.innerText = 'Initializing...';
+            try {
+                const keyRes = await fetch('/api/razorpay/key');
+                const { key } = await keyRes.json();
+                const res = await fetch('/api/razorpay/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: total })
+                });
+                const rzpOrder = await res.json();
+                const options = {
+                    "key": key,
+                    "amount": rzpOrder.amount,
+                    "currency": "INR",
+                    "name": "Devangi Products",
+                    "order_id": rzpOrder.id,
+                    "handler": async function (response) {
+                        const verifyRes = await fetch('/api/razorpay/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(response)
+                        });
+                        if (verifyRes.ok) placeOrder(addressData, total, 'Razorpay', response.razorpay_payment_id);
+                        else { alert("Payment failed verification."); btn.disabled = false; }
+                    },
+                    "prefill": { "name": addressData.first_name + " " + addressData.last_name, "email": currentUser ? currentUser.email : "", "contact": addressData.phone },
+                    "theme": { "color": "#ec4899" }
+                };
+                new Razorpay(options).open();
+            } catch (err) { alert("Payment error."); btn.disabled = false; }
+        }
+
+        async function placeOrder(addr, total, method, txnId = null) {
+            const btn = document.getElementById('main-place-btn');
+            btn.innerText = 'Finalizing...';
+            const fullAddr = `${addr.house_no}, ${addr.society}, ${addr.street}, ${addr.landmark ? addr.landmark + ', ' : ''}${addr.city}, ${addr.pincode}`;
+            
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            const actualShipping = subtotal >= shippingFreeAbove ? 0 : shippingCharge;
+            
+            const orderData = {
+                user_id: currentUser ? currentUser.id : null,
+                first_name: addr.first_name,
+                last_name: addr.last_name,
+                fullname: addr.fullname || `${addr.first_name} ${addr.last_name}`,
+                phone: addr.phone,
+                email: currentUser ? currentUser.email : "",
+                total_amount: total,
+                delivery_charge: actualShipping,
+                address: fullAddr,
+                house_no: addr.house_no,
+                society: addr.society,
+                street: addr.street,
+                landmark: addr.landmark,
+                city: addr.city,
+                state: addr.state,
+                pincode: addr.pincode,
+                label: addr.label || addr.nickname,
+                items: cartItems.map(item => ({ id: item.id, name: item.title || item.name, price: item.price, quantity: item.quantity, image: item.image })),
+                payment_method: method,
+                transaction_id: txnId,
+                payment_status: method === 'COD' ? 'Pending' : 'Paid'
+            };
+            try {
+                const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
+                if (res.ok) {
+                    const resData = await res.json();
+                    const orderId = resData.orderId;
+
+                    // Track coupon usage
+                    if (appliedCoupon && appliedCoupon.coupon_id) {
+                        fetch(`/api/coupons/use/${appliedCoupon.coupon_id}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ user_id: currentUser ? currentUser.id : null })
+                        });
+                    }
+                    if (isBuyNow) {
+                        sessionStorage.removeItem('buy_now_cart');
+                    } else {
+                        localStorage.removeItem('anon_cart');
+                    }
+
+                    // Customize Success Modal dynamically
+                    if (!currentUser) {
+                        const phone = orderData.phone;
+                        const trackingUrl = `/track-order.html?phone=${phone}&order_id=${orderId}`;
+                        document.getElementById('success-msg').innerHTML = `Your order has been placed successfully.<br><br><span class="font-bold text-lg text-pink-600">Order ID: #${orderId}</span><br><span class="text-xs text-gray-400">Please note down this ID or take a screenshot to track your order.</span>`;
+                        document.getElementById('success-modal-actions').innerHTML = `
+                            <a href="${trackingUrl}" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">Track Order Status</a>
+                            <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
+                        `;
+                        sessionStorage.removeItem('guest_checkout');
+                    } else {
+                        document.getElementById('success-msg').innerHTML = `Your order has been placed successfully.`;
+                        document.getElementById('success-modal-actions').innerHTML = `
+                            <a href="/account.html" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">View My Orders</a>
+                            <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
+                        `;
+                    }
+
+                    document.getElementById('successModal').classList.remove('hidden');
+                }
+                else alert("Order failed.");
+            } catch (err) { alert("Network error."); }
+            finally { btn.disabled = false; }
+        }
+
+        // ===== Coupon Functions =====
+        async function applyCoupon() {
+            const code = document.getElementById('coupon-code-input').value.trim();
+            const errEl = document.getElementById('coupon-error-msg');
+            errEl.classList.add('hidden');
+            if (!code) { errEl.textContent = 'Please enter a coupon code'; errEl.classList.remove('hidden'); return; }
+
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            try {
+                const res = await fetch('/api/coupons/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, order_total: subtotal, user_id: currentUser ? currentUser.id : null, items: cartItems })
+                });
+                const data = await res.json();
+                if (res.ok && data.valid) {
+                    appliedCoupon = data;
+                    document.getElementById('coupon-input-row').classList.add('hidden');
+                    document.getElementById('coupon-success-row').classList.remove('hidden');
+                    document.getElementById('coupon-success-msg').textContent = data.message;
+                    renderOrderSummary();
+                } else {
+                    errEl.textContent = data.error || 'Invalid coupon';
+                    errEl.classList.remove('hidden');
+                }
+            } catch (err) { errEl.textContent = 'Error validating coupon'; errEl.classList.remove('hidden'); }
+        }
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            document.getElementById('coupon-input-row').classList.remove('hidden');
+            document.getElementById('coupon-success-row').classList.add('hidden');
+            document.getElementById('coupon-code-input').value = '';
+            renderOrderSummary();
+        }
+
+        async function loadShippingSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                chargeGujarat = parseFloat(settings.shipping_charge_gujarat) || 50;
+                chargeMaharashtra = parseFloat(settings.shipping_charge_maharashtra) || 60;
+                chargeOthers = parseFloat(settings.shipping_charge_others) || 100;
+                shippingFreeAbove = parseFloat(settings.shipping_free_above) || 250;
+                minimumOrderAmount = parseFloat(settings.minimum_order_amount) || 0;
+                validateForm();
+                
+                // Payment settings toggle
+                const codEnabled = settings.payment_enable_cod !== '0';
+                const onlineEnabled = settings.payment_enable_online !== '0';
+                const whatsappEnabled = settings.payment_enable_whatsapp === '1';
+                
+                // Store WhatsApp order number for later use
+                whatsappOrderNumber = settings.payment_whatsapp_number || settings.whatsapp_number || '';
+                
+                const payCodEl = document.getElementById('pay-cod');
+                const payOnlineEl = document.getElementById('pay-online');
+                const payWhatsappEl = document.getElementById('pay-whatsapp');
+                
+                if (payCodEl && payOnlineEl && payWhatsappEl) {
+                    // Show/hide based on enabled status
+                    if (!codEnabled) {
+                        payCodEl.style.display = 'none';
+                    } else {
+                        payCodEl.style.display = 'flex';
+                    }
+                    
+                    if (!onlineEnabled) {
+                        payOnlineEl.style.display = 'none';
+                    } else {
+                        payOnlineEl.style.display = 'flex';
+                    }
+                    
+                    if (whatsappEnabled) {
+                        payWhatsappEl.style.display = 'flex';
+                    } else {
+                        payWhatsappEl.style.display = 'none';
+                    }
+
+                    // Remove any previous no-payment message
+                    const existingMsg = document.getElementById('no-payment-methods-msg');
+                    if (existingMsg) existingMsg.remove();
+                    
+                    // Auto selection logic ΓÇö pick first available method
+                    const anyEnabled = codEnabled || onlineEnabled || whatsappEnabled;
+                    if (!anyEnabled) {
+                        // No payment methods ΓÇö show warning
+                        let msgEl = document.createElement('p');
+                        msgEl.id = 'no-payment-methods-msg';
+                        msgEl.className = 'text-sm text-gray-500 font-medium text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200';
+                        msgEl.textContent = 'Checkout is temporarily disabled. No payment methods are available.';
+                        payCodEl.parentNode.appendChild(msgEl);
+                        
+                        const btn = document.getElementById('main-place-btn');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.innerText = 'Checkout Disabled';
+                        }
+                    } else {
+                        // Re-enable button in case it was previously disabled
+                        const btn = document.getElementById('main-place-btn');
+                        if (btn) btn.disabled = false;
+                        
+                        // Select first available payment method
+                        if (codEnabled) selectPaymentMethod('COD');
+                        else if (onlineEnabled) selectPaymentMethod('ONLINE');
+                        else if (whatsappEnabled) selectPaymentMethod('WHATSAPP');
+                    }
+                }
+                
+                renderOrderSummary();
+            } catch (err) { /* use defaults */ }
+        }
+    </script>
+</body>
+</html>

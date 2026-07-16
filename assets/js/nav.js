@@ -61,6 +61,12 @@ async function loadDynamicSettings() {
         if (faqsSection && settings.homepage_show_faqs === '0') {
             faqsSection.style.display = 'none';
         }
+        
+        // 3. Toggle Custom Farma button
+        const customFarmaBtn = document.getElementById('customize-farma-btn');
+        if (customFarmaBtn && settings.enable_custom_farma === '0') {
+            customFarmaBtn.style.display = 'none';
+        }
 
         // 3. Hide COD FAQ item if COD is disabled in admin settings
         const faqCod = document.getElementById('faq-item-cod');

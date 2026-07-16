@@ -480,6 +480,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 'homepage_show_trust_badges': '1',
                 'homepage_show_testimonials': '1',
                 'homepage_show_faqs': '1',
+                'enable_custom_farma': '1',
                 'razorpay_key_id': process.env.RAZORPAY_KEY_ID || 'rzp_test_YourKeyHere',
                 'razorpay_key_secret': process.env.RAZORPAY_KEY_SECRET || 'YourSecretHere',
                 'whatsapp_template_placed': 'Hello {name},\n\nThank you for shopping at {store_name}! 🌸\n\nYour Order #{order_id} has been placed successfully.\nTotal Amount: Rs. {total_amount}\nPayment Method: {payment_method}\n\nTrack your order here: {tracking_url}',
