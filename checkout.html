@@ -1175,6 +1175,9 @@
             } catch (err) { /* use defaults */ }
         }
         function openUpiModal() {
+            // Re-render to ensure latest phone/name is captured in the UPI link note
+            renderOrderSummary();
+            
             const modal = document.getElementById('upiChooserModal');
             const content = document.getElementById('upiChooserContent');
             modal.classList.remove('hidden');
