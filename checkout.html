@@ -194,10 +194,17 @@
 
                         <!-- UPI QR Section (shown when selected) -->
                         <div id="upi-qr-section" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 text-center transition-all">
-                            <p class="text-sm font-semibold mb-2">Scan QR Code</p>
-                            <img id="upi-qr-image" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-lg border border-gray-200 mb-2 object-contain bg-white p-2">
-                            <p class="text-xs text-gray-500">Pay using GPay, PhonePe, Paytm</p>
-                            <p class="text-xs text-gray-400 mt-2">You will be redirected to WhatsApp to share the receipt after placing the order.</p>
+                            <div id="upi-qr-pending">
+                                <p class="text-sm font-semibold mb-2 text-pink-600">⚠️ Action Required</p>
+                                <p class="text-xs text-gray-600 mb-2">Please enter your address above to calculate final shipping cost and generate your QR Code.</p>
+                            </div>
+                            <div id="upi-qr-ready" class="hidden">
+                                <p class="text-sm font-semibold mb-2">Scan QR Code</p>
+                                <img id="upi-qr-image" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-lg border border-gray-200 mb-2 object-contain bg-white p-2">
+                                <p class="text-sm font-bold text-gray-800" id="upi-qr-amount-text"></p>
+                                <p class="text-xs text-gray-500 mt-1">Pay using GPay, PhonePe, Paytm</p>
+                                <p class="text-xs text-gray-400 mt-2">You will be redirected to WhatsApp to share the receipt after placing the order.</p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -453,6 +460,11 @@
                 const tempTotal = Math.floor(subtotal - couponDiscountVal);
                 document.getElementById('summary-total').innerText = `Rs. ${tempTotal} + Shipping`;
 
+                const qrPending = document.getElementById('upi-qr-pending');
+                const qrReady = document.getElementById('upi-qr-ready');
+                if (qrPending) qrPending.classList.remove('hidden');
+                if (qrReady) qrReady.classList.add('hidden');
+
                 showFsNudge();
                 updateCouponRow();
                 return;
@@ -518,6 +530,14 @@
             document.getElementById('summary-total').innerText = `Rs. ${total}`;
 
             // Update UPI QR Code
+            const qrPending = document.getElementById('upi-qr-pending');
+            const qrReady = document.getElementById('upi-qr-ready');
+            if (qrPending) qrPending.classList.add('hidden');
+            if (qrReady) qrReady.classList.remove('hidden');
+            
+            const qrAmountText = document.getElementById('upi-qr-amount-text');
+            if (qrAmountText) qrAmountText.innerText = `Total Payable: Rs. ${total}`;
+
             const upiId = 'krushangmalaviya717-1@okicici';
             const storeName = 'Devangi Sewing Products';
             const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(storeName)}&am=${total}&cu=INR`;
