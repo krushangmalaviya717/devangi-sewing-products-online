@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Farma Orders - Devangi Products</title>
+    <script src="/assets/js/tailwindcss.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+
+<body class="text-gray-800 antialiased overflow-hidden flex h-screen">
+
+    <div id="sidebar-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <aside id="admin-sidebar"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
+        
+        <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-10 sticky top-0">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h1 class="text-xl font-bold text-gray-800 hidden sm:block tracking-tight">Custom Farma Orders</h1>
+            </div>
+            
+            <div class="flex items-center gap-3 sm:gap-5">
+                <button class="relative p-2 text-gray-400 hover:text-pink-600 transition-colors hover:bg-pink-50 rounded-full cursor-pointer group">
+                    <img src="/assets/images/logo/logo.svg" alt="Admin User" class="w-8 h-8 rounded-full border border-gray-200 object-cover group-hover:border-pink-300 transition-colors">
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div class="max-w-6xl mx-auto space-y-6">
+                
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Manage Custom Orders</h2>
+                        <p class="text-sm text-gray-500 mt-1">View and process customized farma orders.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/80 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    <th class="px-6 py-4">Order ID</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Customer Name</th>
+                                    <th class="px-6 py-4">Contact</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body" class="divide-y divide-gray-100 text-sm">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- View Order Modal -->
+    <div id="orderModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-gray-900/60 backdrop-blur-sm" aria-hidden="true" onclick="closeModal()"></div>
+            
+            <div class="relative inline-block w-full max-w-2xl overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl sm:my-8">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-800" id="modal-title">Custom Order Details #<span id="modalOrderId"></span></h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="px-6 py-5 space-y-6 max-h-[70vh] overflow-y-auto">
+                    
+                    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Customer Info</p>
+                            <p class="font-medium text-gray-800" id="detailName"></p>
+                            <p class="text-sm text-gray-600" id="detailEmail"></p>
+                            <p class="text-sm text-gray-600" id="detailPhone"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Shipping Address</p>
+                            <p class="text-sm text-gray-800 whitespace-pre-line" id="detailAddress"></p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">Customization Details</h4>
+                        <div id="detailCustomFields" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">Body Measurements</h4>
+                        <div id="detailMeasurements" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <label class="text-sm font-medium text-gray-700">Update Status:</label>
+                        <select id="updateStatusSelect" class="text-sm bg-white border border-gray-300 rounded-md py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-pink-500">
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <button id="updateStatusBtn" class="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-md hover:bg-gray-700 transition">Update</button>
+                    </div>
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/admin/js/sidebar.js"></script>
+    <script>
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        let orders = [];
+        let currentEditingOrder = null;
+
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/admin/custom-orders');
+                orders = await res.json();
+                renderTable();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to load orders');
+            }
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'Pending': return 'bg-yellow-100 text-yellow-800';
+                case 'Processing': return 'bg-blue-100 text-blue-800';
+                case 'Completed': return 'bg-green-100 text-green-800';
+                case 'Cancelled': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('orders-table-body');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500 text-sm">No custom orders found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(o => {
+                let details = {};
+                try { details = JSON.parse(o.customer_details); } catch(e){}
+                
+                return `
+                <tr class="hover:bg-gray-50/50 transition-colors group">
+                    <td class="px-6 py-4 font-medium text-gray-900">#${o.id}</td>
+                    <td class="px-6 py-4 text-gray-500">${new Date(o.created_at).toLocaleDateString()}</td>
+                    <td class="px-6 py-4 text-gray-900 font-medium">${details.name || '-'}</td>
+                    <td class="px-6 py-4 text-gray-500">${details.phone || '-'}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(o.status)}">${o.status}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick='viewOrder(${o.id})' class="text-sm text-pink-600 hover:text-pink-800 font-medium">View Details</button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        async function viewOrder(id) {
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+            currentEditingOrder = id;
+            
+            document.getElementById('modalOrderId').innerText = id;
+            document.getElementById('updateStatusSelect').value = order.status;
+
+            let details = {};
+            let formData = {};
+            try { details = JSON.parse(order.customer_details); } catch(e){}
+            try { formData = JSON.parse(order.form_data); } catch(e){}
+
+            document.getElementById('detailName').innerText = details.name || '-';
+            document.getElementById('detailEmail').innerText = details.email || '-';
+            document.getElementById('detailPhone').innerText = details.phone || '-';
+            document.getElementById('detailAddress').innerText = details.address ? `${details.address}, ${details.city}, ${details.state} - ${details.pincode}` : '-';
+
+            // Split form data into custom fields and measurements
+            let customFieldsHtml = '';
+            let measurementsHtml = '';
+
+            for (const [key, value] of Object.entries(formData)) {
+                if (key.startsWith('measure_')) {
+                    const label = key.replace('measure_', '').replace(/_/g, ' ');
+                    measurementsHtml += `
+                        <div class="bg-white p-3 rounded border border-gray-100 shadow-sm">
+                            <span class="block text-xs text-gray-500 uppercase">${label}</span>
+                            <span class="font-semibold text-gray-800">${value}</span>
+                        </div>
+                    `;
+                } else {
+                    customFieldsHtml += `
+                        <div>
+                            <span class="block text-xs text-gray-500">${key}</span>
+                            <span class="font-medium text-gray-800">${value}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('detailCustomFields').innerHTML = customFieldsHtml || '<p class="text-sm text-gray-500">None</p>';
+            document.getElementById('detailMeasurements').innerHTML = measurementsHtml || '<p class="text-sm text-gray-500">None</p>';
+
+            document.getElementById('orderModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.add('hidden');
+        }
+
+        document.getElementById('updateStatusBtn').addEventListener('click', async () => {
+            if (!currentEditingOrder) return;
+            const status = document.getElementById('updateStatusSelect').value;
+            
+            const btn = document.getElementById('updateStatusBtn');
+            btn.innerText = 'Updating...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/admin/custom-orders/${currentEditingOrder}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    await loadOrders();
+                    closeModal();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (err) {
+                alert('Failed to update status');
+            } finally {
+                btn.innerText = 'Update';
+                btn.disabled = false;
+            }
+        });
+
+        loadOrders();
+    </script>
+</body>
+</html>

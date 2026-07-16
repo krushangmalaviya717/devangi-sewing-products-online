@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop - Devangi Products</title>
+
+  <!--
+    - favicon
+  -->
+  <link rel="shortcut icon" href="./assets/images/logo/favicon.ico" type="image/x-icon">
+
+  <!--
+    - custom css link
+  -->
+  <link rel="stylesheet" href="./assets/css/style-prefix.css">
+
+  <!--
+    - google font link
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- User dropdown styles -->
+  <style>
+    .user-dropdown-wrapper {
+      position: relative;
+    }
+
+    #user-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #f0f0f0;
+      border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+      min-width: 210px;
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    #user-dropdown.show { display: block; }
+    .user-dropdown-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #444;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+      transition: background 0.15s;
+    }
+    .user-dropdown-link:hover { background: #fef6f9; color: #e83e8c; }
+
+    @media (max-width: 500px) {
+      #user-dropdown {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90vw;
+        max-width: 300px;
+      }
+    }
+  </style>
+
+  <!-- New Products Card Styles -->
+  <style>
+    /* Override product-grid to use new card layout */
+    .product-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+
+    .product-main .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+      padding: 10px 0 30px;
+    }
+
+    /* Card wrapper */
+    .np-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+      overflow: hidden;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .np-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+    }
+
+    /* Image area */
+    .np-img-wrap {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+      background: #f9f9f9;
+    }
+
+    .np-img-wrap a {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .np-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #fff;
+      display: block;
+      transition: opacity 0.35s ease;
+    }
+
+    .np-img-hover {
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      display: none !important;
+    }
+
+
+
+    /* Badge */
+    .np-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: 'Poppins', sans-serif;
+      z-index: 2;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .np-card:hover .np-badge,
+    .np-img-wrap:hover .np-badge {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+    }
+
+    /* Hover action buttons */
+    .np-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 3;
+    }
+
+    .np-img-wrap:hover .np-actions {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .np-action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #444;
+      font-size: 16px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .np-action-btn:hover {
+      background: #e83e8c;
+      color: #fff;
+    }
+
+    /* Info section */
+    .np-info {
+      padding: 14px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+    }
+
+    .np-cat {
+      font-size: 11px;
+      color: #e83e8c;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      text-decoration: none;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-title:hover {
+      color: #e83e8c;
+    }
+
+    /* Stars */
+    .np-stars {
+      display: flex;
+      gap: 2px;
+      color: #f5a623;
+      font-size: 13px;
+    }
+
+    /* Price row */
+    .np-price-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .np-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e83e8c;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-del {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    /* Add to Cart button */
+    .np-add-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px 0;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Poppins', sans-serif;
+      transition: background 0.2s;
+    }
+
+    .np-add-btn:hover {
+      background: #e83e8c;
+    }
+
+    .np-add-btn ion-icon {
+      font-size: 16px;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 570px) {
+      .product-main {
+        padding: 0 24px 40px;
+      }
+
+      .product-main .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 5px 0 20px;
+      }
+
+      .np-card {
+        border-radius: 10px;
+      }
+
+      .np-info {
+        padding: 10px 10px 14px;
+        gap: 3px;
+      }
+
+      .np-title {
+        font-size: 13px;
+      }
+
+      .np-price {
+        font-size: 14px;
+      }
+
+      .np-badge {
+        top: 8px;
+        left: 8px;
+        font-size: 9px;
+        padding: 2px 6px;
+      }
+
+      .np-add-btn {
+        padding: 8px 0;
+        font-size: 10px;
+        gap: 4px;
+      }
+
+      .np-add-btn ion-icon {
+        font-size: 14px;
+      }
+    /* Badge */
+    .np-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: 'Poppins', sans-serif;
+      z-index: 2;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .np-card:hover .np-badge,
+    .np-img-wrap:hover .np-badge {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+    }
+
+    /* Hover action buttons */
+    .np-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 3;
+    }
+
+    .np-img-wrap:hover .np-actions {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .np-action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #444;
+      font-size: 16px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .np-action-btn:hover {
+      background: #e83e8c;
+      color: #fff;
+    }
+
+    /* Info section */
+    .np-info {
+      padding: 14px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+    }
+
+    .np-cat {
+      font-size: 11px;
+      color: #e83e8c;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      text-decoration: none;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-title:hover {
+      color: #e83e8c;
+    }
+
+    /* Stars */
+    .np-stars {
+      display: flex;
+      gap: 2px;
+      color: #f5a623;
+      font-size: 13px;
+    }
+
+    /* Price row */
+    .np-price-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .np-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e83e8c;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .np-del {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    /* Add to Cart button */
+    .np-add-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px 0;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Poppins', sans-serif;
+      transition: background 0.2s;
+    }
+
+    .np-add-btn:hover {
+      background: #e83e8c;
+    }
+
+    .np-add-btn ion-icon {
+      font-size: 16px;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 570px) {
+      .product-main {
+        padding: 0 24px 40px;
+      }
+
+      .product-main .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 5px 0 20px;
+      }
+
+      .np-card {
+        border-radius: 10px;
+      }
+
+      .np-info {
+        padding: 10px 10px 14px;
+        gap: 3px;
+      }
+
+      .np-title {
+        font-size: 13px;
+      }
+
+      .np-price {
+        font-size: 14px;
+      }
+
+      .np-badge {
+        top: 8px;
+        left: 8px;
+        font-size: 9px;
+        padding: 2px 6px;
+      }
+
+      .np-add-btn {
+        padding: 8px 0;
+        font-size: 10px;
+        gap: 4px;
+      }
+
+      .np-add-btn ion-icon {
+        font-size: 14px;
+      }
+
+      .filter-open-btn {
+        display: flex !important;
+      }
+    }
+  </style>
+
+
+  <!--
+    - MAIN
+  -->
+
+<body>
+  <div class="overlay" data-overlay></div>
+
+  <header>
+    <div class="header-top">
+      <div class="container">
+        <ul class="header-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+        <div class="header-alert-news">
+          <p><b>Free Shipping</b> This Week Order Over - $55</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="header-main">
+      <div class="container flex-mobile-header">
+        <button class="action-btn mobile-menu-btn" data-mobile-menu-open-btn>
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <a href="/" class="header-logo">
+          <img src="./assets/images/logo/logo.svg" alt="Devangi Products logo" width="200" height="60" style="min-width: 160px; max-width: 100%;">
+        </a>
+        <div class="header-search-container" style="position: relative;">
+          <input type="search" name="search" id="main-search" class="search-field" placeholder="Enter your product name..." autocomplete="off">
+          <button class="search-btn"><ion-icon name="search-outline"></ion-icon></button>
+          <div id="search-suggestions" class="search-suggestions"></div>
+        </div>
+        <div class="header-user-actions">
+          <div class="user-dropdown-wrapper">
+            <button class="action-btn" id="user-action-btn" title="Login"><ion-icon name="person-outline"></ion-icon></button>
+            <div id="user-dropdown"></div>
+          </div>
+          <button class="action-btn">
+            <ion-icon name="bag-handle-outline"></ion-icon>
+            <span class="count">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="desktop-navigation-menu">
+      <div class="container">
+        <ul class="desktop-menu-category-list" id="dynamic-desktop-nav"></ul>
+      </div>
+    </nav>
+
+    <div class="mobile-bottom-navigation">
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="menu-outline"></ion-icon></button>
+      <button class="action-btn"><ion-icon name="bag-handle-outline"></ion-icon><span class="count">0</span></button>
+      <button class="action-btn" onclick="location.href='/'"><ion-icon name="home-outline"></ion-icon></button>
+      <button class="action-btn" data-mobile-menu-open-btn><ion-icon name="grid-outline"></ion-icon></button>
+    </div>
+
+    <nav class="mobile-navigation-menu has-scrollbar" data-mobile-menu>
+      <div class="menu-top">
+        <h2 class="menu-title">Menu</h2>
+        <button class="menu-close-btn" data-mobile-menu-close-btn><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <ul class="mobile-menu-category-list" id="dynamic-mobile-nav"></ul>
+      <div class="menu-bottom">
+
+        <ul class="menu-social-container">
+          <li><a href="#" class="social-link"><ion-icon name="logo-facebook"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-twitter"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-instagram"></ion-icon></a></li>
+          <li><a href="#" class="social-link"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  
+  <main>
+    <div class="product-container" style="margin-top: 30px; margin-bottom: 30px;">
+      <div class="container">
+        
+        <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto;">
+          <h2 style="font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; color: var(--onyx); text-align: center;">Customize Your Farma</h2>
+          <p style="text-align: center; color: var(--sonic-silver); margin-bottom: 30px;">Fill out the details below to order a personalized blouse farma tailored to your exact measurements.</p>
+
+          <form id="customFarmaForm">
+            <!-- Dynamic Fields Container -->
+            <div id="dynamic-fields-container">
+                <div style="text-align: center; padding: 20px;">
+                    <p>Loading customization options...</p>
+                </div>
+            </div>
+
+            <!-- Static Body Measurements Section -->
+            <h3 style="font-size: 1.4rem; font-weight: bold; color: var(--onyx); margin-top: 40px; border-bottom: 1px solid var(--cultured); padding-bottom: 10px; margin-bottom: 20px;">Body Measurements</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Bust (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_bust" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Waist (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_waist" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Shoulder (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_shoulder" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Armhole (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_armhole" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Sleeve Length (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_sleeve_length" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Sleeve Round (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_sleeve_round" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Front Neck Drop (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_front_neck" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Back Neck Drop (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_back_neck" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Blouse Length (inches) <span style="color:red">*</span></label>
+                    <input type="number" step="0.1" name="measure_blouse_length" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Cross Front (inches)</label>
+                    <input type="number" step="0.1" name="measure_cross_front" style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Cross Back (inches)</label>
+                    <input type="number" step="0.1" name="measure_cross_back" style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+            </div>
+
+            <!-- Customer Details Section -->
+            <h3 style="font-size: 1.4rem; font-weight: bold; color: var(--onyx); margin-top: 40px; border-bottom: 1px solid var(--cultured); padding-bottom: 10px; margin-bottom: 20px;">Your Details</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Full Name <span style="color:red">*</span></label>
+                    <input type="text" id="cust_name" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Email Address <span style="color:red">*</span></label>
+                    <input type="email" id="cust_email" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Phone Number <span style="color:red">*</span></label>
+                    <input type="tel" id="cust_phone" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Shipping Address <span style="color:red">*</span></label>
+                    <textarea id="cust_address" required rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px; resize: vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">City <span style="color:red">*</span></label>
+                    <input type="text" id="cust_city" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">State <span style="color:red">*</span></label>
+                    <input type="text" id="cust_state" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">Pincode <span style="color:red">*</span></label>
+                    <input type="text" id="cust_pincode" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center;">
+                <button type="submit" id="submitOrderBtn" style="background: var(--salmon-pink); color: white; padding: 14px 40px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(232, 62, 140, 0.3); transition: transform 0.2s, background 0.2s;">
+                    Submit Custom Order Request
+                </button>
+            </div>
+            
+            <div id="orderSuccessMessage" style="display: none; margin-top: 20px; padding: 15px; background: #e6f4ea; color: #1e8e3e; border-radius: 8px; text-align: center; font-weight: 500;">
+                Your custom farma order request has been submitted successfully! We will contact you soon.
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        
+        // Setup header titles if any needed
+        document.title = "Customize Farma - Devangi Products";
+        
+        const container = document.getElementById('dynamic-fields-container');
+        
+        try {
+            const res = await fetch('/api/farma-fields');
+            const fields = await res.json();
+            
+            if (fields.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color: #666;">No dynamic customization options available at the moment.</p>';
+                return;
+            }
+
+            // Group fields by section
+            const sections = {};
+            fields.forEach(f => {
+                if(!sections[f.section]) sections[f.section] = [];
+                sections[f.section].push(f);
+            });
+
+            let html = '';
+            for(const [sectionName, sectionFields] of Object.entries(sections)) {
+                html += `<h3 style="font-size: 1.4rem; font-weight: bold; color: var(--onyx); margin-top: 30px; border-bottom: 1px solid var(--cultured); padding-bottom: 10px; margin-bottom: 20px;">${sectionName}</h3>`;
+                html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+                
+                sectionFields.forEach(f => {
+                    const requiredAttr = f.is_required ? 'required' : '';
+                    const reqAsterisk = f.is_required ? '<span style="color:red">*</span>' : '';
+                    
+                    html += '<div class="form-group">';
+                    html += `<label style="display: block; font-weight: 500; margin-bottom: 5px; color: var(--onyx);">${f.field_label} ${reqAsterisk}</label>`;
+                    
+                    const name = `custom_${f.field_label.replace(/s+/g, '_')}`;
+                    
+                    if (f.field_type === 'text') {
+                        html += `<input type="text" name="${name}" ${requiredAttr} style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px;">`;
+                    } else if (f.field_type === 'textarea') {
+                        html += `<textarea name="${name}" ${requiredAttr} rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px; resize: vertical;"></textarea>`;
+                    } else if (f.field_type === 'select') {
+                        const opts = f.options.split(',').map(o => o.trim());
+                        html += `<select name="${name}" ${requiredAttr} style="width: 100%; padding: 10px 15px; border: 1px solid var(--cultured); border-radius: 8px; background: white;">`;
+                        html += '<option value="">Select an option</option>';
+                        opts.forEach(opt => {
+                            html += `<option value="${opt}">${opt}</option>`;
+                        });
+                        html += '</select>';
+                    } else if (f.field_type === 'radio') {
+                        const opts = f.options.split(',').map(o => o.trim());
+                        html += '<div style="display:flex; gap:15px; flex-wrap:wrap; padding-top: 5px;">';
+                        opts.forEach(opt => {
+                            html += `<label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="${name}" value="${opt}" ${requiredAttr}> ${opt}</label>`;
+                        });
+                        html += '</div>';
+                    } else if (f.field_type === 'checkbox') {
+                        const opts = f.options.split(',').map(o => o.trim());
+                        html += '<div style="display:flex; gap:15px; flex-wrap:wrap; padding-top: 5px;">';
+                        opts.forEach(opt => {
+                            html += `<label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" name="${name}[]" value="${opt}"> ${opt}</label>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = '<p style="color:red; text-align:center;">Failed to load options. Please try again later.</p>';
+        }
+
+        // Form submission
+        document.getElementById('customFarmaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitOrderBtn');
+            btn.innerText = 'Submitting...';
+            btn.disabled = true;
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const dataObj = {};
+
+            // Collect form data handles arrays for checkboxes correctly
+            for (let [key, value] of formData.entries()) {
+                if (key.endsWith('[]')) {
+                    const realKey = key.slice(0, -2);
+                    if (!dataObj[realKey]) dataObj[realKey] = [];
+                    dataObj[realKey].push(value);
+                } else if (!key.startsWith('cust_')) {
+                    dataObj[key] = value;
+                }
+            }
+
+            // Convert checkbox arrays to comma strings for easier reading
+            for (let key in dataObj) {
+                if (Array.isArray(dataObj[key])) {
+                    dataObj[key] = dataObj[key].join(', ');
+                }
+            }
+
+            const customerDetails = {
+                name: document.getElementById('cust_name').value,
+                email: document.getElementById('cust_email').value,
+                phone: document.getElementById('cust_phone').value,
+                address: document.getElementById('cust_address').value,
+                city: document.getElementById('cust_city').value,
+                state: document.getElementById('cust_state').value,
+                pincode: document.getElementById('cust_pincode').value
+            };
+
+            const payload = {
+                customer_details: customerDetails,
+                form_data: dataObj
+            };
+
+            try {
+                const response = await fetch('/api/custom-orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('orderSuccessMessage').style.display = 'block';
+                    form.reset();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    alert('Error submitting order: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                btn.innerText = 'Submit Custom Order Request';
+                btn.disabled = false;
+            }
+        });
+    });
+  </script>
+
+
+
+
+
+
+  <!--
+    - FOOTER
+  -->
+
+  <footer>
+
+    <div class="footer-nav">
+
+      <div class="container">
+
+        <ul class="footer-nav-list">
+
+          <li class="footer-nav-item">
+            <h2 class="nav-title">Contact</h2>
+          </li>
+
+          <li class="footer-nav-item flex">
+            <div class="icon-box">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+
+            <address class="content">
+              B-3, Yogiraj Soc., YogiChowk, Surat.
+            </address>
+          </li>
+
+          <li class="footer-nav-item flex">
+            <div class="icon-box">
+              <ion-icon name="call-outline"></ion-icon>
+            </div>
+
+            <a href="tel:+917600550038" class="footer-nav-link">+91 7600550038</a>
+          </li>
+
+          <li class="footer-nav-item flex">
+            <div class="icon-box">
+              <ion-icon name="mail-outline"></ion-icon>
+            </div>
+
+            <a href="mailto:devangisewingclasses@gmail.com" class="footer-nav-link">devangisewingclasses@gmail.com</a>
+          </li>
+
+        </ul>
+
+        <ul class="footer-nav-list">
+
+          <li class="footer-nav-item">
+            <h2 class="nav-title">Quick Links</h2>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./about.html" class="footer-nav-link">About Us</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./shipping-policy.html" class="footer-nav-link">Shipping Policy</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./security.html" class="footer-nav-link">Security & Privacy</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./terms-conditions.html" class="footer-nav-link">Terms & Conditions</a>
+          </li>
+
+          <li class="footer-nav-item">
+            <a href="./contact.html" class="footer-nav-link">Contact Us</a>
+          </li>
+
+        </ul>
+
+        <ul class="footer-nav-list">
+
+          <li class="footer-nav-item">
+            <h2 class="nav-title">Follow Us</h2>
+          </li>
+
+          <li>
+            <ul class="social-link">
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-facebook"></ion-icon>
+                </a>
+              </li>
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-twitter"></ion-icon>
+                </a>
+              </li>
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-linkedin"></ion-icon>
+                </a>
+              </li>
+
+              <li class="footer-nav-item">
+                <a href="#" class="footer-nav-link">
+                  <ion-icon name="logo-instagram"></ion-icon>
+                </a>
+              </li>
+
+            </ul>
+          </li>
+
+        </ul>
+
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+
+      <div class="container">
+
+        <img src="./assets/images/payment.png" alt="payment method" class="payment-img">
+
+        <p class="copyright">
+          Copyright &copy; <a href="#">Devangi Products</a> all rights reserved.
+        </p>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+
+
+
+
+  <!--
+    - custom js link
+  -->
+  <script src="./assets/js/nav.js"></script>
+  <script src="./assets/js/cart.js"></script>
+  <script src="./assets/js/shop.js?v=1.1"></script>
+  <script src="./assets/js/home.js"></script>
+  <script src="./assets/js/script.js"></script>
+  <script src="./assets/js/auth.js"></script>
+
+  <!--
+    - ionicon link
+  -->
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+</body>
+
+</html>

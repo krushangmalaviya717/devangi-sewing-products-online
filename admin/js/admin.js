@@ -460,6 +460,17 @@ async function openEditModal(id) {
         document.getElementById('edit_product_id').value = p.id;
         document.getElementById('edit_title').value = p.title || '';
         document.getElementById('edit_badge').value = p.badge || '';
+        
+        const sellingVal = p.selling_on !== null && p.selling_on !== undefined ? p.selling_on : 1;
+        document.getElementById('edit_selling_on').value = sellingVal;
+        const toggleEl = document.getElementById('edit_selling_on_toggle');
+        const toggleText = document.getElementById('edit_selling_status_text');
+        if (toggleEl && toggleText) {
+            toggleEl.checked = (sellingVal == 1);
+            toggleText.textContent = toggleEl.checked ? 'Active' : 'Inactive';
+            toggleText.className = toggleEl.checked ? 'ml-3 text-sm font-semibold text-green-600' : 'ml-3 text-sm font-medium text-red-500';
+        }
+
         document.getElementById('edit_price').value = p.price || '';
         document.getElementById('edit_original_price').value = p.original_price || '';
         document.getElementById('edit_rating').value = p.rating || 4.9;
@@ -846,7 +857,7 @@ async function fetchProducts() {
         const tbody = document.getElementById('products-table-body');
         if (!tbody) return;
 
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/products?admin=true');
         const products = await res.json();
 
         window.allProductsList = products;
@@ -867,6 +878,10 @@ async function fetchProducts() {
             const badgeHtml = p.badge && p.badge !== 'None'
                 ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold ${getBadgeColor(p.badge)}">${p.badge}</span>`
                 : '<span class="text-gray-300 text-xs">—</span>';
+                
+            const sellingOnHtml = (p.selling_on === 1 || p.selling_on === null || p.selling_on === undefined)
+                ? '<span class="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium">Active</span>'
+                : '<span class="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full font-medium">Inactive</span>';
 
             const tr = document.createElement('tr');
             tr.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
@@ -900,6 +915,7 @@ async function fetchProducts() {
                     }
                 </td>
                 <td class="p-4">${badgeHtml}</td>
+                <td class="p-4">${sellingOnHtml}</td>
                 <td class="p-4">
                     <div class="flex items-center gap-2">
                         <button onclick="openEditModal(${p.id})" class="p-2 text-blue-500 hover:bg-blue-50 rounded transition-colors" title="Edit Product">
@@ -2672,7 +2688,7 @@ async function initAddOrderModal() {
         const select = document.getElementById('mo_product_select');
         select.innerHTML = '<option value="">-- Loading products... --</option>';
         
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/products?admin=true');
         if (!res.ok) throw new Error('Failed to load products');
         allProducts = await res.json();
         
@@ -3708,7 +3724,7 @@ async function openEditOrderModal() {
         if (allProducts.length === 0) {
             select.innerHTML = '<option value="">-- Loading products... --</option>';
             try {
-                const res = await fetch('/api/products');
+                const res = await fetch('/api/products?admin=true');
                 if (res.ok) {
                     allProducts = await res.json();
                 }

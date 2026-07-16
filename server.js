@@ -178,7 +178,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 { name: 'offer_text', def: 'TEXT' },
                 { name: 'rating', def: 'REAL DEFAULT 4.9' },
                 { name: 'badge', def: 'TEXT' },
-                { name: 'related_products', def: 'TEXT' }
+                { name: 'related_products', def: 'TEXT' },
+                { name: 'selling_on', def: 'INTEGER DEFAULT 1' }
             ];
             newCols.forEach(col => {
                 db.run(`ALTER TABLE products ADD COLUMN ${col.name} ${col.def}`, (err) => {
@@ -537,6 +538,27 @@ const db = new sqlite3.Database(dbPath, (err) => {
             action TEXT NOT NULL,
             details TEXT,
             ip_address TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        // Farma Form Fields table
+        db.run(`CREATE TABLE IF NOT EXISTS farma_form_fields (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            section TEXT,
+            field_label TEXT NOT NULL,
+            field_type TEXT NOT NULL,
+            options TEXT,
+            is_required INTEGER DEFAULT 0,
+            sort_order INTEGER DEFAULT 0
+        )`);
+
+        // Custom Orders table
+        db.run(`CREATE TABLE IF NOT EXISTS custom_orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            customer_details TEXT NOT NULL,
+            form_data TEXT NOT NULL,
+            status TEXT DEFAULT 'Pending',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
 
@@ -1174,8 +1196,12 @@ app.delete('/api/categories/:id', (req, res) => {
 
 // Get all products
 app.get('/api/products', (req, res) => {
+    const isAdmin = req.session && req.session.adminUser && req.query.admin === 'true';
+    const query = isAdmin 
+        ? 'SELECT * FROM products ORDER BY id DESC' 
+        : 'SELECT * FROM products WHERE COALESCE(selling_on, 1) = 1 ORDER BY id DESC';
 
-    db.all('SELECT * FROM products ORDER BY id DESC', [], (err, rows) => {
+    db.all(query, [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -1227,9 +1253,11 @@ app.post('/api/products', upload.array('images', 10), (req, res) => {
     // Parse sizes: can be comma-separated string
     const sizesJson = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim()).filter(Boolean)) : null;
 
+    const sellingOnVal = req.body.selling_on !== undefined ? parseInt(req.body.selling_on) : 1;
+
     const sql = `INSERT INTO products 
-        (title, category, price, original_price, image, images, description, sizes, offer_text, rating, badge, stock, related_products) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        (title, category, price, original_price, image, images, description, sizes, offer_text, rating, badge, stock, related_products, selling_on) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const params = [
         title, category, parseFloat(price),
         original_price ? parseFloat(original_price) : null,
@@ -1240,7 +1268,8 @@ app.post('/api/products', upload.array('images', 10), (req, res) => {
         rating ? parseFloat(rating) : 4.9,
         badge || null,
         stock !== undefined && stock !== '' ? parseInt(stock) : -1,
-        related_products || null
+        related_products || null,
+        sellingOnVal
     ];
 
     db.run(sql, params, function (err) {
@@ -1318,10 +1347,11 @@ app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
         const sizesJson = sizes ? JSON.stringify(sizes.split(',').map(s => s.trim()).filter(Boolean)) : null;
 
         const stockVal = req.body.stock !== undefined && req.body.stock !== '' ? parseInt(req.body.stock) : (existing.stock || -1);
+        const sellingOnVal = req.body.selling_on !== undefined ? parseInt(req.body.selling_on) : (existing.selling_on !== null ? existing.selling_on : 1);
 
         const sql = `UPDATE products SET
             title=?, category=?, price=?, original_price=?, image=?, images=?,
-            description=?, sizes=?, offer_text=?, rating=?, badge=?, stock=?, related_products=?
+            description=?, sizes=?, offer_text=?, rating=?, badge=?, stock=?, related_products=?, selling_on=?
             WHERE id=?`;
         const params = [
             title, category, parseFloat(price),
@@ -1334,6 +1364,7 @@ app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
             badge || null,
             stockVal,
             related_products || null,
+            sellingOnVal,
             id
         ];
 
@@ -3177,6 +3208,85 @@ app.get('/api/admin/orders/:id/customer-whatsapp', (req, res) => {
             const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
             res.json({ url: whatsappUrl });
         });
+    });
+});
+
+// --- Customize Farma APIs ---
+
+// Get all dynamic fields (Public)
+app.get('/api/farma-fields', (req, res) => {
+    db.all('SELECT * FROM farma_form_fields ORDER BY sort_order ASC', [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// Admin: Add/Update a field
+app.post('/api/admin/farma-fields', (req, res) => {
+    if (!req.session || !req.session.adminUser) return res.status(401).json({ error: 'Unauthorized' });
+    const { id, section, field_label, field_type, options, is_required, sort_order } = req.body;
+    
+    if (id) {
+        db.run('UPDATE farma_form_fields SET section=?, field_label=?, field_type=?, options=?, is_required=?, sort_order=? WHERE id=?', 
+            [section, field_label, field_type, options, is_required, sort_order, id], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'Field updated' });
+        });
+    } else {
+        db.run('INSERT INTO farma_form_fields (section, field_label, field_type, options, is_required, sort_order) VALUES (?, ?, ?, ?, ?, ?)', 
+            [section, field_label, field_type, options, is_required, sort_order], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'Field created', id: this.lastID });
+        });
+    }
+});
+
+// Admin: Delete a field
+app.delete('/api/admin/farma-fields/:id', (req, res) => {
+    if (!req.session || !req.session.adminUser) return res.status(401).json({ error: 'Unauthorized' });
+    db.run('DELETE FROM farma_form_fields WHERE id = ?', [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
+
+// Submit a custom order (Public)
+app.post('/api/custom-orders', (req, res) => {
+    const { customer_details, form_data } = req.body;
+    const userId = req.session && req.session.user ? req.session.user.id : null;
+    
+    db.run('INSERT INTO custom_orders (user_id, customer_details, form_data) VALUES (?, ?, ?)',
+        [userId, JSON.stringify(customer_details), JSON.stringify(form_data)], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, order_id: this.lastID, message: 'Custom order submitted successfully' });
+    });
+});
+
+// Admin: Get all custom orders
+app.get('/api/admin/custom-orders', (req, res) => {
+    if (!req.session || !req.session.adminUser) return res.status(401).json({ error: 'Unauthorized' });
+    db.all('SELECT * FROM custom_orders ORDER BY created_at DESC', [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// Admin: Get specific custom order
+app.get('/api/admin/custom-orders/:id', (req, res) => {
+    if (!req.session || !req.session.adminUser) return res.status(401).json({ error: 'Unauthorized' });
+    db.get('SELECT * FROM custom_orders WHERE id = ?', [req.params.id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Order not found' });
+        res.json(row);
+    });
+});
+
+// Admin: Update custom order status
+app.put('/api/admin/custom-orders/:id/status', (req, res) => {
+    if (!req.session || !req.session.adminUser) return res.status(401).json({ error: 'Unauthorized' });
+    db.run('UPDATE custom_orders SET status = ? WHERE id = ?', [req.body.status, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
     });
 });
 
