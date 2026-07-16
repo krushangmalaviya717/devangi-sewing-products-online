@@ -815,7 +815,7 @@
             const fullAddr = `${addressData.house_no}, ${addressData.society}, ${addressData.street}, ${addressData.landmark ? addressData.landmark + ', ' : ''}${addressData.city}, ${addressData.state} - ${addressData.pincode}`;
             const customerName = `${addressData.first_name} ${addressData.last_name}`;
 
-            // Place order in database first (like COD)
+            // Place order in database first
             const orderData = {
                 user_id: currentUser ? currentUser.id : null,
                 first_name: addressData.first_name,
@@ -879,35 +879,59 @@
                         msg += `*Coupon Discount:* -Rs. ${appliedCoupon.discount.toFixed(2)}\n`;
                     }
                     msg += `\n*Total Amount:* Rs. ${total}\n`;
-                    msg += `\nPlease find my payment receipt attached below. Confirm my order and share the next steps. Thank you!`;
+                    
+                    if (selectedPaymentMethod === 'UPI_QR') {
+                        msg += `\nI am paying via UPI. Please find my payment receipt attached below. Confirm my order and share the next steps. Thank you!`;
+                    } else {
+                        msg += `\nPlease confirm my order and share the payment details. Thank you!`;
+                    }
 
                     // Get WhatsApp number from settings
                     const waNumber = whatsappOrderNumber || '919725340354';
                     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
 
-                    // Show success modal
-                    if (!currentUser) {
-                        const phone = orderData.phone;
-                        const trackingUrl = `/track-order.html?phone=${phone}&order_id=${orderId}`;
+                    if (selectedPaymentMethod === 'UPI_QR') {
+                        // Pop UPI intent
+                        const upiId = 'krushangmalaviya717-1@okicici';
+                        const storeName = 'Devangi Sewing Products';
+                        const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(storeName)}&am=${total}&cu=INR`;
+                        window.location.href = upiUrl;
+
+                        document.getElementById('success-msg').innerHTML = `
+                            <div class="text-center">
+                                <h3 class="font-bold text-xl text-green-600 mb-2">Order Placed! (#${orderId})</h3>
+                                <p class="text-sm text-gray-600 mb-4">Please complete your payment in the UPI app that just opened.</p>
+                                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
+                                    <p class="text-sm font-bold text-blue-800">Step 2: Share Screenshot</p>
+                                    <p class="text-xs text-blue-600 mt-1">After payment is successful, take a screenshot and tap the button below to share it with us on WhatsApp.</p>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('success-modal-actions').innerHTML = `
+                            <button onclick="window.open('${waUrl}', '_blank')" class="block w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 transition flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.573-.187-.981-.342-1.714-.652-2.824-2.422-2.909-2.535-.085-.113-.695-.928-.695-1.77 0-.843.435-1.258.587-1.424.152-.167.33-.209.439-.209.11 0 .22.001.314.004.101.004.237-.038.37.283.136.326.467 1.144.509 1.229.042.085.07.184.02.29-.05.105-.075.171-.15.253-.075.082-.158.178-.225.247-.074.076-.151.16-.065.308.087.148.388.638.834 1.037.575.513 1.054.673 1.203.748.15.075.237.062.325-.038.087-.101.378-.44.48-.59.101-.15.204-.125.337-.075.133.05 1.488.705 1.571.748.084.043.14.064.161.101.021.036.021.209-.123.614z"/></svg>
+                                Share Receipt on WhatsApp
+                            </button>
+                            <a href="/index.html" class="block w-full text-center text-gray-500 py-2 text-sm font-medium hover:underline mt-2">Back to Home</a>
+                        `;
+                    } else {
+                        // Standard WhatsApp flow
+                        const trackingUrl = `/track-order.html?phone=${orderData.phone}&order_id=${orderId}`;
+                        
                         document.getElementById('success-msg').innerHTML = `Your order has been placed successfully.<br><br><span class="font-bold text-lg text-pink-600">Order ID: #${orderId}</span><br><span class="text-xs text-gray-400">Redirecting to WhatsApp...</span>`;
                         document.getElementById('success-modal-actions').innerHTML = `
-                            <a href="${trackingUrl}" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">Track Order Status</a>
-                            <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
+                            <a href="${trackingUrl}" class="block w-full text-center bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">Track Order Status</a>
+                            <a href="/index.html" class="block w-full text-center text-gray-500 py-2 text-sm font-medium hover:underline mt-2">Back to Home</a>
                         `;
-                        sessionStorage.removeItem('guest_checkout');
-                    } else {
-                        document.getElementById('success-msg').innerHTML = `Your order has been placed successfully.<br><span class="text-xs text-gray-400">Redirecting to WhatsApp...</span>`;
-                        document.getElementById('success-modal-actions').innerHTML = `
-                            <a href="/account.html" class="block w-full bg-pink-500 text-white py-3 rounded-xl font-bold hover:bg-pink-600 transition">View My Orders</a>
-                            <a href="/index.html" class="block w-full text-gray-500 py-2 text-sm font-medium hover:underline">Back to Home</a>
-                        `;
+
+                        // Redirect to WhatsApp after short delay
+                        setTimeout(() => {
+                            window.open(waUrl, '_blank');
+                        }, 800);
                     }
+                    
                     document.getElementById('successModal').classList.remove('hidden');
 
-                    // Redirect to WhatsApp after short delay
-                    setTimeout(() => {
-                        window.open(waUrl, '_blank');
-                    }, 800);
                 } else {
                     alert('Order failed.');
                 }
@@ -1107,22 +1131,25 @@
                         // No payment methods — show warning
                         let msgEl = document.createElement('p');
                         msgEl.id = 'no-payment-methods-msg';
-                        msgEl.className = 'text-sm text-gray-500 font-medium text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200';
-                        msgEl.textContent = 'Checkout is temporarily disabled. No payment methods are available.';
-                        payCodEl.parentNode.appendChild(msgEl);
-                        
-                        const btn = document.getElementById('main-place-btn');
-                        if (btn) {
-                            btn.disabled = true;
-                            btn.innerText = 'Checkout Disabled';
-                        }
+                        msgEl.className = 'text-sm text-red-500 font-bold mt-2';
+                        msgEl.innerText = "No payment methods available currently.";
+                        payCodEl.parentElement.appendChild(msgEl);
+                        document.getElementById('main-place-btn').disabled = true;
                     } else {
                         // Re-enable button in case it was previously disabled
                         const btn = document.getElementById('main-place-btn');
                         if (btn) btn.disabled = false;
                         
-                        // Select UPI_QR by default for prepaid orders
-                        selectPaymentMethod('UPI_QR');
+                        // Default to UPI_QR if available, else fallback
+                        if (upiQrEnabled) {
+                            selectPaymentMethod('UPI_QR');
+                        } else if (onlineEnabled) {
+                            selectPaymentMethod('ONLINE');
+                        } else if (whatsappEnabled) {
+                            selectPaymentMethod('WHATSAPP');
+                        } else {
+                            selectPaymentMethod('COD');
+                        }
                     }
                 }
                 
