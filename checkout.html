@@ -202,22 +202,13 @@
                                 <p class="text-sm font-semibold mb-2">Scan QR or Tap to Pay</p>
                                 <img id="upi-qr-image" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-lg border border-gray-200 mb-2 object-contain bg-white p-2">
                                 
-                                <div class="grid grid-cols-2 gap-2 my-3">
-                                    <a id="btn-gpay" href="#" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-2 px-2 rounded-lg shadow-sm flex items-center justify-center text-sm transition">
-                                        Google Pay
-                                    </a>
-                                    <a id="btn-phonepe" href="#" class="border border-gray-200 bg-white hover:bg-gray-50 text-purple-700 font-bold py-2 px-2 rounded-lg shadow-sm flex items-center justify-center text-sm transition">
-                                        PhonePe
-                                    </a>
-                                    <a id="btn-paytm" href="#" class="border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 font-bold py-2 px-2 rounded-lg shadow-sm flex items-center justify-center text-sm transition">
-                                        Paytm
-                                    </a>
-                                    <a id="btn-other-upi" href="#" class="border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-2 px-2 rounded-lg shadow-sm flex items-center justify-center text-sm transition">
-                                        Other UPI App
-                                    </a>
-                                </div>
+                                <button type="button" onclick="openUpiModal()" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl my-3 transition-colors shadow-sm flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Tap to Pay with UPI App
+                                </button>
                                 
                                 <p class="text-sm font-bold text-gray-800" id="upi-qr-amount-text"></p>
+                                <p class="text-xs text-gray-500 mt-1">Pay using GPay, PhonePe, Paytm</p>
                                 <p class="text-xs text-gray-400 mt-2">After payment, please tap the Place Order button to share your receipt via WhatsApp.</p>
                             </div>
                         </div>
@@ -559,10 +550,10 @@
             const upiUrl = `upi://pay${upiParams}`;
             document.getElementById('upi-qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
             
-            const btnGpay = document.getElementById('btn-gpay');
-            const btnPhonepe = document.getElementById('btn-phonepe');
-            const btnPaytm = document.getElementById('btn-paytm');
-            const btnOther = document.getElementById('btn-other-upi');
+            const btnGpay = document.getElementById('modal-btn-gpay');
+            const btnPhonepe = document.getElementById('modal-btn-phonepe');
+            const btnPaytm = document.getElementById('modal-btn-paytm');
+            const btnOther = document.getElementById('modal-btn-other-upi');
             
             if (btnGpay) btnGpay.href = `tez://upi/pay${upiParams}`;
             if (btnPhonepe) btnPhonepe.href = `phonepe://pay${upiParams}`;
@@ -1168,6 +1159,58 @@
                 renderOrderSummary();
             } catch (err) { /* use defaults */ }
         }
+        function openUpiModal() {
+            const modal = document.getElementById('upiChooserModal');
+            const content = document.getElementById('upiChooserContent');
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before animating transform
+            setTimeout(() => {
+                content.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeUpiModal() {
+            const modal = document.getElementById('upiChooserModal');
+            const content = document.getElementById('upiChooserContent');
+            content.classList.add('translate-y-full');
+            // Wait for transition before hiding
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
     </script>
+
+    <!-- UPI App Chooser Bottom Sheet Modal -->
+    <div id="upiChooserModal" class="fixed inset-0 z-50 flex items-end justify-center hidden bg-black bg-opacity-50 transition-opacity" onclick="if(event.target===this) closeUpiModal()">
+        <div class="bg-white w-full max-w-md rounded-t-3xl shadow-xl overflow-hidden transform translate-y-full transition-transform duration-300" id="upiChooserContent">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Select UPI App</h3>
+                    <button onclick="closeUpiModal()" class="text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-4 mb-2">
+                    <a id="modal-btn-gpay" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png" class="w-8 h-8 object-contain" alt="GPay">
+                        Google Pay
+                    </a>
+                    <a id="modal-btn-phonepe" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-purple-700 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
+                        <svg class="w-8 h-8 text-purple-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-4H7l4.5-5.5L16 13h-2v4z"/></svg>
+                        PhonePe
+                    </a>
+                    <a id="modal-btn-paytm" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-blue-600 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
+                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-3H9v-2h2V9h2v2h2v2h-2v3z"/></svg>
+                        Paytm
+                    </a>
+                    <a id="modal-btn-other-upi" href="#" onclick="closeUpiModal()" class="w-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold py-4 px-5 rounded-2xl shadow-sm flex items-center gap-4 transition text-lg">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Other UPI App
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
