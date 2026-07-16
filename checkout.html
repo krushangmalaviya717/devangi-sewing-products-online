@@ -199,8 +199,11 @@
                                 <p class="text-xs text-gray-600 mb-2">Please enter your address above to calculate final shipping cost and generate your QR Code.</p>
                             </div>
                             <div id="upi-qr-ready" class="hidden">
-                                <p class="text-sm font-semibold mb-2">Scan QR Code</p>
+                                <p class="text-sm font-semibold mb-2">Scan QR or Tap to Pay</p>
                                 <img id="upi-qr-image" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-lg border border-gray-200 mb-2 object-contain bg-white p-2">
+                                <a id="upi-intent-btn" href="#" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg my-3 transition-colors shadow-sm">
+                                    Tap to Pay with UPI App
+                                </a>
                                 <p class="text-sm font-bold text-gray-800" id="upi-qr-amount-text"></p>
                                 <p class="text-xs text-gray-500 mt-1">Pay using GPay, PhonePe, Paytm</p>
                                 <p class="text-xs text-gray-400 mt-2">You will be redirected to WhatsApp to share the receipt after placing the order.</p>
@@ -542,6 +545,11 @@
             const storeName = 'Devangi Sewing Products';
             const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(storeName)}&am=${total}&cu=INR`;
             document.getElementById('upi-qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
+            
+            const intentBtn = document.getElementById('upi-intent-btn');
+            if (intentBtn) {
+                intentBtn.href = upiUrl;
+            }
         }
 
         async function loadSavedAddresses() {
@@ -1072,6 +1080,7 @@
                 const codEnabled = settings.payment_enable_cod !== '0';
                 const onlineEnabled = settings.payment_enable_online !== '0';
                 const whatsappEnabled = settings.payment_enable_whatsapp === '1';
+                const upiQrEnabled = settings.payment_enable_upi_qr !== '0'; // Default to true if missing
                 
                 // Store WhatsApp order number for later use
                 whatsappOrderNumber = settings.payment_whatsapp_number || settings.whatsapp_number || '';
@@ -1079,33 +1088,21 @@
                 const payCodEl = document.getElementById('pay-cod');
                 const payOnlineEl = document.getElementById('pay-online');
                 const payWhatsappEl = document.getElementById('pay-whatsapp');
+                const payUpiQrEl = document.getElementById('pay-upi-qr');
                 
-                if (payCodEl && payOnlineEl && payWhatsappEl) {
+                if (payCodEl && payOnlineEl && payWhatsappEl && payUpiQrEl) {
                     // Show/hide based on enabled status
-                    if (!codEnabled) {
-                        payCodEl.style.display = 'none';
-                    } else {
-                        payCodEl.style.display = 'flex';
-                    }
-                    
-                    if (!onlineEnabled) {
-                        payOnlineEl.style.display = 'none';
-                    } else {
-                        payOnlineEl.style.display = 'flex';
-                    }
-                    
-                    if (whatsappEnabled) {
-                        payWhatsappEl.style.display = 'flex';
-                    } else {
-                        payWhatsappEl.style.display = 'none';
-                    }
+                    payCodEl.style.display = codEnabled ? 'flex' : 'none';
+                    payOnlineEl.style.display = onlineEnabled ? 'flex' : 'none';
+                    payWhatsappEl.style.display = whatsappEnabled ? 'flex' : 'none';
+                    payUpiQrEl.style.display = upiQrEnabled ? 'flex' : 'none';
 
                     // Remove any previous no-payment message
                     const existingMsg = document.getElementById('no-payment-methods-msg');
                     if (existingMsg) existingMsg.remove();
                     
                     // Auto selection logic — pick first available method
-                    const anyEnabled = codEnabled || onlineEnabled || whatsappEnabled;
+                    const anyEnabled = codEnabled || onlineEnabled || whatsappEnabled || upiQrEnabled;
                     if (!anyEnabled) {
                         // No payment methods — show warning
                         let msgEl = document.createElement('p');

@@ -476,6 +476,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 'payment_enable_cod': '1',
                 'payment_enable_online': '1',
                 'payment_enable_whatsapp': '0',
+                'payment_enable_upi_qr': '1',
                 'payment_whatsapp_number': '',
                 'homepage_show_trust_badges': '1',
                 'homepage_show_testimonials': '1',
