@@ -2007,7 +2007,11 @@ function sendWhatsAppAlert(alertType) {
     if (storeUrl.includes('localhost') || storeUrl.includes('127.0.0.1')) {
         storeUrl = window.location.origin;
     }
-    const trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
+    
+    let trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
+    if (alertType === 'payment_pending') {
+        trackingUrl = `${storeUrl}/pay.html?phone=${order.phone}&order_id=${order.id}`;
+    }
     const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
     
     const message = template
