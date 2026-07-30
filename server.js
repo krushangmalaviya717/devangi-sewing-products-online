@@ -502,7 +502,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 'whatsapp_ultramsg_instance': '',
                 'whatsapp_ultramsg_token': '',
                 'whatsapp_template_delivered': 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view your order details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸',
-                'whatsapp_template_payment_pending': 'Hello {name},\n\nYour order #{order_id} from {store_name} is pending payment of Rs. {total_amount}. ⚠️\n\nPlease complete the payment to confirm your order. If you have already paid, please ignore this message.\n\nThank you! 🌸'
+                'whatsapp_template_payment_pending': 'Hello {name},\n\nYour order #{order_id} from {store_name} is pending payment of Rs. {total_amount}. ⚠️\n\nPlease complete the payment to confirm your order by clicking the link below:\n{tracking_url}\n\nIf you have already paid, please ignore this message.\n\nThank you! 🌸'
             };
             Object.entries(defaults).forEach(([key, val]) => {
                 db.run('INSERT OR IGNORE INTO store_settings (setting_key, setting_value) VALUES (?, ?)', [key, val]);
