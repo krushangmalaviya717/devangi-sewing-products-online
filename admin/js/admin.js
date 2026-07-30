@@ -884,9 +884,12 @@ async function fetchProducts() {
                 : '<span class="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full font-medium">Inactive</span>';
 
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-move';
+            tr.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
             tr.dataset.id = p.id;
             tr.innerHTML = `
+                <td class="p-4 drag-handle cursor-move text-gray-300 hover:text-gray-500" title="Drag to reorder">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path></svg>
+                </td>
                 <td class="p-4">
                     <div class="relative">
                         <img src="${displayImg}" alt="${p.title}" class="w-14 h-14 rounded-lg object-cover border border-gray-200">
@@ -934,6 +937,7 @@ async function fetchProducts() {
         if (window.Sortable && tbody) {
             Sortable.create(tbody, {
                 animation: 150,
+                handle: '.drag-handle',
                 ghostClass: 'bg-pink-50',
                 onEnd: async function () {
                     const rows = Array.from(tbody.querySelectorAll('tr'));
