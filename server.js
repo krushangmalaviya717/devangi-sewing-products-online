@@ -1226,7 +1226,7 @@ app.get('/api/search', (req, res) => {
     if (!q) return res.json([]);
 
     const sql = `SELECT id, title, image, price, category FROM products 
-                 WHERE title LIKE ? OR category LIKE ? 
+                 WHERE (title LIKE ? OR category LIKE ?) AND COALESCE(selling_on, 1) = 1 
                  LIMIT 5`;
     const params = [`%${q}%`, `%${q}%`];
 
