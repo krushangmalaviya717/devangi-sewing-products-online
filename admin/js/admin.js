@@ -1983,6 +1983,8 @@ function sendWhatsAppAlert(alertType) {
         template = settings.whatsapp_template_shipped || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been shipped! 🚀\nCourier: {courier}\nTracking No: {tracking_number}\n\nTrack here: {tracking_url}';
     } else if (alertType === 'delivered') {
         template = settings.whatsapp_template_delivered || 'Hello {name},\n\nYour order #{order_id} from {store_name} has been delivered successfully! 🎉\n\nYou can view details and download the invoice here: {tracking_url}\n\nThank you for shopping with us! 🌸';
+    } else if (alertType === 'payment_pending') {
+        template = settings.whatsapp_template_payment_pending || 'Hello {name},\n\nYour order #{order_id} from {store_name} is pending payment of Rs. {total_amount}. ⚠️\n\nPlease complete the payment to confirm your order. If you have already paid, please ignore this message.\n\nThank you! 🌸';
     } else {
         template = settings.whatsapp_template_placed || 'Hello {name},\n\nThank you for shopping at {store_name}! 🌸\n\nYour Order #{order_id} has been placed successfully.\nTotal Amount: Rs. {total_amount}\nPayment Method: {payment_method}\n\nTrack your order here: {tracking_url}';
     }
