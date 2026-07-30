@@ -2010,7 +2010,7 @@ function sendWhatsAppAlert(alertType) {
     
     let trackingUrl = `${storeUrl}/track-order.html?phone=${order.phone}&order_id=${order.id}`;
     if (alertType === 'payment_pending') {
-        trackingUrl = `${storeUrl}/pay.html?phone=${order.phone}&order_id=${order.id}`;
+        trackingUrl = `${storeUrl}/payment.html?phone=${order.phone}&order_id=${order.id}`;
     }
     const customerName = order.fullname || `${order.first_name} ${order.last_name}`;
     
