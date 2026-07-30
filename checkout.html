@@ -550,13 +550,13 @@
             // Generate Transaction Note (Max 50 chars)
             const phone = document.getElementById('addr-phone').value || '';
             const fName = document.getElementById('addr-firstname').value || '';
-            let itemDesc = '';
-            if (cartItems && cartItems.length === 1) {
-                itemDesc = (cartItems[0].title || cartItems[0].name || '').substring(0, 15);
-            } else if (cartItems && cartItems.length > 1) {
-                itemDesc = `${cartItems.length} Items`;
-            }
-            let note = `${fName} ${phone} ${itemDesc}`.trim();
+            const city = document.getElementById('addr-city').value || '';
+            
+            const itemNames = (cartItems || []).map(i => i.title || i.name || '').join(',');
+            
+            let note = `${fName} ${phone} ${city} - ${itemNames}`;
+            note = note.replace(/\s+/g, ' ').trim(); // clean spaces
+            
             if (note.length > 50) note = note.substring(0, 50);
             
             const upiParams = `?pa=${upiId}&pn=${encodeURIComponent(storeName)}&am=${total}&cu=INR&tn=${encodeURIComponent(note)}`;

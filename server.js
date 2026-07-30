@@ -179,7 +179,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 { name: 'rating', def: 'REAL DEFAULT 4.9' },
                 { name: 'badge', def: 'TEXT' },
                 { name: 'related_products', def: 'TEXT' },
-                { name: 'selling_on', def: 'INTEGER DEFAULT 1' }
+                { name: 'selling_on', def: 'INTEGER DEFAULT 1' },
+                { name: 'sort_order', def: 'INTEGER DEFAULT 0' }
             ];
             newCols.forEach(col => {
                 db.run(`ALTER TABLE products ADD COLUMN ${col.name} ${col.def}`, (err) => {
@@ -1200,8 +1201,8 @@ app.delete('/api/categories/:id', (req, res) => {
 app.get('/api/products', (req, res) => {
     const isAdmin = req.session && req.session.adminUser && req.query.admin === 'true';
     const query = isAdmin 
-        ? 'SELECT * FROM products ORDER BY id DESC' 
-        : 'SELECT * FROM products WHERE COALESCE(selling_on, 1) = 1 ORDER BY id DESC';
+        ? 'SELECT * FROM products ORDER BY sort_order ASC, id DESC' 
+        : 'SELECT * FROM products WHERE COALESCE(selling_on, 1) = 1 ORDER BY sort_order ASC, id DESC';
 
     db.all(query, [], (err, rows) => {
         if (err) {
@@ -1374,6 +1375,37 @@ app.put('/api/products/:id', upload.array('new_images', 10), (req, res) => {
             if (err) return res.status(500).json({ error: err.message });
             logAdminAction(req, 'product_edit', `Updated product: ${title} (ID: ${id})`);
             res.json({ message: 'Product updated successfully' });
+        });
+    });
+});
+
+// Reorder products
+app.post('/api/products/reorder', (req, res) => {
+    // Check if user is admin - in a real app use middleware
+    if (!req.session || !req.session.adminUser) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { items } = req.body;
+    if (!Array.isArray(items)) return res.status(400).json({ error: 'Invalid items array' });
+
+    let completed = 0;
+    let hasError = false;
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+        items.forEach((item) => {
+            db.run('UPDATE products SET sort_order = ? WHERE id = ?', [item.sort_order, item.id], (err) => {
+                if (err) hasError = true;
+            });
+        });
+        
+        db.run('COMMIT', (err) => {
+            if (err || hasError) {
+                res.status(500).json({ error: 'Failed to reorder products' });
+            } else {
+                res.json({ success: true });
+            }
         });
     });
 });

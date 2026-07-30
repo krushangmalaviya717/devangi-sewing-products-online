@@ -884,7 +884,8 @@ async function fetchProducts() {
                 : '<span class="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full font-medium">Inactive</span>';
 
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
+            tr.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-move';
+            tr.dataset.id = p.id;
             tr.innerHTML = `
                 <td class="p-4">
                     <div class="relative">
@@ -929,6 +930,35 @@ async function fetchProducts() {
             `;
             tbody.appendChild(tr);
         });
+
+        if (window.Sortable && tbody) {
+            Sortable.create(tbody, {
+                animation: 150,
+                ghostClass: 'bg-pink-50',
+                onEnd: async function () {
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    const items = rows.map((row, index) => ({
+                        id: parseInt(row.dataset.id),
+                        sort_order: index
+                    }));
+
+                    try {
+                        const res = await fetch('/api/products/reorder', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ items })
+                        });
+                        if (res.ok) {
+                            showToast('Product order updated! ✅');
+                        } else {
+                            showToast('Failed to update product order ❌');
+                        }
+                    } catch (error) {
+                        console.error('Error reordering products:', error);
+                    }
+                }
+            });
+        }
     } catch (error) {
         console.error('Error fetching products:', error);
     }
