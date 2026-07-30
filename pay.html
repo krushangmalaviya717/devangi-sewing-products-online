@@ -98,7 +98,7 @@
             }
 
             try {
-                const res = await fetch(`/api/track-order?phone=${encodeURIComponent(phoneStr)}&order_id=${encodeURIComponent(orderIdStr)}`);
+                const res = await fetch(`/api/guest/track-order?phone=${encodeURIComponent(phoneStr)}&order_id=${encodeURIComponent(orderIdStr)}`);
                 if (!res.ok) {
                     showError('Order not found. Please check your link.');
                     return;
